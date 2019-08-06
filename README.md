@@ -33,7 +33,12 @@ Day 2 will be about forecasting. We will look at some classical time series mode
 
 ## Learning objectives
 
-LEARNING_OBJECTIVES
+Attendees will learn:
+
+1. How to wrangle time series data with familiar tidy tools. 
+2. How to compute time series features and visualize large collections of time series. 
+3. How to select a good forecasting algorithm for your time series. 
+4. How to ensure forecasts of a large collection of time series are coherent.
 
 ## Is this course for me?
 
