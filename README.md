@@ -1,4 +1,4 @@
-WORKSHOP_TITLE
+Tidy Time Series and Forecasting in R
 ================
 
 ### rstudio::conf 2020
