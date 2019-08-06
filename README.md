@@ -3,7 +3,7 @@ Tidy Time Series and Forecasting in R
 
 ### rstudio::conf 2020
 
-by INSTRUCTOR_NAME
+by Rob Hyndman
 
 -----
 
