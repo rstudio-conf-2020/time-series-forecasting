@@ -42,7 +42,11 @@ Attendees will learn:
 
 ## Is this course for me?
 
-THREE_QUESTIONS
+This course will be appropriate for you if you answer yes to these questions:
+
+1. Do you already use the tidyverse packages in R such as dplyr, tidyr, tibble and ggplot2?
+2. Do you need to analyse large collections of related time series?
+3. Would you like to learn how to use some new tidy tools for time series analysis including visualization, decomposition and forecasting?
 
 ## Prework
 
