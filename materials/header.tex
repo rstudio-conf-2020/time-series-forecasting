@@ -1,0 +1,72 @@
+% Packages
+\usepackage{bm,booktabs,animate,ragged2e,multicol}
+\DeclareUnicodeCharacter{03BC}{$\mu$}
+
+% Figures
+\graphicspath{{../figs/}{figs/}}
+\def\full#1{\vspace*{0.15cm}\centerline{\includegraphics[width=12.8cm,height=8.3cm,keepaspectratio=true]{#1}}}
+
+% Fonts
+\fontsize{13}{15}\sf
+\usepackage[scale=0.85]{sourcecodepro}
+\DisableLigatures{encoding = T1, family = tt*}
+\setbeamerfont{title}{series=\bfseries,parent=structure,size=\fontsize{18}{20}}
+
+% Monash title page
+\setbeamerfont{title}{series=\bfseries,parent=structure,size={\fontsize{26}{30}}}
+\setbeamertemplate{title page}
+{\placefig{-0.01}{-0.01}{width=1.01\paperwidth,height=1.01\paperheight}{titlepage}
+\begin{textblock}{7.5}(.7,2)\fontsize{24}{26}\sf
+{\color{white}\raggedright\usebeamerfont{title}\par\inserttitle}
+\end{textblock}
+\placefig{.5}{4.3}{width=2.5cm}{tsibble.png}
+\placefig{3.}{4.3}{width=2.5cm}{feasts.png}
+\placefig{5.5}{4.3}{width=2.5cm}{fable.png}
+\begin{textblock}{7.5}(.7,7.8)
+{\fontsize{13}{13}\sf\color{white}\raggedright{\insertauthor}}
+\end{textblock}
+\begin{textblock}{7.5}(.7,8.7)
+{\fontsize{11}{11}\sf\color{DarkYellow}\insertdate}
+\end{textblock}
+}
+
+% Colors
+\setbeamercolor{description item}{fg=Orange}
+
+
+% My definitions
+
+\def\E{\text{E}}
+\def\V{\text{Var}}
+\def\up#1{\raisebox{-0.3cm}{#1}}
+\def\pred#1#2#3{\hat{#1}_{#2|#3}}
+\def\damped{$_\text{d}$}
+\def\h+{h_{m}^{+}}
+\def\st#1{\rlap{#1}\textcolor{red}{\rule{1cm}{0.1cm}}}
+\def\bY{\bm{y}}
+\def\by{\bm{y}}
+\def\bS{\bm{S}}
+\def\bI{\text{\rm\textbf{I}}}
+\def\bbeta{\bm{\beta}}
+\def\bSigma{\bm{\Sigma}}
+\def\bW{\bm{\Sigma}}
+\def\Var{\text{Var}}
+\def\var{\text{Var}}
+\def\bOmega{\bm{\Omega}}
+\def\bLambda{\bm{\Lambda}}
+\let\mc\multicolumn
+\def\hl{\color[RGB]{230, 172, 0}}
+
+
+
+\usepackage{tikz}
+
+\usetikzlibrary{trees,shapes,arrows,matrix}
+\tikzstyle{decision} = [diamond, draw, fill=blue!20,
+    text width=4.5em, text badly centered, node distance=4cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20,
+    text width=5cm, text centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, thick, -latex']
+\tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=3cm,
+    minimum height=2em, text centered]
+\tikzstyle{connector} = [->,thick]

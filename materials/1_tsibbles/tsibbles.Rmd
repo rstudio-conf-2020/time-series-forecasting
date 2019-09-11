@@ -1,0 +1,392 @@
+---
+title: "High dimensional time series analysis"
+date: "robjhyndman.com/hdtsa"
+author: "1. Tidy time series tsibbles"
+toc: true
+output:
+  binb::monash:
+    colortheme: monashwhite
+    fig_width: 7
+    fig_height: 3.5
+    includes:
+      in_header: ../header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
+  dev.args = list(pointsize = 11)
+)
+options(digits = 3, width = 60)
+library(fpp3)
+global_economy <- global_economy %>%
+  select(Year, Country, GDP, Imports, Exports, Population)
+tourism <- tourism %>%
+  mutate(
+    State = recode(State,
+                   "Australian Capital Territory" = "ACT",
+                   "New South Wales"="NSW",
+                   "Northern Territory" = "NT",
+                   "Queensland" = "QLD",
+                   "South Australia" = "SA",
+                   "Tasmania" = "TAS",
+                   "Victoria"="VIC",
+                   "Western Australia" = "WA"
+    )
+  )
+```
+
+# Time series data and tsibbles
+
+## Tidyverts packages
+
+\begin{textblock}{3.8}(8,0)\begin{alertblock}{}\Large\textbf{tidyverts.org}\end{alertblock}\end{textblock}
+
+\placefig{1}{1.4}{width=4cm}{tsibble.png}
+\placefig{5}{1.4}{width=4cm}{tsibbledata.png}
+\placefig{3}{4.85}{width=4cm}{feasts.png}
+\placefig{7}{4.85}{width=4cm}{fable.png}
+
+## Time series data
+
+  - Four-yearly Olympic winning times
+  - Annual Google profits
+  - Quarterly Australian beer production
+  - Monthly rainfall
+  - Weekly retail sales
+  - Daily IBM stock prices
+  - Hourly electricity demand
+  - 5-minute freeway traffic counts
+  - Time-stamped stock transaction data
+
+## Class packages
+\fontsize{13}{14}\sf
+
+```r
+# Data manipulation and plotting functions
+library(tidyverse)
+# Time series manipulation
+library(tsibble)
+# Forecasting functions
+library(fable)
+# Time series graphics and statistics
+library(feasts)
+# Tidy time series data
+library(tsibbledata)
+```
+
+## `tsibble` objects
+
+\fontsize{10}{11.2}\sf
+
+```{r, echo = TRUE}
+global_economy
+```
+
+\only<2->{\begin{textblock}{.75}(2.15,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Index\phantom{dg}\end{alertblock}
+\end{textblock}}
+\only<3->{\begin{textblock}{1.6}(3.28,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Key\phantom{dg}\end{alertblock}
+\end{textblock}}
+\only<4>{\begin{textblock}{6.7}(5.5,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Measured variables\phantom{dg}\end{alertblock}
+\end{textblock}}
+
+## `tsibble` objects
+
+\fontsize{10}{11.3}\sf
+
+```{r, echo = TRUE}
+tourism
+```
+
+\only<2->{\begin{textblock}{1.1}(2.1,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Index\phantom{dg}\end{alertblock}
+\end{textblock}}
+\only<3->{\begin{textblock}{3.9}(3.65,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Keys\phantom{dg}\end{alertblock}
+\end{textblock}}
+\only<4-5>{\begin{textblock}{1.5}(7.95,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Measure\phantom{dg}\end{alertblock}
+\end{textblock}}
+
+\only<5>{\begin{textblock}{3}(9,5)
+\begin{block}{}\fontsize{10}{10}\sf Domestic visitor nights in thousands by state/region and purpose.\phantom{dg}\end{block}
+\end{textblock}}
+
+## `tsibble` objects
+
+* A `tsibble` allows storage and manipulation of multiple time series in R.
+
+* It contains:
+
+  + An index: time information about the observation
+  + Measured variable(s): numbers of interest
+  + Key variable(s): optional unique identifiers for each series
+
+* It works with tidyverse functions.
+
+## The `tsibble` index
+
+### Example
+\fontsize{12}{13}\sf
+
+```{r tstable, cache=TRUE}
+mydata <- tsibble(year = 2012:2016,
+  y = c(123,39,78,52,110), index = year)
+mydata
+```
+
+## The `tsibble` index
+
+\begin{block}{}
+For observations more frequent than once per year, we need to use a time class function on the index.
+\end{block}
+\fontsize{12}{13}\sf
+
+```{r tstablemonth, echo=FALSE}
+z <- tibble(Month = paste(2019, month.abb[1:5]), Observation = c(50, 23, 34, 30, 25))
+#knitr::kable(z, booktabs=TRUE)
+```
+
+```{r tstablemonth2}
+z
+```
+
+## The `tsibble` index
+
+\begin{block}{}
+For observations more frequent than once per year, we need to use a time class function on the index.
+\end{block}
+\fontsize{12}{13}\sf
+
+```{r month-tsibble}
+z %>%
+  mutate(Month = yearmonth(Month)) %>%
+  as_tsibble(index = Month)
+```
+
+## The `tsibble` index
+
+Common time index variables can be created with these functions:
+
+###
+```{r tstable2, echo=FALSE}
+tribble(
+  ~ `Frequency`, ~ Function,
+  "Annual", "`start:end`",
+  "Quarterly", "`yearquarter()`",
+  "Monthly", "`yearmonth()`",
+  "Weekly", "`yearweek()`",
+  "Daily", "`as_date()`, `ymd()`",
+  "Sub-daily", "`as_datetime()`"
+) %>%
+  knitr::kable(booktabs=TRUE)
+```
+
+# Example: Australian prison population
+
+## Australian prison population
+
+\full{Beechworth_prison}
+
+## Create a tsibble from a csv
+\fontsize{13}{14}\sf
+
+```{r prison, echo=FALSE, warning=FALSE, message=FALSE}
+prison <- readr::read_csv("prison_population.csv")
+prison %>%
+  head(15) %>%
+  knitr::kable(booktabs=TRUE)
+```
+
+## Read a csv file and convert to a tsibble {-}
+\fontsize{10}{11}\sf
+
+```{r prison2, eval=FALSE}
+prison <- readr::read_csv("prison_population.csv")
+```
+
+```{r prison2a, dependson="prison", echo=FALSE}
+prison
+```
+
+## Read a csv file and convert to a tsibble {-}
+\fontsize{10}{11}\sf
+
+```{r prison3}
+prison <- readr::read_csv("prison_population.csv") %>%
+  mutate(Quarter = yearquarter(date))
+```
+
+```{r prison3a, dependson="prison3", echo=FALSE}
+prison
+```
+
+## Read a csv file and convert to a tsibble {-}
+\fontsize{10}{11}\sf
+
+```{r prison4}
+prison <- readr::read_csv("prison_population.csv") %>%
+  mutate(Quarter = yearquarter(date)) %>%
+  select(-date)
+```
+
+```{r prison4a, dependson="prison4", echo=FALSE}
+prison
+```
+
+## Read a csv file and convert to a tsibble {-}
+\fontsize{10}{11}\sf
+
+```{r prison5}
+prison <- readr::read_csv("prison_population.csv") %>%
+  mutate(Quarter = yearquarter(date)) %>%
+  select(-date) %>%
+  as_tsibble(index=Quarter,
+    key=c(state, gender, legal, indigenous))
+```
+
+```{r prison5a, dependson="prison5", echo=FALSE}
+prison
+```
+
+# Example: Australian pharmaceutical sales
+
+## Australian Pharmaceutical Benefits Scheme
+
+\full{pills}
+
+## Australian Pharmaceutical Benefits Scheme
+\begin{block}{}
+The \alert{Pharmaceutical Benefits Scheme} (PBS) is the Australian government drugs subsidy scheme.
+\end{block}
+\pause\fontsize{13.3}{15}\sf
+
+  * Many drugs bought from pharmacies are subsidised to allow more equitable access to modern drugs.
+  * The cost to government is determined by the number and types of drugs purchased. Currently nearly 1\% of GDP.
+  * The total cost is budgeted based on forecasts of drug usage.
+  * Costs are disaggregated by drug type (ATC1 x`r length(unique(PBS$ATC1))` / ATC2 `r length(unique(PBS$ATC2))`), concession category (x`r length(unique(PBS$Concession))`) and patient type (x`r length(unique(PBS$Type))`), giving $84\times2\times2=`r 84*2*2`$ time series.
+
+## Working with `tsibble` objects {-}
+\fontsize{8}{10}\sf
+
+```{r wide, include=FALSE}
+options(width=78)
+```
+
+```{r pbs1, dependson='wide'}
+PBS
+```
+
+## Working with `tsibble` objects {-}
+\fontsize{12}{14}\sf
+
+We can use the `filter()` function to select rows.
+
+\fontsize{8}{10}\sf
+
+```{r pbs2}
+PBS %>%
+  filter(ATC2=="A10")
+```
+
+## Working with `tsibble` objects {-}
+\fontsize{12}{14}\sf
+
+We can use the `select()` function to select columns.
+
+\fontsize{8}{10}\sf
+
+```r
+PBS %>%
+  filter(ATC2=="A10") %>%
+  select(Cost)
+```
+
+```
+Selecting index: "Month"
+Error: The result is not a valid tsibble.
+Do you need `as_tibble()` to work with data frame?
+```
+
+\vspace*{10cm}
+
+## Working with `tsibble` objects {-}
+\fontsize{12}{14}\sf
+
+We can use the `select()` function to select columns.
+
+\fontsize{8}{10}\sf
+
+```{r pbs3}
+PBS %>%
+  filter(ATC2=="A10") %>%
+  select(Month, Concession, Type, Cost)
+```
+
+## Working with `tsibble` objects {-}
+\fontsize{12}{14}\sf
+
+We can use the `summarise()` function to summarise over keys.
+
+\fontsize{8}{10}\sf
+
+```{r pbs4}
+PBS %>%
+  filter(ATC2=="A10") %>%
+  select(Month, Concession, Type, Cost) %>%
+  summarise(total_cost = sum(Cost))
+```
+
+## Working with `tsibble` objects {-}
+\fontsize{12}{14}\sf
+
+We can use the `mutate()` function to create new variables.
+
+\fontsize{8}{10}\sf
+
+```{r pbs5}
+PBS %>%
+  filter(ATC2=="A10") %>%
+  select(Month, Concession, Type, Cost) %>%
+  summarise(total_cost = sum(Cost)) %>%
+  mutate(total_cost = total_cost/1e6)
+```
+
+## Working with `tsibble` objects {-}
+\fontsize{12}{14}\sf
+
+We can use the `mutate()` function to create new variables.
+
+\fontsize{8}{10}\sf
+
+```{r pbs6}
+PBS %>%
+  filter(ATC2=="A10") %>%
+  select(Month, Concession, Type, Cost) %>%
+  summarise(total_cost = sum(Cost)) %>%
+  mutate(total_cost = total_cost/1e6) -> a10
+```
+
+```{r a10, echo=FALSE}
+a10
+```
+
+```{r narrow, include=FALSE}
+options(width=60)
+```
+
+# Lab Session 1
+
+## Lab Session 1
+\fontsize{14}{15}\sf
+
+ 1. Download [`tourism.xlsx`](http://robjhyndman.com/data/tourism.xlsx) from [`http://robjhyndman.com/data/tourism.xlsx`](http://robjhyndman.com/data/tourism.xlsx), and read it into R using `read_excel()` from the `readxl` package.
+ 2. Create a tsibble which is identical to the `tourism` tsibble from the `tsibble` package.
+ 3. Find what combination of `Region` and `Purpose` had the maximum number of overnight trips on average.
+ 4. Create a new tsibble which combines the Purposes and Regions, and just has total trips by State.
+
+
+

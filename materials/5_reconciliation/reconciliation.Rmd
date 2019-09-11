@@ -1,0 +1,486 @@
+---
+title: "High dimensional time series analysis"
+date: "robjhyndman.com/hdtsa"
+author: "5. Forecast reconciliation"
+toc: true
+output:
+  binb::monash:
+    colortheme: monashwhite
+    fig_width: 7
+    fig_height: 3.5
+    includes:
+      in_header: ../header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
+  dev.args = list(pointsize = 11)
+)
+options(digits = 3, width = 60)
+library(fpp3)
+```
+
+# Hierarchical and grouped time series
+
+## Australian Pharmaceutical Benefits Scheme
+
+\full{pills}
+
+## PBS sales
+\fontsize{9}{10}\sf
+
+```{r setwidth, include=FALSE}
+fred <- options(width=71)
+```
+
+```{r pbs, dependson='setwidth'}
+PBS
+```
+
+```{r setwidthback, include=FALSE}
+options(width=fred$width)
+```
+
+## ATC drug classification
+\fontsize{12}{13}\sf
+
+\hspace*{-0.5cm}\begin{tabular}{lp{10.7cm}}
+A &Alimentary tract and metabolism\\
+B &Blood and blood forming organs\\
+C &Cardiovascular system\\
+D &Dermatologicals\\
+G &Genito-urinary system and sex hormones\\
+H &Systemic hormonal preparations, excluding sex hormones and insulins\\
+J &Anti-infectives for systemic use\\
+L &Antineoplastic and immunomodulating agents\\
+M &Musculo-skeletal system\\
+N &Nervous system\\
+P &Antiparasitic products, insecticides and repellents\\
+R &Respiratory system\\
+S &Sensory organs\\
+V &Various
+\end{tabular}
+
+## ATC drug classification
+\hspace*{-1.5cm}\begin{minipage}{9.6cm}
+\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,font=\small,draw,fill=red!15]
+\tikzstyle[level font=\small,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 1}=[font=\small,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 2}=[font=\small,set style={{every node}+=[fill=yellow]}]
+\node[label=right:\hspace*{-0.cm}Alimentary tract and metabolism,label=left:\textbf{ATC1: 14 classes}\hspace*{0.3cm}]{A}[edge from parent fork down]
+   child {node[label=right:\hspace*{-0.0cm}Drugs used in diabetes,label=left:\textbf{ATC2: 84 classes}]{A10}
+     child {node[label=right:\hspace*{-0.35cm}Blood glucose lowering drugs]{A10B}
+       child {node[label=right:\hspace*{0.1cm}Biguanides]{A10BA}
+         child {node[label=right:\hspace*{-0.15cm}Metformin]{A10BA02}
+ }}}};
+ \end{tikzpicture}
+\end{minipage}
+
+## Hierarchical time series
+\fontsize{13}{14}\sf
+
+A \alert{\textbf{hierarchical time series}} is a collection of several time series that are linked together in a hierarchical structure.
+
+\begin{minipage}{9.6cm}
+\begin{block}{}
+\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,fill=red!15]
+\tikzstyle[level distance=.1cm]
+\tikzstyle[sibling distance=7cm]
+\tikzstyle{level 1}=[sibling distance=33mm,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=yellow]}]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+   child {node {AA}}
+   child {node {AB}}
+   child {node {AC}}
+ }
+ child {node {B}
+   child {node {BA}}
+   child {node {BB}}
+   child {node {BC}}
+ }
+ child {node {C}
+   child {node {CA}}
+   child {node {CB}}
+   child {node {CC}}
+ };
+\end{tikzpicture}
+\end{block}
+\end{minipage}
+
+\pause\alert{Examples}\vspace*{-0.2cm}
+
+ * PBS sales by ATC groups
+ * Tourism demand by states, zones, regions
+
+## Australian tourism
+\full{regions1_with_labels}
+
+## Australian tourism
+\fontsize{11}{12}\sf
+
+```{r tourism}
+tourism
+```
+
+## Australian tourism
+
+\begin{textblock}{10}(1,1.5)\small
+\begin{block}{}
+  \begin{itemize}\itemsep=0cm\parskip=0cm
+    \item Quarterly data on visitor night from 1998:Q1 -- 2013:Q4
+    \item From: \textit{National Visitor Survey}, based on annual interviews of 120,000 Australians aged 15+, collected by Tourism Research Australia.
+    \item Split by 7 states, 27 zones and 76 regions (a geographical hierarchy)
+    \item Also split by purpose of travel
+      \begin{itemize}
+        \item Holiday
+        \item Visiting friends and relatives (VFR)
+        \item Business
+        \item Other
+      \end{itemize}
+    \item 304 bottom-level series
+  \end{itemize}
+\end{block}
+\end{textblock}
+
+## Grouped time series
+\fontsize{13}{14}\sf
+
+A \alert{\textbf{grouped time series}} is a collection of time series that can be grouped together in a number of non-hierarchical ways.
+
+\begin{minipage}{9.2cm}
+\begin{block}{}
+\begin{tikzpicture}[level distance=1.5cm]
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,outer sep=0pt, fill=red!15]
+\tikzstyle{level 1}=[sibling distance=23mm,set style={{every node}+=[fill=blue!15]},level distance=1cm]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=yellow]}, level distance=0.9cm]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+   child {node {AX}}
+   child {node {AY}}
+ }
+ child {node {B}
+   child {node {BX}}
+   child {node {BY}}
+ };
+\end{tikzpicture}\hspace*{1cm}
+\begin{tikzpicture}[level distance=1.5cm]
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,outer sep=0pt, fill=red!15]
+\tikzstyle{level 1}=[sibling distance=23mm,set style={{every node}+=[fill=blue!15]},level distance=1cm]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=yellow]}, level distance=0.9cm]
+\node{Total}[edge from parent fork down]
+ child {node {X}
+   child {node {AX}}
+   child {node {BX}}
+ }
+ child {node {Y}
+   child {node {AY}}
+   child {node {BY}}
+ };
+\end{tikzpicture}
+\end{block}
+\end{minipage}
+
+\pause\alert{Examples}
+
+ * Tourism by state and purpose of travel
+ * Retail sales by product groups/sub groups, and by countries/regions
+
+## Creating aggregates
+\fontsize{7}{7}\sf
+
+```{r pbs_aggregate}
+PBS %>%
+  aggregate_key(ATC1/ATC2, Scripts = sum(Scripts)) %>%
+  filter(Month == yearmonth("1991 Jul")) %>% print(n=18)
+```
+
+## Creating aggregates
+\fontsize{8}{8}\sf
+
+```{r tourism_aggregate}
+tourism %>%
+  aggregate_key(Purpose * (State / Region), Trips = sum(Trips)) %>%
+  filter(Quarter == yearquarter("1998 Q1")) %>% print(n=15)
+```
+
+## Creating aggregates
+\fontsize{13}{15}\sf
+
+ * Similar to `summarise()` but using the key structure
+ * A grouped structure is specified using `grp1 * grp2`
+ * A nested structure is specified via `parent / child`.
+ * Groups and nesting can be mixed:
+
+    ```r
+    (country/region/city) * (brand/product)
+    ```
+
+ * All possible aggregates are produced.
+ * These are useful when forecasting at different levels of aggregation.
+
+# Forecast reconciliation
+
+## The problem
+\fontsize{13}{14}\sf
+
+\begin{alertblock}{}
+\begin{enumerate}\tightlist
+ \item How to forecast time series at all nodes such that the forecasts add up in the same way as the original data?
+ \item Can we exploit relationships between the series to improve the forecasts?
+\end{enumerate}
+\end{alertblock}\pause
+
+### The solution
+
+1. Forecast all series at all levels of aggregation using an automatic forecasting algorithm.\newline (e.g., `ETS`, `ARIMA`, ...)
+2. Reconcile the resulting forecasts so they add up correctly using least squares optimization (i.e., find closest reconciled forecasts to the original forecasts).
+3. This is available using `reconcile()`.
+
+## Forecast reconciliation
+\fontsize{10}{11}\sf
+
+```{r tourismets_reconciled, message=FALSE}
+tourism %>%
+  aggregate_key(Purpose*(State/Region), Trips=sum(Trips)) %>%
+  model(ets = ETS(Trips)) %>%
+  reconcile(ets_adjusted = min_trace(ets)) %>%
+  forecast(h = 2)
+```
+
+## Hierarchical and grouped time series
+
+Every collection of time series with aggregation constraints can be written as
+\begin{block}{}
+\centerline{$\by_{t}=\bS\bm{b}_{t}$}
+\end{block}
+where
+
+ * $\by_t$ is a vector of all series at time $t$
+ * $\bm{b}_t$ is a vector of the most disaggregated series at time $t$
+ * $\bS$ is a ``summing matrix'' containing the aggregation constraints.
+
+
+
+
+## Hierarchical time series
+
+\begin{minipage}{4cm}\vspace*{0.2cm}
+\begin{block}{}\centering
+\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,draw,fill=red!15,inner sep=2pt]
+\tikzstyle[level distance=.3cm]
+\tikzstyle[sibling distance=12cm]
+\tikzstyle{level 1}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=blue!15]}]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+ }
+ child {node {B}
+ }
+ child {node {C}
+ };
+\end{tikzpicture}
+\end{block}
+\end{minipage}
+
+\only<2->{\begin{textblock}{6.3}(6,1)\small
+\begin{itemize}\itemsep=0cm\parskip=0cm
+\item[$ y_{t}: $] observed aggregate of all series at time
+$t$.
+\item[$ y_{X,t}: $] observation on series $X$ at time $t$.
+\item[$ \bm{b}_{t}: $] vector of all series at bottom level
+in time $t$.
+\end{itemize}
+\end{textblock}}\vspace*{0.6cm}
+\only<3->{
+$\bY_{t}= \begin{pmatrix}
+  y_{t}\\
+  y_{A,t}\\
+  y_{B,t}\\
+  y_{C,t}
+  \end{pmatrix} = \only<3>{\hspace*{0.01cm}\begin{pmatrix}
+                1 & 1 & 1 \\
+                1 & 0 & 0 \\
+                0 & 1 & 0\\
+                0 & 0 & 1
+                \end{pmatrix}}\only<4->{{\color{blue}\underbrace{\begin{pmatrix}
+                1 & 1 & 1 \\
+                1 & 0 & 0 \\
+                0 & 1 & 0\\
+                0 & 0 & 1
+                \end{pmatrix}}_{\bS}}}\only<3>{\hspace*{0.08cm}}\only<3>{\hspace*{-0.1cm}\begin{pmatrix}Y_{A,t}\\y_{B,t}\\y_{C,t}\end{pmatrix}}\rule{0cm}{1.6cm}
+                \only<4->{\hspace*{0.08cm}{\color{red}\underbrace{\begin{pmatrix}y_{A,t}\\y_{B,t}\\y_{C,t}\end{pmatrix}}_{\bm{b}_{t}}}}$}
+
+\vspace*{-0.6cm}
+
+\only<4>{\hspace*{8cm}\colorbox[RGB]{210,210,210}{$\bY_{t}=\color{blue}\bS\color{red}\bm{b}_{t}$}}
+
+\vspace*{10cm}
+
+## Forecasting notation
+
+Let $\hat{\by}_n(h)$ be vector of initial $h$-step forecasts, made at time $n$, stacked in same order as $\by_t$. \pause\newline  (In general, they will not ``add up''.)\pause
+
+\begin{block}{}
+Reconciled forecasts must be of the form:
+$$\tilde{\by}_{n}(h)=\bS\bm{G}\hat{\by}_{n}(h)$$
+for some matrix $\bm{G}$.
+\end{block}\pause
+
+ * $\bm{G}$ extracts and combines base forecasts $\hat{\by}_{n}(h)$ to get bottom-level forecasts.
+ * $\bS$ adds them up
+
+## Optimal combination forecasts
+\fontsize{13}{14}\sf
+
+\begin{alertblock}{Main result}
+The best (minimum sum of variances) unbiased forecasts are obtained when
+$\bm{G} = (\bS'\bW^{-1}_{h}\bS)^{-1}\bS'\bW^{-1}_{h}$,
+where $\bW_h$ is the $h$-step base forecast error covariance matrix.
+\end{alertblock}
+
+\pause
+
+\begin{block}{}
+\centerline{$\displaystyle\textcolor{red}{\tilde{\by}_{n}(h)}
+=\bS(\bS'\bW^{-1}_{h}\bS)^{-1}\bS'\bW^{-1}_{h}\textcolor{blue}{\hat{\by}_{n}(h)}$}
+\end{block}\fontsize{14}{15}\sf
+
+\alert{\textbf{Problem:}} $\bW_h$ hard to estimate, especially for $h>1$.
+
+\alert{Solutions:}\vspace*{-0.4cm}
+
+ * Ignore $\bW_h$ (OLS) [`min_trace(method='ols')`]
+ * Assume $\bW_h = k_h\bW_1$ is diagonal (WLS) [`min_trace(method='wls')`]
+ * Assume $\bW_h = k_h\bW_1$ and estimate it (GLS) [`min_trace(method='shrink')` (the default)]
+
+## Features
+\fontsize{15}{17}\sf
+
+ * Covariates can be included in initial forecasts.
+ * Adjustments can be made to initial forecasts at any level.
+ * Very simple and flexible method. Can work with *any* hierarchical or grouped time series.
+ * Conceptually easy to implement: regression of base forecasts on structure matrix.
+
+# Example: Australian tourism
+
+## Example: Australian tourism
+\fontsize{12}{13}\sf
+
+```{r fctourism}
+tourism_agg <- tourism %>%
+  aggregate_key(Purpose * (State / Region),
+                Trips = sum(Trips))
+fc <- tourism_agg %>%
+  filter_index(. ~ yearquarter("2015 Q4")) %>%
+  model(ets = ETS(Trips)) %>%
+  reconcile(ets_adjusted = min_trace(ets)) %>%
+  forecast(h = "2 years")
+```
+
+## Example: Australian tourism
+\fontsize{10}{11}\sf
+
+```{r fctourism2, dependson='fctourism'}
+fc %>%
+  filter(is_aggregated(Purpose) & is_aggregated(State)) %>%
+  autoplot(tourism_agg, level=95)
+```
+
+## Example: Australian tourism
+\fontsize{10}{11}\sf
+
+```{r fctourism3, dependson='fctourism'}
+fc %>%
+  filter(is_aggregated(Purpose) & State=="Victoria" &
+         is_aggregated(Region)) %>%
+  autoplot(tourism_agg, level=95)
+```
+
+## Example: Australian tourism
+\fontsize{10}{11}\sf
+
+```{r fctourism4, dependson='fctourism'}
+fc %>%
+  filter(is_aggregated(Purpose) & Region=="Melbourne") %>%
+  autoplot(tourism_agg, level=95)
+```
+
+## Example: Australian tourism
+\fontsize{10}{11}\sf
+
+```{r fctourism5, dependson='fctourism'}
+fc %>%
+  filter(is_aggregated(Purpose) & Region=="Snowy Mountains") %>%
+  autoplot(tourism_agg, level=95)
+```
+
+## Example: Australian tourism
+\fontsize{10}{11}\sf
+
+```{r fctourism6, dependson='fctourism'}
+fc %>%
+  filter(Purpose=="Holiday" & Region=="Barossa") %>%
+  autoplot(tourism_agg, level=95)
+```
+
+## Example: Australian tourism
+\fontsize{10}{11}\sf
+
+```{r fctourism7, dependson='fctourism'}
+fc %>%
+  filter(is_aggregated(Purpose) & Region=="MacDonnell") %>%
+  autoplot(tourism_agg, level=95)
+```
+
+
+## Example: Australian tourism
+\fontsize{12}{12.5}\sf
+
+```{r fctourismcomb}
+fc <- tourism_agg %>%
+  filter_index(. ~ yearquarter("2015 Q4")) %>%
+  model(
+    ets = ETS(Trips),
+    arima = ARIMA(Trips)
+  ) %>%
+  mutate(
+    comb = (ets+arima)/2
+  ) %>%
+  reconcile(
+    ets_adj = min_trace(ets),
+    arima_adj = min_trace(arima),
+    comb_adj = min_trace(comb)
+    ) %>%
+  forecast(h = "2 years")
+```
+
+## Forecast evaluation
+\fontsize{10}{11}\sf
+
+```{r fcaccuracy, dependson='fctourismcomb'}
+fc %>% accuracy(tourism_agg)
+```
+
+## Forecast evaluation
+\fontsize{12}{13}\sf
+
+```{r fcaccuracy2, dependson='fctourismcomb'}
+fc %>% accuracy(tourism_agg) %>%
+  group_by(.model) %>%
+  summarise(MASE = mean(MASE)) %>%
+  arrange(MASE)
+```
+
+# Lab Session 10
+
+## Lab Session 10
+
+* Prepare aggregations of the PBS data by Concession, Type, and ATC1.
+* Use forecast reconciliation with the PBS data, using ETS, ARIMA and SNAIVE models, applied to all but the last 3 years of data.
+* Which type of model works best?
+* Does the reconciliation improve the forecast accuracy?
+* Why doesn't the reconcililation make any difference to the SNAIVE forecasts?

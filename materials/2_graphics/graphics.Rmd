@@ -1,0 +1,360 @@
+---
+title: "High dimensional time series analysis"
+date: "robjhyndman.com/hdtsa"
+author: "2. Time series graphics"
+toc: true
+output:
+  binb::monash:
+    colortheme: monashwhite
+    fig_width: 7
+    fig_height: 3.5
+    includes:
+      in_header: ../header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
+  dev.args = list(pointsize = 11)
+)
+options(digits = 3, width = 60)
+library(fpp3)
+```
+
+# Time plots
+## Are line plots best?
+\fontsize{11}{12}\sf
+
+```{r maxtemp, fig.height=3}
+maxtemp <- vic_elec %>%
+  index_by(Day = date(Time)) %>%
+  summarise(Temperature = max(Temperature))
+maxtemp %>%
+  autoplot(Temperature) +
+  xlab("Week") + ylab("Max temperature")
+```
+
+## Are line plots best?
+\fontsize{11}{12}\sf
+
+```{r maxtemp2, warning=FALSE, message=FALSE, dependson="maxtemp"}
+maxtemp %>%
+  ggplot(aes(x = Day, y = Temperature)) +
+  geom_point() +
+  xlab("Week") + ylab("Max temperature")
+```
+
+## Are line plots best?
+\fontsize{11}{12}\sf
+
+```{r maxtemp3, warning=FALSE, message=FALSE, dependson="maxtemp", fig.height=2.5}
+maxtemp %>%
+  ggplot(aes(x = Day, y = 1)) +
+  geom_tile(aes(fill = Temperature)) +
+  scale_fill_gradient2(low = "navy", mid = "yellow",
+                       high = "red", midpoint=28) +
+  ylab("") + scale_y_discrete(expand=c(0,0))
+```
+
+## Are line plots best?
+
+\full{TemperatureBlanket}
+
+
+## Ansett airlines
+
+\full{ansettlogo}
+
+## Ansett airlines
+\fontsize{11}{12}\sf
+
+```{r, echo=TRUE, fig.height=3.8}
+ansett %>%
+  autoplot(Passengers)
+```
+
+## Ansett airlines
+\fontsize{11}{12}\sf
+
+```{r, echo=TRUE, fig.height=3.8}
+ansett %>%
+  filter(Class=="Economy") %>%
+  autoplot(Passengers)
+```
+
+## Ansett airlines
+\fontsize{11}{12}\sf
+
+```{r, echo=TRUE, fig.height=3.8}
+ansett %>%
+  filter(Airports=="MEL-SYD") %>%
+  autoplot(Passengers)
+```
+
+## Ansett airlines
+\fontsize{11}{12}\sf
+
+```{r, echo=TRUE, fig.height=3.8}
+ansett %>%
+  filter(Airports=="MEL-SYD") %>%
+  autoplot(Passengers)
+```
+
+\begin{textblock}{2.2}(10,7.3)
+\begin{alertblock}{}
+Not the real data! Or is it?
+\end{alertblock}
+\end{textblock}
+
+## Australian holidays
+\fontsize{9}{10}\sf
+
+```{r holidays}
+holidays <- tourism %>%
+  filter(Purpose=="Holiday") %>%
+  group_by(State) %>%
+  summarise(Trips = sum(Trips))
+```
+
+```{r, echo=FALSE}
+holidays
+```
+
+## Australian holidays
+\fontsize{9}{10}\sf
+
+```{r holidays-plot, echo=TRUE, dependson="holidays", fig.height=3.9}
+holidays %>% autoplot(Trips) +
+  ylab("thousands of trips") + xlab("Year") +
+  ggtitle("Australian domestic holiday nights")
+```
+
+# Lab Session 2
+## Lab Session 2
+
+- Create time plots of the following time series: `Beer` from `aus_production`, `Lynx` from `pelt`, `Close` from `gafa_stock`
+- Use `help()` to find out about the data in each series.
+- For the last plot, modify the axis labels and title.
+
+# Seasonal plots
+
+## The seasonal period {-}
+\fontsize{13}{14}\sf
+
+ * Seasonal period = no. observations before seasonal pattern repeats.
+ * Usually automatically detected using time index.
+ * Daily & sub-daily time series can have multiple \rlap{periods.}
+
+###
+\vspace*{-0.4cm}
+
+```{r freqtable, echo=FALSE, message=FALSE}
+  intervals <- list(
+  Quarters = tsibble::new_interval(quarter = 1),
+  Months = tsibble::new_interval(month = 1),
+  Weeks = tsibble::new_interval(week = 1),
+  Days = tsibble::new_interval(day = 1),
+  Hours = tsibble::new_interval(hour = 1),
+  Minutes = tsibble::new_interval(minute = 1),
+  Seconds = tsibble::new_interval(second = 1)
+)
+
+intervals %>%
+  purrr::map(common_periods) %>%
+  purrr::map(as.list) %>%
+  purrr::map_dfr(as_tibble, .id = "Data") %>%
+  purrr::set_names(., stringr::str_to_sentence(colnames(.))) %>%
+  select(Data, Minute, Hour, Day, Week, Year) %>%
+  mutate_all(format, scientific = FALSE, nsmall = 2) %>%
+  mutate_all(~ gsub(".00", "", ., fixed = TRUE)) %>%
+  mutate_all(~ gsub("   NA", "", ., fixed=TRUE)) %>%
+  knitr::kable(booktabs=TRUE)
+```
+
+## Seasonal plots
+
+  * Data plotted against the individual "seasons" in which the data were observed.  (In this case a "season" is a month.)
+  * Something like a time plot except that the data from each season are overlapped.
+  * Enables the underlying seasonal pattern to be seen more clearly, and also allows any substantial departures from the seasonal pattern to be easily identified.
+  * In R: `gg_season()`
+
+## Quarterly Australian Beer Production
+\fontsize{13}{15}\sf
+
+```{r, fig.height=3}
+beer <- aus_production %>%
+  select(Quarter, Beer) %>%
+  filter(year(Quarter) >= 1992)
+beer %>% autoplot(Beer)
+```
+
+
+## Quarterly Australian Beer Production
+
+```{r}
+beer %>% gg_season(Beer, labels="right")
+```
+
+## Seasonal subseries plots
+
+  * Data for each season collected together in time plot as separate time series.
+  * Enables the underlying seasonal pattern to be seen clearly, and changes in seasonality over time to be visualized.
+  * In R: `gg_subseries()`
+
+## Quarterly Australian Beer Production
+
+```{r}
+beer %>% gg_subseries(Beer)
+```
+
+## Seasonal plots
+\fontsize{9}{10}\sf
+
+```{r graphics1, fig.width=4, fig.height=5, out.width="45%"}
+holidays %>% gg_season(Trips) +
+  ylab("thousands of trips") +
+  ggtitle("Australian domestic holiday nights")
+```
+
+## Seasonal subseries plots
+\fontsize{9}{10}\sf
+
+```{r graphics2, fig.height=4.1}
+holidays %>%
+  gg_subseries(Trips) + ylab("thousands of trips") +
+  ggtitle("Australian domestic holiday nights")
+```
+
+# Lab Session 3
+## Lab Session 3
+
+Look at the quarterly tourism data for the Snowy Mountains
+
+```r
+snowy <- filter(tourism,
+  Region == "Snowy Mountains")
+```
+
+  - Use `autoplot()`, `gg_season()` and `gg_subseries()` to explore the data.
+  - What do you learn?
+
+
+# Decompositions
+
+## Time series decomposition
+
+Trend-Cycle
+: aperiodic changes in level over time.
+
+Seasonal
+: (almost) periodic changes in level due to seasonal factors (e.g., the quarter of the year, the month, or day of the week).
+
+\begin{block}{Additive decomposition}\vspace*{-0.3cm}
+\[ y_t = S_t + T_t + R_t \]
+\end{block}
+\begin{tabular}{@{}llp{8cm}@{}}
+where & $y_t=$ & data at period $t$ \\
+      & $T_t=$ & trend-cycle component at period $t$\\
+      & $S_t=$ & seasonal component at period $t$ \\
+      & $R_t=$ & remainder component at period $t$
+\end{tabular}
+
+
+## STL decomposition
+
+\fontsize{13}{14}\sf
+
+  *  STL: "Seasonal and Trend decomposition using Loess"
+  *  Very versatile and robust.
+  *  Seasonal component allowed to change over time, and rate of change controlled by user.
+  *  Smoothness of trend-cycle also controlled by user.
+  *  Optionally robust to outliers
+  *  Not trading day or calendar adjustments.
+  *  Only additive.
+  *  Take logs to get multiplicative decomposition.
+  *  Use Box-Cox transformations to get other decompositions.
+
+## Australian holidays
+\fontsize{9}{10}\sf
+
+```{r holidays-plot2, echo=TRUE, dependson="holidays", fig.height=3.9}
+holidays %>% autoplot(Trips) +
+  ylab("thousands of trips") + xlab("Year") +
+  ggtitle("Australian domestic holiday nights")
+```
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r stlagain2, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
+holidays %>%
+  STL(Trips ~ season(window="periodic"), robust=TRUE) %>%
+  autoplot()
+```
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r stlagain, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
+holidays %>%
+  STL(Trips ~ season(window = 5), robust = TRUE) %>%
+  autoplot()
+```
+
+## STL decomposition
+\fontsize{11}{13}\sf
+
+```r
+holidays %>%
+  STL(Trips ~ trend(window=15) + season(window=13),
+      robust = TRUE)
+```
+
+\fontsize{14}{16}\sf
+
+  *  `trend(window = ?)` controls wiggliness of trend component.
+  *  `season(window = ?)` controls variation on seasonal component.
+  * `STL()` chooses `season(window=13)` by default
+  * A large seasonal window is equivalent to setting `window="periodic"`.
+  * Odd numbers should be used for symmetry.
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r dable}
+dcmp <- holidays %>% STL(Trips)
+dcmp
+```
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r holidays3, fig.height=4.6}
+dcmp %>% gg_subseries(season_year)
+```
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r holidays-trend, message=FALSE, warning=FALSE, fig.height=4.3}
+autoplot(dcmp, trend, scale_bars=FALSE) +
+  autolayer(holidays, alpha=0.4)
+```
+
+# Lab Session 4
+
+## Lab Session 4
+
+Repeat the decomposition using
+
+\fontsize{11}{14}\sf
+
+```r
+holidays %>%
+  STL(Trips ~ season(window=7) + trend(window=11)) %>%
+  autoplot()
+```
+
+\fontsize{14}{15}\sf
+What happens as you change `season(window = ???)` and `trend(window = ???)`?
+
