@@ -1,0 +1,499 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "2.4&nbsp; Non-seasonal ARIMA models"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+options(digits=4, width=55)
+```
+
+# Autoregressive models
+
+## Autoregressive models
+
+\begin{block}{Autoregressive (AR) models:}
+$$
+  y_{t}  =  c  +  \phi_{1}y_{t - 1}  +  \phi_{2}y_{t - 2}  +  \cdots  +  \phi_{p}y_{t - p}  + \varepsilon_{t},
+$$
+where $\varepsilon_t$ is white noise.  This is a multiple regression with \textbf{lagged values} of $y_t$ as predictors.
+\end{block}
+
+```{r arp, echo=FALSE, fig.height=3}
+set.seed(1)
+p1 <- autoplot(10 + arima.sim(list(ar = -0.8), n = 100)) +
+  ylab("") + ggtitle("AR(1)")
+p2 <- autoplot(20 + arima.sim(list(ar = c(1.3, -0.7)), n = 100)) +
+  ylab("") + ggtitle("AR(2)")
+gridExtra::grid.arrange(p1,p2,nrow=1)
+```
+
+## AR(1) model
+
+\begin{block}{}
+\centerline{$y_{t}    =   2 -0.8 y_{t - 1}  +  \varepsilon_{t}$}
+\end{block}
+\rightline{$\varepsilon_t\sim N(0,1)$,\quad $T=100$.}
+
+```{r, echo=FALSE, out.width="50%", fig.height=2.2, fig.width=2.2}
+p1
+```
+
+## AR(1) model
+
+\begin{block}{}
+\centerline{$y_{t}    =   c + \phi_1 y_{t - 1}  +  \varepsilon_{t}$}
+\end{block}
+
+* When $\phi_1=0$, $y_t$ is **equivalent to WN**
+* When $\phi_1=1$ and $c=0$, $y_t$ is **equivalent to a RW**
+* When $\phi_1=1$ and $c\ne0$, $y_t$ is **equivalent to a RW with drift**
+* When $\phi_1<0$, $y_t$ tends to **oscillate between positive and negative values**.
+
+## AR(2) model
+
+\begin{block}{}
+\centerline{$y_t = 8 + 1.3y_{t-1} - 0.7 y_{t-2} + \varepsilon_t$}
+\end{block}
+\rightline{$\varepsilon_t\sim N(0,1)$, \qquad $T=100$.}
+
+```{r, fig.height=2.2, fig.width=2.2, out.width="50%", echo=FALSE}
+p2
+```
+
+## Stationarity conditions
+
+We normally restrict autoregressive models to stationary data, and then some constraints on the values of the parameters are required.
+
+\begin{block}{General condition for stationarity}
+Complex roots of $1-\phi_1 z - \phi_2 z^2 - \dots - \phi_pz^p$ lie outside the unit circle on the complex plane.
+\end{block}\pause
+
+* For $p=1$:  $-1<\phi_1<1$.
+* For $p=2$:\newline $-1<\phi_2<1\qquad \phi_2+\phi_1 < 1 \qquad \phi_2 -\phi_1 < 1$.
+* More complicated conditions hold for $p\ge3$.
+
+# Moving Average models
+
+## Moving Average (MA) models
+
+\begin{block}{Moving Average (MA) models:}
+$$
+  y_{t}  =  c +  \varepsilon_t + \theta_{1}\varepsilon_{t - 1}  +  \theta_{2}\varepsilon_{t - 2}  +  \cdots  + \theta_{q}\varepsilon_{t - q},
+$$
+where $\varepsilon_t$ is white noise.
+This is a multiple regression with  \textbf{past \emph{errors}}
+as predictors. \emph{Don't confuse this with moving average smoothing!}
+\end{block}
+
+```{r maq, fig.height=2.5, echo=FALSE}
+set.seed(2)
+p1 <- autoplot(20 + arima.sim(list(ma = 0.8), n = 100)) +
+  ylab("") + ggtitle("MA(1)")
+p2 <- autoplot(arima.sim(list(ma = c(-1, +0.8)), n = 100)) +
+  ylab("") + ggtitle("MA(2)")
+gridExtra::grid.arrange(p1,p2,nrow=1)
+```
+
+## MA(1) model
+
+\begin{block}{}
+\centerline{$y_t = 20 + \varepsilon_t + 0.8 \varepsilon_{t-1}$}
+\end{block}
+\rightline{$\varepsilon_t\sim N(0,1)$,\quad $T=100$.}
+
+```{r, fig.height=2.2, fig.width=2.2, out.width="50%", echo=FALSE}
+p1
+```
+
+## MA(2) model
+
+\begin{block}{}
+\centerline{$y_t = \varepsilon_t -\varepsilon_{t-1} + 0.8 \varepsilon_{t-2}$}
+\end{block}
+\rightline{$\varepsilon_t\sim N(0,1)$,\quad $T=100$.}
+
+```{r, fig.height=2.2, fig.width=2.2, out.width="50%", echo=FALSE}
+p2
+```
+
+## Invertibility
+
+* Invertible models have property that distant past has negligible effect on forecasts. Requires consraints on MA parameters.
+
+\begin{block}{General condition for invertibility}
+Complex roots of $1+\theta_1 z + \theta_2 z^2 + \dots + \theta_qz^q$ lie outside the unit circle on the complex plane.
+\end{block}\pause\vspace*{-0.3cm}
+
+* For $q=1$:  $-1<\theta_1<1$.
+* For $q=2$:\newline $-1<\theta_2<1\qquad \theta_2+\theta_1 >-1 \qquad \theta_1 -\theta_2 < 1$.
+* More complicated conditions hold for $q \ge 3$.
+
+# Non-seasonal ARIMA models
+
+## ARIMA models
+
+\begin{block}{Autoregressive Moving Average models:}\vspace*{-0.2cm}
+\begin{align*}
+y_{t}  &=  c  +  \phi_{1}y_{t - 1}  +  \cdots  +  \phi_{p}y_{t - p} \\
+& \hspace*{2.4cm}\text{} + \theta_{1}\varepsilon_{t - 1} +  \cdots  + \theta_{q}\varepsilon_{t - q} +  \varepsilon_{t}.
+\end{align*}
+\end{block}\pause
+
+* Predictors include both **lagged values of $y_t$ and lagged errors.**
+* Conditions on coefficients ensure stationarity.
+* Conditions on coefficients ensure invertibility.
+\pause
+
+### Autoregressive Integrated Moving Average models
+* Combine ARMA model with **differencing**.
+* $(1-B)^d y_t$ follows an ARMA  model.
+
+## ARIMA models
+
+\alert{Autoregressive Integrated Moving Average models}
+\begin{block}{ARIMA($p, d, q$) model}
+\begin{tabular}{rl}
+AR:& $p =$  order of the autoregressive part\\
+I: & $d =$  degree of first differencing involved\\
+MA:& $q =$  order of the moving average part.
+\end{tabular}
+\end{block}
+
+* White noise model:  ARIMA(0,0,0)
+* Random walk:  ARIMA(0,1,0) with no constant
+* Random walk with drift:  ARIMA(0,1,0) with \rlap{const.}
+* AR($p$): ARIMA($p$,0,0)
+* MA($q$): ARIMA(0,0,$q$)
+
+## Backshift notation for ARIMA
+
+* ARMA model:\vspace*{-1cm}\newline
+\parbox{12cm}{\small\begin{align*}
+\hspace*{-1cm}
+y_{t}  &=  c + \phi_{1}By_{t} + \cdots + \phi_pB^py_{t}
+           +  \varepsilon_{t}  +  \theta_{1}B\varepsilon_{t} + \cdots + \theta_qB^q\varepsilon_{t} \\
+\hspace*{-1cm}
+\text{or}\quad & (1-\phi_1B - \cdots - \phi_p B^p) y_t = c + (1 + \theta_1 B + \cdots + \theta_q B^q)\varepsilon_t
+\end{align*}}
+
+* ARIMA(1,1,1) model:
+
+\[
+\begin{array}{c c c c}
+(1 - \phi_{1} B) & (1  -  B) y_{t} &= &c + (1  + \theta_{1} B) \varepsilon_{t}\\
+{\uparrow}  & {\uparrow}    &   &{\uparrow}\\
+{\text{AR(1)}} & {\text{First}}   &     &{\text{MA(1)}}\\
+& {\hbox to 0cm{\hss\text{difference}\hss}}\\
+\end{array}
+\]\pause
+Written out:
+$$y_t =   c + y_{t-1} + \phi_1 y_{t-1}- \phi_1 y_{t-2} + \theta_1\varepsilon_{t-1} + \varepsilon_t $$
+
+## R model
+
+\fontsize{13}{16}\sf
+
+\begin{block}{Intercept form}
+\centerline{$(1-\phi_1B - \cdots - \phi_p B^p) y_t' = c + (1 + \theta_1 B + \cdots + \theta_q B^q)\varepsilon_t$}
+\end{block}
+
+\begin{block}{Mean form}
+\centerline{$(1-\phi_1B - \cdots - \phi_p B^p)(y_t' - \mu) = (1 + \theta_1 B + \cdots + \theta_q B^q)\varepsilon_t$}
+\end{block}
+
+ * $y_t' = (1-B)^d y_t$
+ * $\mu$ is the mean of $y_t'$.
+ * $c = \mu(1-\phi_1 - \cdots - \phi_p )$.
+ * R uses mean form.
+
+## US personal consumption
+\fontsize{11}{11}\sf
+```{r, fig.height=3.8}
+autoplot(uschange[,"Consumption"]) +
+  xlab("Year") + ylab("Quarterly percentage change") +
+  ggtitle("US consumption")
+```
+
+## US personal consumption
+\fontsize{11}{13}\sf
+
+```{r, echo=TRUE}
+(fit <- auto.arima(uschange[,"Consumption"]))
+```
+
+```{r usconsumptioncoefs, echo=FALSE}
+coef <- coefficients(fit)
+intercept <- coef['intercept'] * (1-coef['ar1'] - coef['ar2'])
+```
+
+```{r, include=FALSE}
+# Following line assumes forecast v8.4+
+if(!identical(arimaorder(fit),c(p=2L,d=0L,q=2L)))
+  stop("Different model from expected")
+```
+
+\pause\vfill
+
+### ARIMA(2,0,2) model:
+\centerline{$
+  y_t = c + `r format(coef['ar1'], nsmall=3, digits=3)`y_{t-1}
+          `r format(coef['ar2'], nsmall=3, digits=3)` y_{t-2}
+          `r format(coef['ma1'], nsmall=3, digits=3)` \varepsilon_{t-1}
+          + `r format(coef['ma2'], nsmall=3, digits=3)` \varepsilon_{t-2}
+          + \varepsilon_{t},
+$}
+where $c= `r format(coef['intercept'], nsmall=3, digits=3)` \times (1 - `r format(coef['ar1'], nsmall=3, digits=3)` + `r format(-coef['ar2'], nsmall=3, digits=3)`) = `r format(intercept, nsmall=3, digits=3)`$
+and $\varepsilon_t \sim N(0,`r format(fit$sigma2, nsmall=3, digits=3)`)$.
+
+## US personal consumption
+\fontsize{13}{14}\sf
+
+```{r, echo=TRUE, fig.height=4}
+fit %>% forecast(h=10) %>% autoplot(include=80)
+```
+
+## Understanding ARIMA models
+\fontsize{14}{16}\sf
+
+\begin{alertblock}{Long-term forecasts}
+\centering\begin{tabular}{lll}
+zero & $c=0,d=0$\\
+non-zero constant & $c=0,d=1$ & $c\ne0,d=0$  \\
+linear & $c=0,d=2$ & $c\ne0,d=1$ \\
+quadratic & $c=0,d=3$ & $c\ne0,d=2$ \\
+\end{tabular}
+\end{alertblock}
+
+### Forecast variance and $d$
+  * The higher the value of $d$, the more rapidly the prediction intervals increase in size.
+  * For $d=0$, the long-term forecast standard deviation will go to the standard deviation of the historical data.
+
+## Understanding ARIMA models
+
+### Cyclic behaviour
+  * For cyclic forecasts,  $p\ge2$ and some restrictions on coefficients are required.
+  * If $p=2$, we need $\phi_1^2+4\phi_2<0$. Then average cycle of length
+\[
+  (2\pi)/\left[\text{arc cos}(-\phi_1(1-\phi_2)/(4\phi_2))\right].
+\]
+
+# Estimation and order selection
+
+## Maximum likelihood estimation
+
+Having identified the model order, we need to estimate the
+parameters $c$, $\phi_1,\dots,\phi_p$,
+$\theta_1,\dots,\theta_q$.\pause
+
+* MLE is very similar to least squares estimation obtained by minimizing
+$$\sum_{t-1}^T e_t^2.$$
+* The `Arima()` command allows CLS or MLE estimation.
+* Non-linear optimization must be used in either case.
+* Different software will give different estimates.
+
+## Information criteria
+
+\begin{block}{Akaike's Information Criterion (AIC):}
+\centerline{$\text{AIC} = -2 \log(L) + 2(p+q+k+1),$}
+where $L$ is the likelihood of the data,\newline
+$k=1$ if $c\ne0$ and $k=0$ if $c=0$.
+\end{block}\pause
+\begin{block}{Corrected AIC:}
+\[
+\text{AICc} = \text{AIC} + \frac{2(p+q+k+1)(p+q+k+2)}{T-p-q-k-2}.
+\]
+\end{block}\pause
+\begin{block}{Bayesian Information Criterion:}
+\centerline{$\text{BIC} = \text{AIC} + \log(T)(p+q+k-1).$}
+\end{block}
+\pause\vspace*{-0.2cm}
+\begin{alertblock}{}Good models are obtained by minimizing either the AIC, \text{AICc}\ or BIC\@. My preference is to use the \text{AICc}.\end{alertblock}
+
+# ARIMA modelling in R
+
+## How does auto.arima() work?
+
+\begin{block}{A non-seasonal ARIMA process}
+\[
+\phi(B)(1-B)^dy_{t} = c + \theta(B)\varepsilon_t
+\]
+Need to select appropriate orders: \alert{$p,q, d$}
+\end{block}
+
+\alert{Hyndman and Khandakar (JSS, 2008) algorithm:}
+
+  * Select no.\ differences \alert{$d$} and \alert{$D$} via KPSS test and seasonal strength measure.
+  * Select \alert{$p,q$} by minimising AICc.
+  * Use stepwise search to traverse model space.
+
+## How does auto.arima() work?
+\fontsize{12.5}{14}\sf
+
+Step 1:
+:  Select values of $d$ and $D$.
+
+Step 2:
+:  Select current model (with smallest AICc) from:\newline
+ARIMA$(2,d,2)$\newline
+ARIMA$(0,d,0)$\newline
+ARIMA$(1,d,0)$\newline
+ARIMA$(0,d,1)$
+\pause\vspace*{-0.1cm}
+
+Step 3:
+:  Consider variations of current model:\vspace*{-0.2cm}
+
+    * vary one of $p,q,$ from current model by \rlap{$\pm1$;}
+    * $p,q$ both vary from current model by $\pm1$;
+    * Include/exclude $c$ from current model.
+
+  Model with lowest AICc becomes current model.
+
+\begin{block}{}Repeat Step 3 until no lower AICc can be found.\end{block}
+
+## Choosing an ARIMA model
+
+```{r, echo=TRUE, fig.height=4}
+autoplot(internet)
+```
+
+## Choosing an ARIMA model
+
+```{r, echo=TRUE, fig.height=4}
+internet %>% diff() %>% autoplot()
+```
+
+## Choosing an ARIMA model
+\fontsize{12}{13}\sf
+
+```{r, echo=TRUE, fig.height=4}
+(fit <- auto.arima(internet))
+```
+
+## Choosing an ARIMA model
+\fontsize{12}{13}\sf
+
+```{r, echo=TRUE, fig.height=4}
+(fit <- auto.arima(internet, stepwise=FALSE,
+  approximation=FALSE))
+```
+
+## Choosing an ARIMA model
+
+```{r, echo=TRUE, fig.height=4}
+checkresiduals(fit, plot=TRUE)
+```
+
+## Choosing an ARIMA model
+\fontsize{13}{15}\sf
+
+```{r, echo=TRUE, fig.height=4}
+checkresiduals(fit, plot=FALSE)
+```
+
+## Choosing an ARIMA model
+
+```{r, echo=TRUE, fig.height=4}
+fit %>% forecast() %>% autoplot()
+```
+
+## Modelling procedure with `auto.arima`
+
+1. Plot the data. Identify any unusual observations.
+2. If necessary, transform the data (using a Box-Cox transformation) to stabilize the variance.
+3. Use `auto.arima` to select a model.
+4. Check the residuals from your chosen model by plotting the ACF of the residuals, and doing a portmanteau test of the residuals. If they do not look like white noise, try a modified model.
+5. Once the residuals look like white noise, calculate forecasts.
+
+## Modelling procedure
+
+\centerline{\includegraphics[height=8.cm]{Figure-8-10}}
+
+## Seasonally adjusted electrical equipment
+\fontsize{13}{15}\sf
+
+```{r ee1, fig.height=3.3, echo=TRUE}
+eeadj <- seasadj(stl(elecequip, s.window="periodic"))
+autoplot(eeadj) + xlab("Year") +
+  ylab("Seasonally adjusted new orders index")
+```
+
+## Seasonally adjusted electrical equipment
+
+1. Time plot shows sudden changes, particularly big drop in 2008/2009 due to global economic environment. Otherwise nothing unusual and no need for  data adjustments.
+2. No evidence of changing variance, so no Box-Cox transformation.
+3. Data are clearly non-stationary, so we take first differences.
+
+## Seasonally adjusted electrical equipment
+
+```{r ee2, echo=TRUE, fig.height=4}
+eeadj %>% diff() %>% autoplot()
+```
+
+## Seasonally adjusted electrical equipment
+\fontsize{10}{11}\sf
+
+```{r, echo=TRUE}
+fit <- auto.arima(eeadj, stepwise=FALSE, approximation=FALSE)
+summary(fit)
+```
+
+## Seasonally adjusted electrical equipment
+
+6. ACF plot of residuals from ARIMA(3,1,1) model look like white noise.
+
+```{r, echo=TRUE, fig.height=2.5}
+ggAcf(residuals(fit))
+```
+
+## Seasonally adjusted electrical equipment
+\fontsize{12}{14}\sf
+
+```{r, echo=TRUE}
+checkresiduals(fit, plot=FALSE)
+```
+
+## Seasonally adjusted electrical equipment
+
+```{r, echo=TRUE}
+fit %>% forecast() %>% autoplot()
+```
+
+# Lab session 16
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 16**
+
+## Prediction intervals
+
+* Prediction intervals **increase in size with forecast horizon**.
+* Calculations assume residuals are **uncorrelated** and **normally distributed**.
+* Prediction intervals tend to be too narrow.
+    * the uncertainty in the parameter estimates has not been accounted for.
+    * the ARIMA model assumes historical patterns will not change during the forecast period.
+    * the ARIMA model assumes uncorrelated future errors
+
+## Bootstrapped prediction intervals
+\fontsize{12}{13}\sf
+
+```{r, echo=TRUE, fig.height=3.7}
+fit %>% forecast(bootstrap=TRUE) %>% autoplot()
+```
+
+ * No assumption of normally distributed residuals.

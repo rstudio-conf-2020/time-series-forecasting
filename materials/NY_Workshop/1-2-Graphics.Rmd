@@ -1,0 +1,431 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "1.2&nbsp; Time series graphics"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+source("nicefigs.R")
+options(digits=4, width=55)
+```
+
+# Time series in R
+
+## `ts` objects and `ts` function
+
+\fontsize{13}{13}\sf
+
+A time series is stored in a `ts` object in R:\vspace*{-0.3cm}
+
+ - a list of numbers
+ - information about times those numbers were recorded.
+
+### Example
+
+```{r tstable, echo=FALSE, cache=TRUE}
+x <- c(123,39,78,52,110)
+yr <- 2012:2016
+knitr::kable(data.frame(Year=yr,Observation=x), booktabs=TRUE)
+```
+
+```r
+y <- ts(c(123,39,78,52,110), start=2012)
+```
+
+## `ts` objects and `ts` function
+
+For observations that are more frequent than once per year, add a `frequency` argument.
+
+E.g., monthly data stored as a numerical vector `z`:
+
+```r
+y <- ts(z, frequency=12, start=c(2003, 1))
+```
+
+## `ts` objects and `ts` function
+
+### `ts(data, frequency, start)`
+
+\begin{tabular}{lrl}
+\bf Type of data & \hspace*{1.95cm}\bf frequency                 & \bf start example\hspace*{0.25cm} \\
+\midrule
+Annual           & \only<2->{1}                                  & \only<3->{1995}\\
+Quarterly        & \only<4->{4}                                  & \only<5->{c(1995,2)}\\
+Monthly          & \only<6->{12}                                 & \only<7->{c(1995,9)}\\
+Daily            & \only<8->{7 \emph{or} 365.25}                 & \only<9->{1 \emph{or} c(1995,234)} \\
+Weekly           & \only<10->{52.18}                             & \only<11->{c(1995,23)}\\
+Hourly           & \only<12->{24 \emph{or} 168 \emph{or} 8,766}  & \only<13->{1}\\
+Half-hourly      & \only<14->{48 \emph{or} 336 \emph{or} 17,532} & \only<15>{1}
+\end{tabular}
+
+## Australian GDP
+\fontsize{13}{15}\sf
+
+```r
+ausgdp <- ts(x, frequency=4, start=c(1971,3))
+```
+
+  * Class: "ts"
+  * Print and plotting methods available.
+
+```{r, echo=TRUE}
+ausgdp
+```
+
+## Australian GDP
+
+```{r, echo=TRUE, fig.height=4}
+autoplot(ausgdp)
+```
+
+## Residential electricity sales
+
+```{r}
+elecsales
+```
+
+## Time plots
+
+\small
+
+```{r, echo=TRUE, fig.height=4}
+autoplot(melsyd[,"Economy.Class"])
+```
+
+## Time plots
+
+\small
+
+```{r a10, echo=TRUE}
+autoplot(a10) + ylab("$ million") + xlab("Year") +
+         ggtitle("Antidiabetic drug sales")
+```
+
+# Lab session 1
+
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 1**
+
+# Seasonal plots
+
+## Seasonal plots
+
+\small
+
+```{r, echo=TRUE, fig.height=3.5}
+ggseasonplot(a10, ylab="$ million",
+  year.labels=TRUE, year.labels.left=TRUE) +
+  ggtitle("Seasonal plot: antidiabetic drug sales")
+```
+
+## Seasonal plots
+
+  * Data plotted against the individual "seasons" in which the data were observed.  (In this case a "season" is a month.)
+  * Something like a time plot except that the data from each season are overlapped.
+  * Enables the underlying seasonal pattern to be seen more clearly, and also allows any substantial departures from the seasonal pattern to be easily identified.
+  * In R: `ggseasonplot`
+
+## Seasonal polar plots
+
+\small
+
+```{r, fig.height=5, out.width="7.5cm"}
+ggseasonplot(a10, polar=TRUE) + ylab("$ million")
+```
+
+## Seasonal subseries plots
+
+\fontsize{10}{12}\sf
+
+```{r, echo=TRUE, fig.height=3.5}
+ggsubseriesplot(a10) + ylab("$ million") +
+  ggtitle("Seasonal subseries plot: antidiabetic drug sales")
+```
+
+## Seasonal subseries plots
+
+  * Data for each season collected together in time plot as separate time series.
+  * Enables the underlying seasonal pattern to be seen clearly, and changes in seasonality over time to be visualized.
+  * In R: `ggsubseriesplot`
+
+## Quarterly Australian Beer Production
+
+```{r}
+beer <- window(ausbeer,start=1992)
+autoplot(beer)
+```
+
+## Quarterly Australian Beer Production
+
+```{r}
+ggseasonplot(beer,year.labels=TRUE)
+```
+
+## Quarterly Australian Beer Production
+
+```{r}
+ggsubseriesplot(beer)
+```
+
+# Lab session 2
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 2**
+
+# Seasonal or cyclic?
+
+## Time series patterns
+
+Trend
+  : pattern exists when there is a long-term increase or decrease in the data.
+
+Seasonal
+  : pattern exists when a series is influenced by seasonal factors (e.g., the quarter of the year, the month, or day of the week).
+
+Cyclic
+  : pattern exists when data exhibit rises and falls that are \emph{not of fixed period} (duration usually of at least 2 years).
+
+## Time series components
+
+### Differences between seasonal and cyclic patterns:
+
+* seasonal pattern constant length; cyclic pattern variable length
+* average length of cycle longer than length of seasonal pattern
+* magnitude of cycle more variable than magnitude of seasonal pattern
+
+## Time series patterns
+\small
+
+```{r, fig.height=3.9}
+autoplot(window(elec, start=1980)) +
+  ggtitle("Australian electricity production") +
+  xlab("Year") + ylab("GWh")
+```
+
+## Time series patterns
+\small
+
+```{r, fig.height=3.9}
+autoplot(bricksq) +
+  ggtitle("Australian clay brick production") +
+  xlab("Year") + ylab("million units")
+```
+
+## Time series patterns
+\small
+
+```{r, fig.height=3.9}
+autoplot(hsales) +
+  ggtitle("Sales of new one-family houses, USA") +
+  xlab("Year") + ylab("Total sales")
+```
+
+## Time series patterns
+\small
+
+```{r, fig.height=3.9}
+autoplot(ustreas) +
+  ggtitle("US Treasury Bill Contracts") +
+  xlab("Day") + ylab("price")
+```
+
+## Time series patterns
+\small
+
+```{r, fig.height=3.9}
+autoplot(lynx) +
+  ggtitle("Annual Canadian Lynx Trappings") +
+  xlab("Year") + ylab("Number trapped")
+```
+
+## Seasonal or cyclic?
+
+\alert{Differences between seasonal and cyclic patterns:}
+
+  * seasonal pattern constant length; cyclic pattern variable length
+  * average length of cycle longer than length of seasonal pattern
+  * magnitude of cycle more variable than magnitude of seasonal pattern
+
+\pause
+
+\begin{alertblock}{}
+The timing of peaks and troughs is predictable with seasonal data, but unpredictable in the long term with cyclic data.
+\end{alertblock}
+
+# Lag plots and autocorrelation
+
+## Example: Beer production
+
+```r
+beer <- window(ausbeer, start=1992)
+gglagplot(beer, lags=9, do.lines=FALSE,
+  continuous=FALSE)
+```
+
+## Example: Beer production
+
+```{r, echo=FALSE, fig.height=6, fig.width=6, out.width="8cm"}
+beer <- window(ausbeer, start=1992)
+gglagplot(beer, lags=9, do.lines=FALSE, continuous=FALSE)
+```
+
+## Lagged scatterplots
+
+  * Each graph shows $y_t$ plotted against $y_{t-k}$ for
+different values of $k$.
+  * The autocorrelations are the correlations associated
+with these scatterplots.
+  * ACF (autocorrelation function):
+     * $r_1=\text{Correlation}(y_{t}, y_{t-1})$
+     * $r_2=\text{Correlation}(y_{t}, y_{t-2})$
+     * $r_3=\text{Correlation}(y_{t}, y_{t-3})$
+     * etc.
+  * If there is **seasonality**, the ACF at the seasonal lag (e.g., 12 for monthly data) will be **large and positive**.
+
+## Autocorrelation
+
+\small
+Results for first 9 lags for beer data:
+
+\footnotesize
+
+```{r, echo=FALSE}
+beeracf <- matrix(acf(c(beer), lag.max=9,
+                      plot=FALSE)$acf[-1,,1], nrow=1)
+colnames(beeracf) <- paste("$r_",1:9,"$",sep="")
+knitr::kable(beeracf, booktabs=TRUE,
+             align="c", digits=3,
+             format.args=list(nsmall=3))
+```
+
+```{r beeracf, fig.height=2.5}
+ggAcf(beer)
+```
+
+## Aus monthly electricity production
+
+```{r, fig.height=4}
+elec2 <- window(elec, start=1980)
+autoplot(elec2)
+```
+
+## Aus monthly electricity production
+
+```{r}
+ggAcf(elec2, lag.max=48)
+```
+
+## Google stock price
+
+```{r}
+autoplot(goog)
+```
+
+## Google stock price
+
+```{r}
+ggAcf(goog, lag.max=100)
+```
+
+## Which is which?
+
+```{r, fig.height=6, fig.width=12, echo=FALSE, out.width="11.7cm"}
+tp1 <- autoplot(cowtemp) + xlab("") + ylab("chirps per minute") +
+  ggtitle("1. Daily temperature of cow")
+tp2 <- autoplot(USAccDeaths/1e3) + xlab("") + ylab("thousands") +
+  ggtitle("2. Monthly accidental deaths")
+tp3 <- autoplot(AirPassengers) + xlab("") + ylab("thousands") +
+  ggtitle("3. Monthly air passengers")
+tp4 <- autoplot(mink/1e3) + xlab("") + ylab("thousands") +
+  ggtitle("4. Annual mink trappings")
+acfb <- ggAcf(cowtemp, ci=0) + xlab("") + ggtitle("B") + ylim(-0.4,1)
+acfa <- ggAcf(USAccDeaths, ci=0) + xlab("") + ggtitle("A") + ylim(-0.4,1)
+acfd <- ggAcf(AirPassengers, ci=0) + xlab("") + ggtitle("D") + ylim(-0.4,1)
+acfc <- ggAcf(mink, ci=0) + xlab("") + ggtitle("C") + ylim(-0.4,1)
+gridExtra::grid.arrange(tp1,tp2,tp3,tp4,
+                        acfa,acfb,acfc,acfd,nrow=2)
+```
+
+# White noise
+
+## Example: White noise
+
+```{r, fig.height=3.5}
+wn <- ts(rnorm(36))
+autoplot(wn)
+```
+
+\only<2>{
+\begin{textblock}{10}(1.4,7)
+\begin{alertblock}{}
+White noise data is uncorrelated across time with zero mean and constant variance.
+
+(Technically, we require independence as well.)
+\end{alertblock}
+\end{textblock}}
+
+## Example: White noise
+
+```{r, results='asis', echo=FALSE}
+wnacf <- matrix(acf(c(wn), lag.max=10,
+                      plot=FALSE)$acf[-1,,1], nrow=1)
+colnames(wnacf) <- paste("$r_{",1:10,"}$",sep="")
+print(xtable::xtable(t(wnacf)),
+    sanitize.rownames.function=identity,
+    booktabs=TRUE,
+    include.colnames = FALSE,
+    hline.after = FALSE,
+    size='footnotesize',
+    comment=FALSE,
+    floating=FALSE)
+```
+
+```{r, echo=FALSE}
+savepdf("wnacf")
+ggAcf(wn, max.lag=15)
+endpdf()
+```
+
+\placefig{4.5}{1.6}{width=8cm}{wnacf}
+\vspace*{0.3cm}
+
+ * Sample autocorrelations for white noise series.
+ * Expect each autocorrelation to be close to zero.
+ * Blue lines show 95% critical values.
+
+## Example: Pigs slaughtered
+\fontsize{12}{13}\sf
+
+```{r, fig.height=3.5}
+pigs2 <- window(pigs, start=1990)
+autoplot(pigs2) +
+  xlab("Year") + ylab("thousands") +
+  ggtitle("Number of pigs slaughtered in Victoria")
+```
+
+## Example: Pigs slaughtered
+
+```{r}
+ggAcf(pigs2)
+```
+
+# Lab session 3
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 3**

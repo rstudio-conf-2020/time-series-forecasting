@@ -1,0 +1,650 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "3.1&nbsp; Dynamic regression"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+options(digits=4, width=55)
+```
+
+# Regression with ARIMA errors
+
+## Regression with ARIMA errors
+\fontsize{13}{15}\sf
+
+\begin{block}{Regression models}\vspace*{-0.2cm}
+\[
+y_t = \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \varepsilon_t,
+\]\end{block}
+
+  * $y_t$ modeled as function of $k$ explanatory variables
+$x_{1,t},\dots,x_{k,t}$.
+  * In regression, we assume that $\varepsilon_t$ was  WN.
+  * Now we want to allow $\varepsilon_t$ to be autocorrelated.
+\vspace*{0.3cm}
+\pause
+\begin{alertblock}{Example: ARIMA(1,1,1) errors}\vspace*{-0.2cm}
+\begin{align*}
+y_t &= \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t,\\
+& (1-\phi_1B)(1-B)\eta_t = (1+\theta_1B)\varepsilon_t,
+\end{align*}
+\end{alertblock}
+\rightline{where $\varepsilon_t$ is white noise.}
+
+## Residuals and errors
+
+\begin{alertblock}{Example: $\eta_t$ = ARIMA(1,1,1)}\vspace*{-0.2cm}
+\begin{align*}
+y_t &= \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t,\\
+& (1-\phi_1B)(1-B)\eta_t = (1+\theta_1B)\varepsilon_t,
+\end{align*}\end{alertblock}\pause
+
+  * Be careful in distinguishing $\eta_t$ from $\varepsilon_t$.
+  * Only the errors $\eta_t$ are assumed to be white noise.
+  * In ordinary regression, $\eta_t$ is assumed to be white noise and so $\eta_t = \varepsilon_t$.
+
+## Estimation
+\fontsize{14}{15}\sf
+
+If we minimize $\sum \eta_t^2$ (by using ordinary regression):
+
+  1. Estimated coefficients $\hat{\beta}_0,\dots,\hat{\beta}_k$ are no longer optimal as some information ignored;
+  2. Statistical tests associated with the model (e.g., t-tests on the coefficients) are incorrect.
+  3. $p$-values for coefficients usually too small (``spurious regression'').
+  4. AIC of fitted models misleading.
+
+\pause
+
+###
+ * Minimizing $\sum \varepsilon_t^2$ avoids these problems.
+ * Maximizing likelihood is similar to minimizing $\sum \varepsilon_t^2$.
+
+## Stationarity
+
+\begin{block}{Regression with ARMA errors}
+\[
+y_t = \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t,
+\]
+where $\eta_t$ is an ARMA process.
+\end{block}
+
+  * If we estimate the model while any variable is non-stationary, the estimated coefficients can be incorrect.
+  * Difference variables until all stationary.
+  * If necessary, apply same differencing to all variables to preserve interpretability.
+
+## Regression with ARIMA errors
+\fontsize{13}{15}\sf
+
+Any regression with an ARIMA error can be rewritten as a regression with an ARMA error by differencing all variables with the same differencing operator as in the ARIMA model.\pause
+
+\begin{block}{Original data}\vspace*{-0.2cm}
+\begin{align*}
+y_t &= \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t\\
+\mbox{where}\quad
+& \phi(B)(1-B)^d\eta_t = \theta(B)\varepsilon_t
+\end{align*}\end{block}\pause\vspace*{-0.1cm}
+\begin{block}{After differencing all variables}\vspace*{-0.2cm}
+\begin{align*}
+y'_t &= \beta_1 x'_{1,t} + \dots + \beta_k x'_{k,t} + \eta'_t.\\
+\mbox{where}\quad
+& \phi(B)\eta_t' = \theta(B)\varepsilon_t \\
+\text{and}\quad & y_t' = (1-B)^dy_t
+\end{align*}
+\end{block}
+
+## Model selection
+\fontsize{13}{15}\sf
+
+  * Fit regression model with automatically selected ARIMA errors.
+  * Check that $\varepsilon_t$ series looks like white noise.
+
+### Selecting predictors
+\begin{itemize}
+\item AICc can be calculated for final model.
+\item Repeat procedure for all subsets of predictors to be considered, and select model with lowest AICc value.
+\end{itemize}
+
+## US personal consumption and income
+\fontsize{9}{9}\sf
+
+```{r usconsump, fig.height=5, fig.width=8.5}
+autoplot(uschange[,1:2], facets=TRUE) +
+  xlab("Year") + ylab("") +
+  ggtitle("Quarterly changes in US consumption and personal income")
+```
+
+## US personal consumption and income
+
+\fontsize{9}{9}\sf
+
+```{r, fig.height=5, fig.width=8.5}
+qplot(Income,Consumption, data=as.data.frame(uschange)) +
+  ggtitle("Quarterly changes in US consumption and personal income")
+```
+
+## US personal consumption and income
+
+  * No need for transformations or further differencing.
+  *  Increase in income does not necessarily translate into instant increase in consumption (e.g., after the loss of a job, it may take a few months for expenses to be reduced to allow for the new circumstances). We will ignore this for now.
+
+## US personal consumption and income
+\fontsize{11}{14}\sf
+
+```{r usconsump2, echo=TRUE, fig.height=3}
+(fit <- auto.arima(uschange[,1], xreg=uschange[,2]))
+```
+
+\pause\begin{alertblock}{}
+Write down the equations for the fitted model.
+\end{alertblock}
+
+## US personal consumption and income
+
+```{r , echo=TRUE, fig.height=3.7}
+checkresiduals(fit, test=FALSE)
+```
+
+## US personal consumption and income
+\fontsize{10}{13}\sf
+
+```{r , echo=TRUE, fig.height=3.7}
+checkresiduals(fit, plot=FALSE)
+```
+
+## US personal consumption and income
+\fontsize{9}{12}\sf
+
+```{r usconsump3, echo=TRUE, fig.height=3.}
+fcast <- forecast(fit,
+  xreg=rep(mean(uschange[,2]),8), h=8)
+autoplot(fcast) + xlab("Year") +
+  ylab("Percentage change") +
+  ggtitle("Forecasts from regression with ARIMA(1,0,2) errors")
+```
+
+## Forecasting
+
+  * To forecast a regression model with ARIMA errors, we need to forecast the
+regression part of the model and the ARIMA part of the model and combine the
+results.
+  * Some predictors are known into the future (e.g., time, dummies).
+  * Separate forecasting models may be needed for other predictors.
+  * Forecast intervals ignore the uncertainty in forecasting the predictors.
+
+## Daily electricity demand
+\fontsize{12}{13}\sf
+
+Model daily electricity demand as a function of temperature using quadratic regression with ARMA errors.
+
+\fontsize{10}{12}\sf
+
+```{r, echo=TRUE, fig.height=3.6}
+qplot(elecdaily[,"Temperature"], elecdaily[,"Demand"]) +
+  xlab("Temperature") + ylab("Demand")
+```
+
+## Daily electricity demand
+\fontsize{12}{13}\sf
+
+```{r, echo=TRUE, fig.height=4}
+autoplot(elecdaily, facets = TRUE)
+```
+
+## Daily electricity demand
+\fontsize{9}{10}\sf
+
+```{r, echo=TRUE, fig.height=3.6}
+xreg <- cbind(MaxTemp = elecdaily[, "Temperature"],
+              MaxTempSq = elecdaily[, "Temperature"]^2,
+              Workday = elecdaily[, "WorkDay"])
+fit <- auto.arima(elecdaily[, "Demand"], xreg = xreg)
+checkresiduals(fit)
+```
+
+## Daily electricity demand
+\fontsize{9}{10}\sf
+
+```{r, echo=FALSE}
+checkresiduals(fit, plot=FALSE)
+```
+
+## Daily electricity demand
+\fontsize{10}{13}\sf
+
+```{r, echo=TRUE}
+# Forecast one day ahead
+forecast(fit, xreg = cbind(26, 26^2, 1))
+```
+
+## Daily electricity demand
+\fontsize{10}{13}\sf
+```{r echo=TRUE, fig.height=3.8}
+fcast <- forecast(fit,
+  xreg = cbind(rep(26,14), rep(26^2,14),
+    c(0,1,0,0,1,1,1,1,1,0,0,1,1,1)))
+autoplot(fcast) + ylab("Electicity demand (GW)")
+```
+
+# Lab session 19
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 19**
+
+
+# Some useful predictors for linear models
+
+## Trend
+
+**Linear trend**
+\[
+  x_t = t
+\]
+
+* $t=1,2,\dots,T$
+* Strong assumption that trend will continue.
+
+## Dummy variables
+
+\begin{textblock}{6}(0.4,1.5)
+If a categorical variable takes only two values (e.g., `Yes'
+or `No'), then an equivalent numerical variable can be constructed
+taking value 1 if yes and 0 if no. This is called a \textbf{dummy variable}.
+\end{textblock}
+
+\placefig{7.7}{1.}{width=5cm}{dummy2}
+
+## Dummy variables
+
+\begin{textblock}{5}(0.4,1.5)
+If there are more than two categories, then the variable can
+be coded using several dummy variables (one fewer than the total
+number of categories).
+
+\end{textblock}
+
+\placefig{5.5}{1.5}{width=7.3cm}{dummy3}
+
+## Beware of the dummy variable trap!
+* Using one dummy for each category gives too many dummy variables!
+
+* The regression will then be singular and inestimable.
+
+* Either omit the constant, or omit the dummy for one category.
+
+* The coefficients of the dummies are relative to the omitted category.
+
+## Uses of dummy variables
+\fontsize{13}{13}\sf
+
+**Seasonal dummies**
+
+* For quarterly data: use 3 dummies
+* For monthly data: use 11 dummies
+* For daily data: use 6 dummies
+* What to do with weekly data?
+
+\pause
+
+**Outliers**
+
+* If there is an outlier, you can use a dummy variable (taking value 1 for that observation and 0 elsewhere) to remove its effect.
+
+\pause
+
+**Public holidays**
+
+* For daily data: if it is a public holiday, dummy=1, otherwise dummy=0.
+
+## Fourier series
+
+Periodic seasonality can be handled using pairs of Fourier terms:
+$$
+s_{k}(t) = \sin\left(\frac{2\pi k t}{m}\right)\qquad c_{k}(t) = \cos\left(\frac{2\pi k t}{m}\right)
+$$
+$$
+y_t = a + bt + \sum_{k=1}^K \left[\alpha_k s_k(t) + \beta_k c_k(t)\right] + \varepsilon_t$$
+
+* Every periodic function can be approximated by sums of sin and cos terms for large enough $K$.
+* Choose $K$ by minimizing AICc.
+* Called "harmonic regression"
+* `fourier()` function generates these.
+
+## Intervention variables
+
+**Spikes**
+
+* Equivalent to a dummy variable for handling an outlier.
+\pause
+
+**Steps**
+
+* Variable takes value 0 before the intervention and 1 afterwards.
+\pause
+
+**Change of slope**
+
+* Variables take values 0 before the intervention and values $\{1,2,3,\dots\}$ afterwards.
+
+##  Holidays
+
+**For monthly data**
+
+* Christmas: always in December so part of monthly seasonal effect
+* Easter: use a dummy variable $v_t=1$ if any part of Easter is in that month, $v_t=0$ otherwise.
+* Ramadan and Chinese new year similar.
+
+## Trading days
+
+With monthly data, if the observations vary depending on how many different types of days in the month, then trading day predictors can be useful.
+
+\begin{align*}
+z_1 &= \text{\# Mondays in month;} \\
+z_2 &= \text{\# Tuesdays in month;} \\
+&\vdots \\
+z_7 &= \text{\# Sundays in month.}
+\end{align*}
+
+## Distributed lags
+
+Lagged values of a predictor.
+
+Example: $x$ is advertising which has a delayed effect
+
+\begin{align*}
+  x_{1} &= \text{advertising for previous month;} \\
+  x_{2} &= \text{advertising for two months previously;} \\
+        & \vdots \\
+  x_{m} &= \text{advertising for $m$ months previously.}
+\end{align*}
+
+# Dynamic harmonic regression
+
+## Dynamic harmonic regression
+
+**Combine Fourier terms with ARIMA errors**
+
+\fontsize{13}{14}\sf
+
+### Advantages
+   * it allows any length seasonality;
+   * for data with more than one seasonal period, you can include Fourier terms of different frequencies;
+   * the seasonal pattern is smooth for small values of $K$ (but more wiggly seasonality can be handled by increasing $K$);
+   * the short-term dynamics are easily handled with a simple ARMA error.
+
+### Disadvantages
+ * seasonality is assumed to be fixed
+
+## Eating-out expenditure
+
+```{r cafe, echo=TRUE, fig.height=4.6, fig.width=8}
+cafe04 <- window(auscafe, start=2004)
+autoplot(cafe04)
+cafefit <- function(K)
+{
+  require(latex2exp)
+  fit <- auto.arima(cafe04, xreg=fourier(cafe04, K=K),
+                  seasonal = FALSE, lambda = 0)
+  reg <- log(cafe04) - residuals(fit, type='regression')
+  reg <- exp(reg - mean(reg) + mean(log(cafe04)))
+  fc <- fit %>%
+    forecast(xreg=fourier(cafe04, K=K, h=24))
+  autoplot(cafe04, series="Data") +
+    autolayer(fc) + ggtitle(TeX(paste(fc$method,"and $\\lambda = 0$"))) +
+    autolayer(reg, series="Regression fit") +
+    xlab(paste("K=",K,"   AICC=",round(fit$aicc,2))) +
+    ylab("") + ylim(1.5,4.7)
+}
+```
+
+## Eating-out expenditure
+
+```{r cafe1, dependson='cafe', fig.height=5, echo=FALSE}
+cafefit(1)
+```
+
+## Eating-out expenditure
+
+```{r cafe2, dependson='cafe', fig.height=5, echo=FALSE}
+cafefit(2)
+```
+
+## Eating-out expenditure
+
+```{r cafe3, dependson='cafe', fig.height=5, echo=FALSE}
+cafefit(3)
+```
+
+## Eating-out expenditure
+
+```{r cafe4, dependson='cafe', fig.height=5, echo=FALSE}
+cafefit(4)
+```
+
+## Eating-out expenditure
+
+```{r cafe5, dependson='cafe', fig.height=5, echo=FALSE}
+cafefit(5)
+```
+
+## Eating-out expenditure
+
+```{r cafe6, dependson='cafe', fig.height=5, echo=FALSE}
+cafefit(6)
+```
+
+## Eating-out expenditure
+\fontsize{10}{10}\sf
+
+```{r cafe7, fig.height=4}
+fit <- auto.arima(cafe04, xreg=fourier(cafe04, K=5),
+                  seasonal = FALSE, lambda = 0)
+fc <- forecast(fit, xreg=fourier(cafe04, K=5, h=24))
+autoplot(fc)
+```
+
+## Example: weekly gasoline products
+\fontsize{8}{8}\sf
+
+```{r gasmodel, echo=TRUE}
+harmonics <- fourier(gasoline, K = 13)
+(fit <- auto.arima(gasoline, xreg = harmonics, seasonal = FALSE))
+```
+
+## Example: weekly gasoline products
+\fontsize{11}{12}\sf
+
+```{r gasres1, echo=TRUE, dependson='gasmodel'}
+checkresiduals(fit, test=FALSE)
+```
+
+## Example: weekly gasoline products
+\fontsize{11}{12}\sf
+
+```{r gasres2, echo=TRUE, dependson='gasmodel'}
+checkresiduals(fit, plot=FALSE)
+```
+
+## Example: weekly gasoline products
+\fontsize{11}{12}\sf
+
+```{r gasf, echo=TRUE, fig.height=3.5}
+newharmonics <- fourier(gasoline, K = 13, h = 156)
+fc <- forecast(fit, xreg = newharmonics)
+autoplot(fc)
+```
+
+## 5-minute call centre volume
+
+```{r calls, echo=TRUE, fig.height=4}
+autoplot(calls)
+```
+
+## 5-minute call centre volume
+\fontsize{8}{8}\sf
+
+```{r callsmodel, echo=TRUE}
+xreg <- fourier(calls, K = c(10,0))
+(fit <- auto.arima(calls, xreg=xreg, seasonal=FALSE, stationary=TRUE))
+```
+
+## 5-minute call centre volume
+
+```{r callsres, echo=TRUE}
+checkresiduals(fit, test=FALSE)
+```
+
+## 5-minute call centre volume
+\fontsize{10}{11}\sf
+
+```{r callsf, echo=TRUE, fig.height=4}
+fc <- forecast(fit, xreg = fourier(calls, c(10,0), 1690))
+autoplot(fc)
+```
+
+# Lab session 20
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 20**
+
+# Lagged predictors
+
+## Lagged predictors
+
+\alert{Sometimes a change in $x_t$ does not affect $y_t$ instantaneously}\pause
+\begin{block}{}
+\begin{itemize}
+  \item  $y_t=$ sales, $x_t=$ advertising.
+  \item  $y_t=$ stream flow, $x_t=$ rainfall.
+  \item  $y_t=$ size of herd, $x_t=$ breeding stock.
+\end{itemize}
+\end{block}
+\pause
+
+  * These are dynamic systems with input ($x_t$) and output $(y_t)$.
+  * $x_t$ is often a leading indicator.
+  * There can be multiple predictors.
+
+## Lagged predictors
+\fontsize{14}{15}\sf
+The model include present and past values of predictor: $x_t,x_{t-1},x_{t-2},\dots.$
+\begin{block}{}
+\centerline{$
+y_t = a + \nu_0x_t + \nu_1x_{t-1} + \dots + \nu_kx_{t-k} + \eta_t$}
+\end{block}\vspace*{-0.4cm}
+where $\eta_t$ is an ARIMA process.\pause
+
+**Rewrite model as **\vspace*{-0.1cm}
+\begin{align*}
+y_{t} & = a+ (\nu_{0} + \nu_{1} B + \nu_{2} B^{2} + \dots + \nu_{k} B^{k}) x_{t} +\eta_t \\
+      & = a+ \nu(B) x_{t} +\eta_t.
+\end{align*}\pause\vspace*{-0.8cm}
+
+  * $\nu(B)$ is called a \textit{transfer function} since it describes how
+change in $x_t$ is transferred to $y_t$.
+  * $x$ can influence $y$, but $y$ is not allowed to influence $x$.
+
+## Example: Insurance quotes and TV adverts
+\fontsize{12}{13}\sf
+
+```{r tvadvert, fig.height=3.5}
+autoplot(insurance, facets=TRUE) +
+  xlab("Year") + ylab("") +
+  ggtitle("Insurance advertising and quotations")
+```
+
+## Example: Insurance quotes and TV adverts
+\fontsize{10}{10}\sf
+
+```{r, echo=TRUE}
+Advert <- cbind(
+    AdLag0 = insurance[,"TV.advert"],
+    AdLag1 = lag(insurance[,"TV.advert"],-1),
+    AdLag2 = lag(insurance[,"TV.advert"],-2),
+    AdLag3 = lag(insurance[,"TV.advert"],-3)) %>%
+  head(NROW(insurance))
+
+# Restrict data so models use same fitting period
+fit1 <- auto.arima(insurance[4:40,1], xreg=Advert[4:40,1],
+  stationary=TRUE)
+fit2 <- auto.arima(insurance[4:40,1], xreg=Advert[4:40,1:2],
+  stationary=TRUE)
+fit3 <- auto.arima(insurance[4:40,1], xreg=Advert[4:40,1:3],
+  stationary=TRUE)
+fit4 <- auto.arima(insurance[4:40,1], xreg=Advert[4:40,1:4],
+  stationary=TRUE)
+c(fit1$aicc,fit2$aicc,fit3$aicc,fit4$aicc)
+```
+
+## Example: Insurance quotes and TV adverts
+
+\fontsize{10}{10}\sf
+
+```{r tvadvertagain, echo=TRUE}
+(fit <- auto.arima(insurance[,1], xreg=Advert[,1:2],
+  stationary=TRUE))
+```
+
+\pause
+
+```{r tvadvertparam, echo=FALSE}
+# Store coefficients
+phi1 <- coef(fit)['ar1']
+phi2 <- coef(fit)['ar2']
+phi3 <- coef(fit)['ar3']
+intercept <- coef(fit)['intercept']
+gamma0 <- coef(fit)['AdLag0']
+gamma1 <- coef(fit)['AdLag1']
+```
+
+###
+\begin{align*}
+  y_t &= `r format(intercept, digits=3)` +
+         `r format(gamma0, digits=3)` x_t +
+         `r format(gamma1, digits=2)` x_{t-1} + \eta_t,\\
+  \eta_t &= `r format(phi1, digits=3)` \eta_{t-1}
+        `r format(phi2, digits=2)` \eta_{t-2} +
+        `r format(phi3, digits=2)` \eta_{t-3} + \varepsilon_t,
+\end{align*}
+
+## Example: Insurance quotes and TV adverts
+\fontsize{11}{13}\sf
+
+```{r, echo=TRUE, fig.height=3.3}
+fc <- forecast(fit, h=20,
+  xreg=cbind(c(Advert[40,1],rep(10,19)), rep(10,20)))
+autoplot(fc)
+```
+
+## Example: Insurance quotes and TV adverts
+\fontsize{11}{13}\sf
+
+```{r, echo=TRUE, fig.height=3.3}
+fc <- forecast(fit, h=20,
+  xreg=cbind(c(Advert[40,1],rep(8,19)), rep(8,20)))
+autoplot(fc)
+```
+
+## Example: Insurance quotes and TV adverts
+\fontsize{11}{13}\sf
+
+```{r, echo=TRUE, fig.height=3.3}
+fc <- forecast(fit, h=20,
+  xreg=cbind(c(Advert[40,1],rep(6,19)), rep(6,20)))
+autoplot(fc)
+```

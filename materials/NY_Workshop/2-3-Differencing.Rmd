@@ -1,0 +1,335 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "2.3&nbsp; Stationarity and differencing"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+options(digits=4, width=55)
+```
+
+# Stationarity
+
+## Stationarity
+
+\begin{block}{Definition}
+If $\{y_t\}$ is a stationary time series, then for all $s$, the distribution of $(y_t,\dots,y_{t+s})$ does not depend on $t$.
+\end{block}\pause
+
+A \textbf{stationary series} is:
+
+*  roughly horizontal
+*  constant variance
+*  no patterns predictable in the long-term
+
+## Stationary?
+
+```{r, echo=FALSE}
+autoplot(dj) + ylab("Dow Jones Index") + xlab("Day")
+```
+
+## Stationary?
+
+```{r, echo=FALSE}
+autoplot(diff(dj)) + ylab("Change in Dow Jones Index") + xlab("Day")
+```
+
+## Stationary?
+
+```{r, echo=FALSE}
+autoplot(strikes) + ylab("Number of strikes") + xlab("Year")
+```
+
+## Stationary?
+
+```{r, echo=FALSE}
+autoplot(hsales) + xlab("Year") + ylab("Total sales") +
+  ggtitle("Sales of new one-family houses, USA")
+```
+
+## Stationary?
+```{r, echo=FALSE}
+autoplot(eggs) + xlab("Year") + ylab("$") +
+  ggtitle("Price of a dozen eggs in 1993 dollars")
+```
+
+## Stationary?
+```{r, echo=FALSE}
+autoplot(window(pigs/1e3, start=1990)) + xlab("Year") + ylab("thousands") +
+  ggtitle("Number of pigs slaughtered in Victoria")
+```
+
+## Stationary?
+
+```{r, echo=FALSE}
+autoplot(lynx) + xlab("Year") + ylab("Number trapped") +
+  ggtitle("Annual Canadian Lynx Trappings")
+```
+
+## Stationary?
+
+```{r, echo=FALSE}
+autoplot(window(ausbeer, start=1992)) + xlab("Year") + ylab("megalitres") +
+  ggtitle("Australian quarterly beer production")
+```
+
+## Stationarity
+
+\begin{block}{Definition}
+If $\{y_t\}$ is a stationary time series, then for all $s$, the distribution of $(y_t,\dots,y_{t+s})$ does not depend on $t$.
+\end{block}\pause\vspace*{0.4cm}
+
+Transformations help to \textbf{stabilize the variance}.
+
+For ARIMA modelling, we also need to \textbf{stabilize the mean}.
+
+## Non-stationarity in the mean
+\alert{Identifying non-stationary series}
+
+* time plot.
+
+* The ACF of stationary data drops to zero relatively quickly
+* The ACF of non-stationary data decreases slowly.
+* For non-stationary data, the value of $r_1$ is often
+     large and positive.
+
+## Example: Dow-Jones index
+\fontsize{11}{11}\sf
+
+```{r}
+autoplot(dj) + ylab("Dow Jones Index") + xlab("Day")
+```
+
+## Example: Dow-Jones index
+\fontsize{11}{11}\sf
+
+```{r}
+ggAcf(dj)
+```
+
+## Example: Dow-Jones index
+\fontsize{11}{11}\sf
+
+```{r}
+autoplot(diff(dj)) +
+  ylab("Change in Dow Jones Index") + xlab("Day")
+```
+
+## Example: Dow-Jones index
+\fontsize{11}{11}\sf
+
+```{r}
+ggAcf(diff(dj))
+```
+
+# Differencing
+
+## Differencing
+
+* Differencing helps to \textbf{stabilize the mean}.
+* The differenced series is the \emph{change} between each observation
+in the original series: ${y'_t = y_t - y_{t-1}}$.
+* The differenced series will have only $T-1$ values since it is not possible to calculate a difference $y_1'$ for the first observation.
+
+## Second-order  differencing
+
+Occasionally the differenced data will not appear stationary and it
+may be necessary to difference the data a second time:\pause
+\begin{align*}
+y''_{t}  &=  y'_{t}  - y'_{t - 1} \\
+&= (y_t - y_{t-1}) - (y_{t-1}-y_{t-2})\\
+&= y_t - 2y_{t-1} +y_{t-2}.
+\end{align*}\pause\vspace*{-0.75cm}
+
+* $y_t''$ will have  $T-2$  values.
+* In practice,  it is almost never necessary to go beyond second-order
+differences.
+
+## Seasonal differencing
+
+A seasonal difference is the difference between an observation and the corresponding observation from the previous year.\pause
+$${y'_t = y_t - y_{t-m}}$$
+where $m=$ number of seasons.\pause
+
+* For monthly data $m=12$.
+* For quarterly data $m=4$.
+
+## Electricity production
+```{r, echo=TRUE, fig.height=4}
+usmelec %>% autoplot()
+```
+
+## Electricity production
+```{r, echo=TRUE, fig.height=4}
+usmelec %>% log() %>% autoplot()
+```
+
+## Electricity production
+
+```{r, echo=TRUE, fig.height=3.5}
+usmelec %>% log() %>% diff(lag=12) %>%
+  autoplot()
+```
+
+## Electricity production
+```{r, echo=TRUE, fig.height=3.5}
+usmelec %>% log() %>% diff(lag=12) %>%
+  diff(lag=1) %>% autoplot()
+```
+
+## Electricity production
+
+* Seasonally differenced series is closer to being stationary.
+* Remaining non-stationarity  can be removed with further first difference.
+
+If $y'_t = y_t - y_{t-12}$ denotes seasonally differenced series, then twice-differenced series is\vspace*{-0.1cm}
+\begin{block}{}\vspace*{-0.2cm}
+\begin{align*}
+y^*_t &= y'_t - y'_{t-1} \\
+      &= (y_t - y_{t-12}) - (y_{t-1} - y_{t-13}) \\
+      &= y_t - y_{t-1} - y_{t-12} + y_{t-13}\: .
+\end{align*}
+\end{block}\vspace*{10cm}
+
+## Seasonal differencing
+\fontsize{14}{15}\sf
+
+When both seasonal and first differences are applied\dots\pause
+
+* it makes no difference
+which is done first---the result will be the same.
+* If seasonality is strong, we recommend that seasonal differencing be done first because sometimes the resulting series will be stationary and there will be no need for further first difference.
+\pause
+
+###
+It is important that if differencing is used, the differences are
+interpretable.
+
+## Interpretation of differencing
+
+* first differences are the change between \textbf{one observation and the
+next};
+* seasonal differences are the change between \textbf{one year to the
+next}.
+\pause
+
+But taking lag 3 differences for yearly data, for example, results in a model which cannot be sensibly interpreted.
+
+# Unit root tests
+## Unit root tests
+
+\alert{Statistical tests to determine the required order of differencing.}
+
+1. Augmented Dickey Fuller test: null hypothesis is that the data are non-stationary and non-seasonal.
+2. Kwiatkowski-Phillips-Schmidt-Shin (KPSS) test: null  hypothesis is that the data are stationary and non-seasonal.
+3. Other tests available for seasonal data.
+
+## KPSS test
+\fontsize{10}{11}\sf
+
+```{r, echo=TRUE}
+library(urca)
+summary(ur.kpss(goog))
+```
+
+\pause
+
+```{r, echo=TRUE}
+ndiffs(goog)
+```
+
+## Automatically selecting differences
+
+STL decomposition: $y_t = T_t+S_t+R_t$
+
+Seasonal strength $F_s = \max\big(0, 1-\frac{\text{Var}(R_t)}{\text{Var}(S_t+R_t)}\big)$
+
+If $F_s > 0.64$, do one seasonal difference.
+
+\pause\fontsize{12}{15}\sf\vspace*{1cm}
+
+```{r, echo=TRUE}
+usmelec %>% log() %>% nsdiffs()
+usmelec %>% log() %>% diff(lag=12) %>% ndiffs()
+```
+
+# Lab session 15
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 15**
+
+# Backshift notation
+
+## Backshift notation
+
+A  very useful notational device is the backward  shift operator,  $B$,  which is used as follows:
+$$
+{B y_{t}  =  y_{t - 1}} \: .
+$$\pause
+In  other  words,   $B$,  operating on  $y_{t}$,   has  the
+effect   of   \textbf{shifting  the  data  back  one   period}. \pause
+Two applications of  $B$  to  $y_{t}$ \textbf{shifts the data  back  two
+periods}:
+$$
+B(By_{t})  =  B^{2}y_{t}  =  y_{t-2}\: .
+$$\pause
+For  monthly  data, if we wish to shift attention  to  ``the
+same  month last year,''  then  $B^{12}$
+is used,  and  the
+notation is  $B^{12}y_{t}$  =  $y_{t-12}$.
+
+## Backshift notation
+
+The   backward   shift  operator  is  convenient   for describing  the
+process  of  \textit{differencing}. \pause
+A first difference can be written as
+$$
+y'_{t}  =  y_{t} -   y_{t-1} = y_t - By_{t}  =  (1 - B)y_{t}\: .
+$$\pause
+Note  that a first difference is represented by  $(1 -  B)$.
+\pause
+
+Similarly,   if second-order differences (i.e.,   first
+differences  of  first differences) have  to  be  computed,
+then:
+\[
+y''_{t}  =  y_{t} -   2y_{t - 1}  +  y_{t - 2} = (1 - B)^{2} y_{t}\: .
+\]
+
+## Backshift notation
+
+* Second-order difference  is  denoted   $(1- B)^{2}$.
+
+* \textit{Second-order  difference} is not  the  same  as  a \textit{second  difference},  which would  be  denoted $1- B^{2}$;
+
+* In general,  a  $d$th-order difference can be written as
+$$(1 - B)^{d} y_{t}.$$
+
+* A seasonal difference followed by a first difference can be written as
+$$ (1-B)(1-B^m)y_t\: .$$
+
+## Backshift notation
+
+The ``backshift'' notation is convenient because the terms can be multiplied
+together to see the combined effect.
+\begin{align*}
+(1-B)(1-B^m)y_t &= (1 - B - B^m + B^{m+1})y_t \\
+&= y_t-y_{t-1}-y_{t-m}+y_{t-m-1}.
+\end{align*}\pause
+For monthly data, $m=12$ and we obtain the same result as earlier.
+

@@ -1,0 +1,448 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "3.4&nbsp; Extras"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+options(digits=4, width=55)
+```
+
+
+# Bagged ETS
+
+## Bagged ETS
+
+\fontsize{10}{10}\sf
+
+### Algorithm: Generating bootstrapped series
+```r
+bootstrap ← function(ts, num.boot) {
+  lambda ← BoxCox.lambda(ts, min=0, max=1)
+  ts.bc ← BoxCox(ts, lambda)
+  if(ts is seasonal) {
+    [trend, seasonal, remainder] ← stl(ts.bc)
+  }
+  else {
+    seasonal ← 0
+    [trend, remainder] ← loess(ts.bc)
+  }
+  recon.series[1] ← ts
+  for(i in 2:num.boot) {
+    boot.sample[i] ← MBB(remainder)
+    recon.series.bc[i] ← trend + seasonal + boot.sample[i]
+    recon.series[i] ← InvBoxCox(recon.series.bc[i], lambda)
+  }
+  return(recon.series)
+```
+
+
+## Bagged ETS
+
+```{r baggedets1, echo=FALSE}
+library(Mcomp)
+df <- cbind(
+  'M495' = M3[[1896]]$x,
+  'Box-Cox transformed' = BoxCox(M3[[1896]]$x, BoxCox.lambda(M3[[1896]]$x))
+)
+autoplot(df, facets=TRUE)
+```
+
+## Bagged ETS
+
+```{r  baggedets2, echo=FALSE}
+df[,2] %>% stl(s.window='periodic') %>% autoplot
+```
+
+## Bagged ETS
+
+```{r baggedets3, echo=FALSE}
+fit <- bld.mbb.bootstrap(Mcomp::M3[[1896]]$x, 11)
+lambda <- BoxCox.lambda(Mcomp::M3[[1896]]$x)
+as.data.frame(fit) %>% as.ts -> z
+tsp(z) <- tsp(Mcomp::M3[[1896]]$x)
+colnames(z) <- c("Data",paste("B",1:10,sep=""))
+```
+
+```{r baggedets4, echo=FALSE}
+stlb <- stl(df[,2], s.window='periodic')
+stlb$time.series[,3] <- BoxCox(z[,2],lambda) - stlb$time.series[,1] - stlb$time.series[,2]
+autoplot(stlb)
+```
+
+## Bagged ETS
+
+```{r baggedets5, echo=FALSE}
+autoplot(Mcomp::M3[[1896]]$x) +
+  xlab("Year") + ylab("M495") +
+  ylim(min(z),max(z))
+```
+
+
+
+## Bagged ETS
+
+```{r baggedets6, echo=FALSE}
+autoplot(Mcomp::M3[[1896]]$x) +
+  forecast::autolayer(z[,2]) +
+  xlab("Year") + ylab("M495") +
+  ylim(min(z),max(z)) +
+  theme(legend.position="none")
+```
+
+## Bagged ETS
+
+```{r baggedets7, echo=FALSE}
+autoplot(Mcomp::M3[[1896]]$x) +
+  forecast::autolayer(z[,2:11]) +
+  xlab("Year") + ylab("M495") +
+  ylim(min(z),max(z)) +
+  theme(legend.position="none")
+```
+
+
+## Bagged ETS
+
+\fontsize{11}{11}\sf
+
+```{r baggedets8, echo=TRUE, cache=TRUE, fig.height=4}
+baggedETS(Mcomp::M3[[1896]]$x) %>%
+  forecast %>% autoplot +
+  xlab("Year") + ylab("M495")
+```
+
+
+## Bagged ETS
+
+```{r baggedets9, echo=FALSE, cache=TRUE, fig.height=4}
+baggedETS(Mcomp::M3[[1896]]$x) %>%
+  forecast %>% autoplot +
+  xlab("Year") + ylab("M495")
+```
+
+ * Intervals show range of point forecasts
+ * They are not prediction intervals
+
+
+# Models for different frequencies
+
+## Models for different frequencies
+
+### Models for annual data
+
+ * ETS, ARIMA, Dynamic regression
+\pause
+
+### Models for quarterly data
+
+ * ETS, ARIMA/SARIMA, Dynamic regression, Dynamic harmonic regression, STL+ETS, STL+ARIMA
+\pause
+
+### Models for monthly data
+
+ * ETS, ARIMA/SARIMA, Dynamic regression, Dynamic harmonic regression, STL+ETS, STL+ARIMA
+
+## Models for different frequencies
+
+### Models for weekly data
+
+ * ARIMA/SARIMA, Dynamic regression, Dynamic harmonic regression, STL+ETS, STL+ARIMA, TBATS
+\pause
+
+### Models for daily, hourly and other sub-daily data
+
+ * ARIMA/SARIMA, Dynamic regression, Dynamic harmonic regression, STL+ETS, STL+ARIMA, TBATS
+
+
+# Ensuring forecasts stay within limits
+
+## Positive forecasts
+\fontsize{12}{12}\sf
+
+```{r, fig.height=3.8}
+eggs %>%
+  ets(model="AAN", damped=FALSE, lambda=0) %>%
+  forecast(h=50, biasadj=TRUE) %>%
+  autoplot()
+```
+
+## Forecasts constrained to an interval
+
+Suppose egg prices constrained to lie within $a=50$ and $b=400$.
+
+Transform data using scaled logit transform:
+$$
+y = \log\left(\frac{x-a}{b-x}\right),
+$$
+where $x$ is on the original scale and $y$ is the transformed data. To reverse the transformation, we will use
+$$
+x  = \frac{(b-a)e^y}{1+e^y} + a.
+$$
+
+## Forecasts constrained to an interval
+\fontsize{12}{12}\sf
+
+```r
+    # Bounds
+    a <- 50
+    b <- 400
+    # Transform data and fit model
+    fit <- log((eggs-a)/(b-eggs)) %>%
+      ets(model="AAN", damped=FALSE)
+    fc <- forecast(fit, h=50)
+    # Back-transform forecasts
+    fc[["mean"]] <- (b-a)*exp(fc[["mean"]]) /
+      (1+exp(fc[["mean"]])) + a
+    fc[["lower"]] <- (b-a)*exp(fc[["lower"]]) /
+     (1+exp(fc[["lower"]])) + a
+    fc[["upper"]] <- (b-a)*exp(fc[["upper"]]) /
+     (1+exp(fc[["upper"]])) + a
+    fc[["x"]] <- eggs
+    autoplot(fc)
+```
+
+## Forecasts constrained to an interval
+
+```{r constrained, echo=FALSE}
+    # Bounds
+    a <- 50
+    b <- 400
+    # Transform data and fit model
+    fit <- log((eggs-a)/(b-eggs)) %>%
+      ets(model="AAN", damped=FALSE)
+    fc <- forecast(fit, h=50)
+    # Back-transform forecasts
+    fc[["mean"]] <- (b-a)*exp(fc[["mean"]]) /
+      (1+exp(fc[["mean"]])) + a
+    fc[["lower"]] <- (b-a)*exp(fc[["lower"]]) /
+     (1+exp(fc[["lower"]])) + a
+    fc[["upper"]] <- (b-a)*exp(fc[["upper"]]) /
+     (1+exp(fc[["upper"]])) + a
+    fc[["x"]] <- eggs
+    # Plot result on original scale
+    autoplot(fc)
+```
+
+# Forecast combinations
+
+## Forecast combinations
+
+### Clemen (1989)
+"The results have been virtually unanimous: combining multiple forecasts leads to increased forecast accuracy. \dots In many cases one can make dramatic performance improvements by simply averaging the forecasts."
+
+## Forecast combinations
+\fontsize{10}{10}\sf\vspace*{-0.2cm}
+```r
+train <- window(auscafe, end=c(2012,9))
+h <- length(auscafe) - length(train)
+ETS <- forecast(ets(train), h=h)
+ARIMA <- forecast(auto.arima(train, lambda=0, biasadj=TRUE),
+  h=h)
+STL <- stlf(train, lambda=0, h=h, biasadj=TRUE)
+NNAR <- forecast(nnetar(train), h=h)
+TBATS <- forecast(tbats(train, biasadj=TRUE), h=h)
+Combination <- (ETS[["mean"]] + ARIMA[["mean"]] +
+  STL[["mean"]] + NNAR[["mean"]] + TBATS[["mean"]])/5
+
+autoplot(auscafe) +
+  autolayer(ETS, series="ETS", PI=FALSE) +
+  autolayer(ARIMA, series="ARIMA", PI=FALSE) +
+  autolayer(STL, series="STL", PI=FALSE) +
+  autolayer(NNAR, series="NNAR", PI=FALSE) +
+  autolayer(TBATS, series="TBATS", PI=FALSE) +
+  autolayer(Combination, series="Combination") +
+  xlab("Year") + ylab("$ billion") +
+  ggtitle("Australian monthly expenditure on eating out")
+```
+
+## Forecast combinations
+\fontsize{10}{10}\sf\vspace*{-0.2cm}
+```{r combine1, message=FALSE, warning=FALSE, echo=FALSE}
+train <- window(auscafe, end=c(2012,9))
+h <- length(auscafe) - length(train)
+ETS <- forecast(ets(train), h=h)
+ARIMA <- forecast(auto.arima(train, lambda=0, biasadj=TRUE),
+  h=h)
+STL <- stlf(train, lambda=0, h=h, biasadj=TRUE)
+NNAR <- forecast(nnetar(train), h=h)
+TBATS <- forecast(tbats(train, biasadj=TRUE), h=h)
+Combination <- (ETS[["mean"]] + ARIMA[["mean"]] +
+  STL[["mean"]] + NNAR[["mean"]] + TBATS[["mean"]])/5
+```
+
+```{r combineplot, dependson="combine1", echo=FALSE, fig.height=4.8}
+autoplot(auscafe) +
+  autolayer(ETS, series="ETS", PI=FALSE) +
+  autolayer(ARIMA, series="ARIMA", PI=FALSE) +
+  autolayer(STL, series="STL", PI=FALSE) +
+  autolayer(NNAR, series="NNAR", PI=FALSE) +
+  autolayer(TBATS, series="TBATS", PI=FALSE) +
+  autolayer(Combination, series="Combination") +
+  xlab("Year") + ylab("$ billion") +
+  ggtitle("Australian monthly expenditure on eating out")
+```
+
+## Forecast combinations
+\fontsize{11}{15}\sf
+```{r combineaccuracy, dependson="combine1"}
+c(ETS = accuracy(ETS, auscafe)["Test set","RMSE"],
+  ARIMA = accuracy(ARIMA, auscafe)["Test set","RMSE"],
+  `STL-ETS` = accuracy(STL, auscafe)["Test set","RMSE"],
+  NNAR = accuracy(NNAR, auscafe)["Test set","RMSE"],
+  TBATS = accuracy(TBATS, auscafe)["Test set","RMSE"],
+  Combination =
+    accuracy(Combination, auscafe)["Test set","RMSE"])
+```
+
+# Prediction intervals for aggregates
+## Prediction intervals for aggregates
+\fontsize{11}{11}\sf
+
+```{r aggregates}
+# First fit a model to the data
+fit <- ets(gas/1000)
+# Forecast six months ahead
+fc <- forecast(fit, h=6)
+sum(fc[["mean"]][1:6])
+# Simulate 10000 future sample paths
+nsim <- 10000
+h <- 6
+sim <- numeric(nsim)
+for(i in seq_len(nsim))
+  sim[i] <- sum(simulate(fit, future=TRUE, nsim=h))
+mean(sim)
+```
+
+## Prediction intervals for aggregates
+
+```{r aggregates3, dependson="aggregates"}
+#80% interval:
+quantile(sim, prob=c(0.1, 0.9))
+#95% interval:
+quantile(sim, prob=c(0.025, 0.975))
+```
+
+
+# Backcasting
+## Backcasting
+\fontsize{11}{11}\sf
+
+```{r backcasting_functions}
+# Function to reverse time
+reverse_ts <- function(y)
+{
+  ts(rev(y), start=tsp(y)[1L], frequency=frequency(y))
+}
+# Function to reverse a forecast
+reverse_forecast <- function(object)
+{
+  h <- length(object[["mean"]])
+  f <- frequency(object[["mean"]])
+  object[["x"]] <- reverse_ts(object[["x"]])
+  object[["mean"]] <- ts(rev(object[["mean"]]),
+    end=tsp(object[["x"]])[1L]-1/f, frequency=f)
+  object[["lower"]] <- object[["lower"]][h:1L,]
+  object[["upper"]] <- object[["upper"]][h:1L,]
+  return(object)
+}
+```
+
+
+## Backcasting
+
+\fontsize{11}{11}\sf
+
+```r
+euretail %>% reverse_ts() %>%
+  auto.arima() %>%
+  forecast() %>% reverse_forecast() -> bc
+autoplot(bc) +
+  ggtitle(paste("Backcasts from",bc[["method"]]))
+```
+
+
+```{r backcasting, dependson="backcasting_functions", echo=FALSE, fig.height=3.5}
+# Backcast example
+euretail %>%
+  reverse_ts() %>%
+  auto.arima() %>%
+  forecast() %>%
+  reverse_forecast() -> bc
+autoplot(bc) +
+  ggtitle(paste("Backcasts from",bc[["method"]]))
+```
+
+# Missing values
+
+## Missing values
+\fontsize{13}{14}\sf
+
+**Functions which can handle missing values**
+
+ * `auto.arima()`, `Arima()`
+ * `tslm()`
+ * `nnetar()`
+
+**Models which cannot handle missing values**
+
+ * `ets()`
+ * `stl()`
+ * `stlf()`
+ * `tbats()`
+
+\pause
+
+### What to do?
+ 1. Model section of data after last missing value.
+ 2. Estimate missing values with `na.interp()`.
+
+## Missing values
+\fontsize{12}{12}\sf
+```{r}
+autoplot(gold)
+```
+
+## Missing values
+\fontsize{12}{12}\sf
+```{r, fig.height=3}
+gold %>% na.interp() %>%
+  autoplot(series="Interpolated") +
+    autolayer(gold, series="Original") +
+    scale_color_manual(
+      values=c(`Interpolated`="red",`Original`="gray"))
+```
+
+# Outliers
+
+## Outliers
+
+```{r, fig.height=3.4}
+autoplot(gold)
+```
+
+## Outliers
+
+```{r, fig.height=3.4}
+tsoutliers(gold)
+```
+
+## Outliers
+
+```{r, fig.height=3.4}
+gold %>% tsclean() %>% autoplot()
+```

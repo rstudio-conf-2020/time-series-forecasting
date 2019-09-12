@@ -1,0 +1,359 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "1.4&nbsp; Exponential smoothing"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+options(digits=4, width=55)
+```
+
+# Simple exponential smoothing
+
+## Simple methods
+\fontsize{14}{15}\sf
+
+Time series $y_1,y_2,\dots,y_T$.
+
+\begin{block}{Random walk forecasts}
+  \centerline{$\pred{y}{T+h}{T} = y_T$}
+\end{block}\pause
+
+\begin{block}{Average forecasts}
+  \centerline{$\displaystyle\pred{y}{T+h}{T} = \frac1T\sum_{t=1}^T y_t$}
+\end{block}\pause\vspace*{-0.35cm}
+
+* Want something in between that weights most recent data more highly.
+* Simple exponential smoothing uses a weighted moving average with weights that decrease exponentially.
+
+## Simple Exponential Smoothing
+
+\begin{block}{Forecast equation}
+$\pred{y}{T+1}{T} = \alpha y_T + \alpha(1-\alpha) y_{T-1} + \alpha(1-\alpha)^2 y_{T-2}+ \cdots$
+\end{block}
+where $0 \le \alpha \le1$.\pause\vspace*{0.2cm}
+
+\small\begin{tabular}{lllll}
+\toprule
+& \multicolumn{4}{l}{Weights assigned to observations for:}\\
+Observation  &   $\alpha = 0.2$   &   $\alpha = 0.4$  &   $\alpha = 0.6$  & $\alpha = 0.8$ \\
+\midrule
+$y_{T}$      & 0.2         & 0.4          & 0.6         & 0.8\\
+$y_{T-1}$    & 0.16        & 0.24         & 0.24        & 0.16\\
+$y_{T-2}$    & 0.128       & 0.144        & 0.096       & 0.032\\
+$y_{T-3}$    & 0.1024      & 0.0864       & 0.0384      & 0.0064\\
+$y_{T-4}$    & $(0.2)(0.8)^4$  & $(0.4)(0.6)^4$   & $(0.6)(0.4)^4$  & $(0.8)(0.2)^4$\\
+$y_{T-5}$    & $(0.2)(0.8)^5$  & $(0.4)(0.6)^5$   & $(0.6)(0.4)^5$  & $(0.8)(0.2)^5$\\
+\bottomrule
+\end{tabular}
+
+## Simple Exponential Smoothing
+\fontsize{14}{16}\sf
+
+\begin{block}{Component form}\vspace*{-0.4cm}
+\begin{align*}
+\text{Forecast equation}&&\pred{y}{t+h}{t} &= \ell_{t}\\
+\text{Smoothing equation}&&\ell_{t} &= \alpha y_{t} + (1 - \alpha)\ell_{t-1}
+\end{align*}
+\end{block}\vspace*{-0.2cm}
+
+* $\ell_t$ is the level (or the smoothed value) of the series at time t.
+* $\pred{y}{t+1}{t} = \alpha y_t + (1-\alpha) \pred{y}{t}{t-1}$\newline
+  Iterate to get exponentially weighted moving average form.
+
+\begin{block}{Weighted average form}
+$\displaystyle\pred{y}{T+1}{T}=\sum_{j=0}^{T-1} \alpha(1-\alpha)^j y_{T-j}+(1-\alpha)^T \ell_{0}$
+\end{block}
+
+## Optimisation
+
+  * Need to choose value for $\alpha$ and $\ell_0$
+  * Similarly to regression --- we choose $\alpha$ and $\ell_0$ by minimising SSE:
+$$
+  \text{SSE}=\sum_{t=1}^T(y_t - \pred{y}{t}{t-1})^2.
+$$
+  * Unlike regression there is no closed form solution --- use numerical optimization.
+
+## Example: Oil production
+
+\fontsize{10}{11}\sf
+
+```{r sesfit, echo=TRUE, cache=TRUE}
+fc <- ses(oil, h=5)
+summary(fc[["model"]])
+```
+
+```{r sesparam, echo=FALSE, cache=TRUE}
+#tmp <- accuracy(fc)
+#print(round(c(tmp[,c("MAE","RMSE","MAPE")],SSE=sum(residuals(fc)^2)),1))
+alpha <- fc$model$par[1]
+l0 <- fc$model$par[2]
+```
+## Example: Oil production
+
+```{r, echo=TRUE, fig.height=4}
+oil %>% ses(PI=FALSE) %>% autoplot
+```
+
+# Trend methods
+
+## Holt's linear trend
+
+\begin{block}{Component form}\vspace*{-.4cm}
+\begin{align*}
+\text{Forecast }&& \pred{y}{t+h}{t} &= \ell_{t} + hb_{t} \\
+\text{Level }&& \ell_{t} &= \alpha y_{t} + (1 - \alpha)(\ell_{t-1} + b_{t-1})\\
+\text{Trend }&& b_{t} &= \beta^*(\ell_{t} - \ell_{t-1}) + (1 -\beta^*)b_{t-1},
+\end{align*}
+\end{block}
+\pause\vspace*{-0.2cm}
+
+  * Two smoothing parameters $\alpha$ and $\beta^*$ ($0\le\alpha,\beta^*\le1$).
+  * $\ell_t$ level: weighted average between $y_t$ and one-step ahead forecast for time $t$, $(\ell_{t-1} + b_{t-1}=\pred{y}{t}{t-1})$
+  * $b_t$ slope: weighted average of $(\ell_{t} - \ell_{t-1})$ and $b_{t-1}$, current and previous estimate of slope.
+  * Choose $\alpha, \beta^*, \ell_0, b_0$ to minimise SSE.
+
+## Holt's method in R
+\fontsize{12}{15}\sf
+
+```{r, fig.height=3.6, echo=TRUE}
+window(ausair, start=1990, end=2004) %>%
+  holt(h=5, PI=FALSE) %>%
+  autoplot()
+```
+
+## Damped trend method
+\begin{block}{Component form}\vspace*{-0.4cm}
+\begin{align*}
+\pred{y}{t+h}{t} &= \ell_{t} + (\phi+\phi^2 + \dots + \phi^{h})b_{t} \\
+\ell_{t} &= \alpha y_{t} + (1 - \alpha)(\ell_{t-1} + \phi b_{t-1})\\
+b_{t} &= \beta^*(\ell_{t} - \ell_{t-1}) + (1 -\beta^*)\phi b_{t-1}.
+\end{align*}
+\end{block}
+\pause
+
+  * Damping parameter $0<\phi<1$.
+  * If $\phi=1$, identical to Holt's linear trend.
+  * As $h\rightarrow\infty$, $\pred{y}{T+h}{T}\rightarrow \ell_T+\phi b_T/(1-\phi)$.
+  * Short-run forecasts trended, long-run forecasts constant.
+
+## Example: Sheep in Asia
+\fontsize{11}{13}\sf
+
+```{r, echo=TRUE}
+livestock2 <- window(livestock, start=1970, end=2000)
+fc1 <- ses(livestock2)
+fc2 <- holt(livestock2)
+fc3 <- holt(livestock2, damped = TRUE)
+```
+
+```r
+accuracy(fc1, livestock)
+accuracy(fc2, livestock)
+accuracy(fc3, livestock)
+```
+
+\fontsize{12}{13}\sf
+
+```{r echo=FALSE}
+tab <- matrix(NA, ncol=3,nrow=10)
+colnames(tab) <- c("SES","Linear trend","Damped trend")
+rownames(tab) <- c("$\\alpha$","$\\beta^*$","$\\phi$","$\\ell_0$","$b_0$",
+                   "Training RMSE","Test RMSE","Test MAE","Test MAPE","Test MASE")
+# SSE
+tab[1,1] <- fc1$model$par["alpha"]
+tab[4,1] <- fc1$model$par["l"]
+tab[6,1] <- sqrt(fc1$model$mse)
+tab[c(7:10),1] <- accuracy(fc1,livestock)["Test set",c("RMSE","MAE","MAPE","MASE")]
+# Holt
+tab[1,2] <- fc2$model$par["alpha"]
+tab[2,2] <- fc2$model$par["beta"]/fc1$model$par["alpha"]
+tab[4,2] <- fc2$model$par["l"]
+tab[5,2] <- fc2$model$par["b"]
+tab[6,2] <- sqrt(fc2$model$mse)
+tab[c(7:10),2] <- accuracy(fc2,livestock)["Test set",c("RMSE","MAE","MAPE","MASE")]
+# Damped trend
+tab[1,3] <- fc3$model$par["alpha"]
+tab[2,3] <- fc3$model$par["beta"]/fc1$model$par["alpha"]
+tab[3,3] <- fc3$model$par["phi"]
+tab[4,3] <- fc3$model$par["l"]
+tab[5,3] <- fc3$model$par["b"]
+tab[6,3] <- sqrt(fc3$model$mse)
+tab[c(7:10),3] <- accuracy(fc3,livestock)["Test set",c("RMSE","MAE","MAPE","MASE")]
+# Convert to characters
+tab <- as.data.frame(formatC(tab, format="f", digits=2))
+# Remove missing values
+tab <- apply(tab, 2, function(x){j <- grep("[ ]*NA",x); x[j] <- ""; return(x)})
+# Show table
+knitr::kable(tab[-(1:6),], booktabs=TRUE)
+```
+
+## Example: Sheep in Asia
+\fontsize{10}{10}\sf
+
+```{r fig-7-comp, echo=TRUE, fig.height=3.6}
+autoplot(window(livestock, start=1970)) +
+  autolayer(fc1, series="SES", PI=FALSE) +
+  autolayer(fc2, series="Linear trend", PI=FALSE) +
+  autolayer(fc3, series="Damped trend", PI=FALSE) +
+  ylab("Livestock, sheep in Asia (millions)")
+```
+
+# Lab session 7
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 7**
+
+# Seasonal methods
+## Holt-Winters additive method
+\fontsize{13}{15}\sf
+
+Holt and Winters extended Holt's method to capture seasonality.
+\begin{block}{Component form}\vspace*{-0.4cm}
+\begin{align*}
+\pred{y}{t+h}{t} &= \ell_{t} + hb _{t} + s_{t+h-m(k+1)} \\
+\ell_{t} &= \alpha(y_{t} - s_{t-m}) + (1 - \alpha)(\ell_{t-1} + b_{t-1})\\
+b_{t} &= \beta^*(\ell_{t} - \ell_{t-1}) + (1 - \beta^*)b_{t-1}\\
+s_{t} &= \gamma (y_{t}-\ell_{t-1}-b_{t-1}) + (1-\gamma)s_{t-m},
+\end{align*}
+\end{block}\fontsize{12}{14}\sf
+
+  * $k=$ integer part of $(h-1)/m$. Ensures estimates from the final year are used for forecasting.
+  * Parameters:&nbsp; $0\le \alpha\le 1$,&nbsp; $0\le \beta^*\le 1$,&nbsp; $0\le \gamma\le 1-\alpha$&nbsp;  and $m=$  period of seasonality (e.g. $m=4$ for quarterly data).
+
+## Holt-Winters multiplicative method
+\fontsize{13}{14}\sf
+
+For when seasonal variations are changing proportional to the level of the series.
+
+\begin{block}{Component form}\vspace*{-0.3cm}
+    \begin{align*}
+        \pred{y}{t+h}{t} &= (\ell_{t} + hb_{t})s_{t+h-m(k+1)}. \\
+        \ell_{t} &= \alpha \frac{y_{t}}{s_{t-m}} + (1 - \alpha)(\ell_{t-1} + b_{t-1})\\
+        b_{t} &= \beta^*(\ell_{t}-\ell_{t-1}) + (1 - \beta^*)b_{t-1}        \\
+        s_{t} &= \gamma \frac{y_{t}}{(\ell_{t-1} + b_{t-1})} + (1 - \gamma)s_{t-m}
+    \end{align*}
+\end{block}\vspace*{-0.1cm}\fontsize{12}{13}\sf
+
+  * $k$ is integer part of $(h-1)/m$.
+  * **Additive**: $s_t$ in absolute terms:  within each year $\sum_i s_i \approx 0$.
+  * **Multiplicative**: $s_t$ in relative terms: within each year $\sum_i s_i \approx m$.
+
+## Example: Visitor Nights
+
+```{r 7-HW, echo=TRUE}
+aust <- window(austourists,start=2005)
+fc1 <- hw(aust,seasonal="additive")
+fc2 <- hw(aust,seasonal="multiplicative")
+```
+
+```{r, fig.height=3.2, echo=FALSE}
+tmp <- cbind(Data=aust,
+  "HW additive forecasts" = fc1[["mean"]],
+  "HW multiplicative forecasts" = fc2[["mean"]])
+
+autoplot(tmp) + xlab("Year") +
+  ylab("International visitor night in Australia (millions)") +
+  scale_color_manual(name="",
+    values=c('#000000','#1b9e77','#d95f02'),
+    breaks=c("Data","HW additive forecasts","HW multiplicative forecasts"))
+```
+
+## Estimated components
+
+```{r fig-7-LevelTrendSeas, echo=FALSE}
+addstates <- fc1$model$states[,1:3]
+multstates <- fc2$model$states[,1:3]
+colnames(addstates) <- colnames(multstates) <-
+  c("level","slope","season")
+p1 <- autoplot(addstates, facets=TRUE) + xlab("Year") +
+  ylab("") + ggtitle("Additive states")
+p2 <- autoplot(multstates, facets=TRUE) + xlab("Year") +
+  ylab("") + ggtitle("Multiplicative states")
+gridExtra::grid.arrange(p1,p2,ncol=2)
+```
+
+## Holt-Winters damped method
+Often the single most accurate forecasting method for seasonal data:
+\begin{block}{}\vspace*{-0.4cm}
+\begin{align*}
+\pred{y}{t+h}{t} &= [\ell_{t} + (\phi+\phi^2 + \dots + \phi^{h})b_{t}]s_{t+h-m(k+1)} \\
+\ell_{t} &= \alpha(y_{t} / s_{t-m}) + (1 - \alpha)(\ell_{t-1} + \phi b_{t-1})\\
+b_{t} &= \beta^*(\ell_{t} - \ell_{t-1}) + (1 - \beta^*)\phi b_{t-1}       \\
+s_{t} &= \gamma \frac{y_{t}}{(\ell_{t-1} + \phi b_{t-1})} + (1 - \gamma)s_{t-m}
+\end{align*}
+\end{block}
+
+# Lab session 8
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 8**
+
+# Taxonomy of exponential smoothing methods
+
+## Exponential smoothing methods
+\fontsize{12}{14}\sf
+
+\begin{block}{}
+\begin{tabular}{ll|ccc}
+& &\multicolumn{3}{c}{\bf Seasonal Component} \\
+\multicolumn{2}{c|}{\bf Trend}& N & A & M\\
+\multicolumn{2}{c|}{\bf Component}  & (None)    & (Additive)  & (Multiplicative)\\
+\cline{3-5} &&&&\\[-0.4cm]
+N & (None) & (N,N) & (N,A) & (N,M)\\
+&&&&\\[-0.4cm]
+A & (Additive) & (A,N) & (A,A) & (A,M)\\
+&&&&\\[-0.4cm]
+A\damped & (Additive damped) & (A\damped,N) & (A\damped,A) & (A\damped,M)
+\end{tabular}
+\end{block}\fontsize{12}{14}\sf
+
+\begin{tabular}{lp{9.7cm}}
+\textcolor[rgb]{0.90,0.,0.00}{(N,N)}:        &Simple exponential smoothing\\
+\textcolor[rgb]{0.90,0.,0.00}{(A,N)}:        &Holt's linear method\\
+\textcolor[rgb]{0.90,0.,0.00}{(A\damped,N)}: &Additive damped trend method\\
+\textcolor[rgb]{0.90,0.,0.00}{(A,A)}:~~ &Additive Holt-Winters' method\\
+\textcolor[rgb]{0.90,0.,0.00}{(A,M)}: &Multiplicative Holt-Winters' method\\
+\textcolor[rgb]{0.90,0.,0.00}{(A\damped,M)}: &Damped multiplicative Holt-Winters' method
+\end{tabular}
+
+\begin{block}{}\fontsize{12}{14}\sf
+There are also multiplicative trend methods (not recommended).
+\end{block}
+
+## Recursive formulae
+
+\placefig{0}{1.2}{width=12.8cm,trim=0 125 0 0,clip=true}{fig_7_taxonomy.pdf}
+
+## R functions
+\fontsize{11.5}{13}\sf
+
+* Simple exponential smoothing: no trend. \newline
+  `ses(y)`
+* Holt's method: linear trend. \newline
+  `holt(y)`
+* Damped trend method. \newline
+  `holt(y, damped=TRUE)`
+* Holt-Winters methods\newline
+  `hw(y, damped=TRUE, seasonal="additive")`\newline
+  `hw(y, damped=FALSE, seasonal="additive")`\newline
+  `hw(y, damped=TRUE, seasonal="multiplicative")`\newline
+  `hw(y, damped=FALSE, seasonal="multiplicative")`
+
+* Combination of no trend with seasonality not possible using these functions.
+

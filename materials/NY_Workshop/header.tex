@@ -1,0 +1,56 @@
+
+\usepackage{MonashWhite}
+
+\usepackage{amsmath,bm,booktabs,tikz}
+\usepackage[lf,t]{carlito}
+\usepackage{animate}
+
+\def\pred#1#2#3{\hat{#1}_{#2|#3}}
+\def\damped{$_\text{d}$}
+\def\h+{h_{m}^{+}}
+\def\st#1{\rlap{#1}\textcolor{red}{\rule{1cm}{0.1cm}}}
+\def\E{\text{E}}
+\def\V{\text{V}}
+
+\graphicspath{{figs/}{Rfigs/}}
+
+\def\full#1{\vspace*{0.15cm}\centerline{\includegraphics[width=12.8cm,height=8.3cm,keepaspectratio=true]{#1}}}
+
+\setlength\abovedisplayskip{0pt}
+
+\AtBeginSection[] {
+  \begin{frame} %<beamer>%[squeeze]
+  \frametitle{Outline}\vspace*{0.2cm}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\usetikzlibrary{trees,shapes,arrows,matrix}
+\tikzstyle{decision} = [diamond, draw, fill=blue!20,
+    text width=4.5em, text badly centered, node distance=4cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20,
+    text width=5cm, text centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, thick, -latex']
+%\tikzstyle{line} = [->,thi
+\tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=3cm,
+    minimum height=2em, text centered]
+\tikzstyle{connector} = [->,thick]
+
+\setbeamercolor{description item}{fg=Orange}
+
+\fontsize{13}{15}\sf
+\usepackage[scale=0.85]{sourcecodepro}
+\DisableLigatures{encoding = T1, family = tt*}
+
+% Title page
+\setbeamerfont{title}{series=\bfseries,parent=structure,size={\fontsize{26}{30}}}
+\setbeamertemplate{title page}
+{\placefig{-0.01}{-0.01}{width=1.01\paperwidth,height=1.01\paperheight}{MonashTitleSlide}
+\begin{textblock}{7.5}(1,2)\fontsize{20}{30}\sf
+{\color{white}\raggedright\usebeamerfont{title}\par\inserttitle}
+\end{textblock}
+\begin{textblock}{10.5}(1,7.3)
+{\color{white}\raggedright{\insertauthor}\\[0.2cm]
+\insertdate}
+\end{textblock}}
+

@@ -1,0 +1,202 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "2.2&nbsp; Seasonality and trends"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+options(digits=4, width=55)
+```
+
+# Time series components
+
+## Time series patterns
+
+Trend
+  : pattern exists when there is a long-term increase or decrease in the data.
+
+Seasonal
+  : pattern exists when a series is influenced by seasonal factors (e.g., the quarter of the year, the month, or day of the week).
+
+Cyclic
+  : pattern exists when data exhibit rises and falls that are \emph{not of fixed period} (duration usually of at least 2 years).
+
+## Time series decomposition
+
+\begin{block}{}\vspace*{-0.3cm}
+\[ Y_t = S_t + T_t + R_t \]
+\end{block}
+\begin{tabular}{@{}llp{8cm}@{}}
+where & $Y_t=$ & data at period $t$ \\
+      & $S_t=$ & seasonal component at period $t$ \\
+      & $T_t=$ & trend-cycle component at period $t$\\
+      & $R_t=$ & remainder (or irregular or error) component at period $t$
+\end{tabular}\pause
+
+* Additive model appropriate if magnitude of seasonal fluctuations does not vary with level.
+* If seasonal are proportional to level of series, use a Box-Cox transformation first.
+
+
+## Euro electrical equipment
+
+```{r mstl, fig.height=4}
+fit <- mstl(elecequip)
+autoplot(fit)
+```
+
+## Euro electrical equipment
+\fontsize{10}{11}\sf
+
+```{r mstl3, dependson='mstl', fig.height=3.5}
+autoplot(elecequip, series="Data") +
+ autolayer(trendcycle(fit), series="Trend") +
+ ylab("New orders index") + xlab("") +
+ ggtitle("Electrical equipment manufacturing (Euro area)")
+```
+
+## Euro electrical equipment
+\fontsize{13}{15}\sf
+
+```{r mstl2, dependson='mstl'}
+ggmonthplot(seasonal(fit)) + ylab("Seasonal")
+```
+
+## Seasonal adjustment
+
+Seasonally adjusted data given by $Y_t - S_t = T_t + E_t$
+
+\fontsize{11}{11}\sf
+
+```{r fig.height=3.3, dependson='mstl'}
+autoplot(elecequip, series="Data") +
+  autolayer(seasadj(fit), series="SeasAdjust") +
+  ylab("New orders index") +
+  ggtitle("Electrical equipment manufacturing")
+```
+
+## History of time series decomposition
+
+* Classical method originated in 1920s.
+* Census II method introduced in 1957. Basis for modern X-12-ARIMA method.
+* STL method introduced in 1983
+* TRAMO/SEATS introduced in 1990s.
+
+# STL decomposition
+
+## STL decomposition
+\fontsize{14}{15}\sf
+
+* STL: "Seasonal and Trend decomposition using Loess",
+* Very versatile and robust.
+* Will handle any type of seasonality.
+* Seasonal component allowed to change over time, and rate of change controlled by user.
+* Smoothness of trend-cycle also controlled by user.
+* Robust to outliers
+* No trading day or calendar adjustments.
+* Only additive.
+
+## Euro electrical equipment
+\fontsize{10}{12}\sf
+
+```{r, echo=TRUE, fig.height=4}
+elecequip %>%
+  mstl(s.window=5) %>%
+  autoplot()
+```
+
+## Euro electrical equipment
+\fontsize{10}{12}\sf
+
+```{r, echo=TRUE, fig.height=4}
+elecequip %>%
+  mstl(t.window=15, s.window='periodic', robust=TRUE) %>%
+  autoplot()
+```
+
+## STL decomposition in R
+
+* `t.window` controls wiggliness of trend component.
+* `s.window` controls variation on seasonal component.
+* `seasonal()` extracts seasonal component
+* `trendcycle()` extracts trend component
+* `remainder()` extracts remainder component
+* `seasadj()` computes seasonally adjusted data
+
+
+
+# Lab session 12
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 12**
+
+# Forecasting and decomposition
+
+## Forecasting and decomposition
+
+* Forecast seasonal component by repeating the last year (`snaive`)
+* Forecast seasonally adjusted data using non-seasonal time series method. E.g.,
+    - Holt's method
+    - Random walk with drift model
+* Combine forecasts of seasonal component with forecasts of seasonally adjusted data to get forecasts of original data.
+* Sometimes a decomposition is useful just for understanding the data before building a separate forecasting model.
+
+## Seas adj elec equipment
+\fontsize{11}{12}\sf
+
+```{r, fig.height=3.5}
+mstl(elecequip, t.window=15, s.window="periodic") %>%
+  seasadj() %>% naive(h=24) %>%
+  autoplot() + ylab("New orders index") +
+  ggtitle("Naive forecasts of seasonally adjusted data")
+```
+
+## Seas adj elec equipment
+\fontsize{11}{12}\sf
+
+```{r, fig.height=3.5}
+mstl(elecequip, t.window=15, s.window="periodic") %>%
+  forecast(method="naive", h=24) %>%
+  autoplot() + ylab("New orders index") +
+  ggtitle("Reseasonalized naive forecasts")
+```
+
+## Decomposition and prediction intervals
+
+* It is common to take the prediction intervals from the seasonally adjusted forecasts and modify them with the seasonal component.
+* This ignores the uncertainty in the seasonal component estimate.
+* It also ignores the uncertainty in the future seasonal pattern.
+
+## Some more R functions
+
+```r
+fcast <- stlf(elecequip, method='naive')
+
+fcast <- stlf(elecequip, method='naive',
+  h=36, s.window=11, robust=TRUE)
+```
+
+# Lab session 13
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 13**
+
+# Lab session 14
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 14**
+

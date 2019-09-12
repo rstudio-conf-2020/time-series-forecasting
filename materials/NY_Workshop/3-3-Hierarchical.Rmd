@@ -1,0 +1,989 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "3.3&nbsp; Hierarchical forecasting"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+header_includes:
+  - \def\bY{\bm{y}}
+  - \def\by{\bm{y}}
+  - \def\bS{\bm{S}}
+  - \def\bI{\text{\rm\textbf{I}}}
+  - \def\bbeta{\bm{\beta}}
+  - \def\bSigma{\bm{\Sigma}}
+  - \def\Var{\text{Var}}
+  - \def\var{\text{Var}}
+  - \def\bOmega{\bm{\Omega}}
+  - \def\bLambda{\bm{\Lambda}}
+  - \let\mc\multicolumn
+  - \def\hl{\color[RGB]{6,84,182}}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+source("nicefigs.R")
+options(digits=4, width=55)
+```
+
+# Hierarchical and grouped time series
+
+## Forecasting the PBS
+\full{pills}
+
+## ATC drug classification
+\fontsize{13}{13}\sf
+
+\hspace*{-0.5cm}\begin{tabular}{lp{10.7cm}}
+A &Alimentary tract and metabolism\\
+B &Blood and blood forming organs\\
+C &Cardiovascular system\\
+D &Dermatologicals\\
+G &Genito-urinary system and sex hormones\\
+H &Systemic hormonal preparations, excluding sex hormones and insulins\\
+J &Anti-infectives for systemic use\\
+L &Antineoplastic and immunomodulating agents\\
+M &Musculo-skeletal system\\
+N &Nervous system\\
+P &Antiparasitic products, insecticides and repellents\\
+R &Respiratory system\\
+S &Sensory organs\\
+V &Various
+\end{tabular}
+
+## ATC drug classification
+\hspace*{-1cm}\begin{minipage}{9.6cm}
+\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,font=\small,draw,fill=red!15]
+\tikzstyle[level font=\small,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 1}=[font=\small,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 2}=[font=\small,set style={{every node}+=[fill=yellow]}]
+\node[label=right:\hspace*{-0.cm}Alimentary tract and metabolism,label=left:\textbf{14 classes}\hspace*{0.3cm}]{A}[edge from parent fork down]
+   child {node[label=right:\hspace*{-0.0cm}Drugs used in diabetes,label=left:\textbf{84 classes}]{A10}
+     child {node[label=right:\hspace*{-0.35cm}Blood glucose lowering drugs]{A10B}
+       child {node[label=right:\hspace*{0.1cm}Biguanides]{A10BA}
+         child {node[label=right:\hspace*{-0.15cm}Metformin]{A10BA02}
+ }}}};
+ \end{tikzpicture}
+\end{minipage}
+
+## Australian tourism
+\full{regions1_with_labels}
+\only<2>{\begin{textblock}{10}(1,1.5)\small
+\begin{block}{}
+  \begin{itemize}\itemsep=0cm\parskip=0cm
+    \item Quarterly data on visitor night from 1998:Q1 -- 2013:Q4
+    \item From: \textit{National Visitor Survey}, based on annual interviews of 120,000 Australians aged 15+, collected by Tourism Research Australia.
+    \item Split by 7 states, 27 zones and 76 regions (a geographical hierarchy)
+    \item Also split by purpose of travel
+      \begin{itemize}
+        \item Holiday
+        \item Visiting friends and relatives (VFR)
+        \item Business
+        \item Other
+      \end{itemize}
+    \item 304 bottom-level series
+  \end{itemize}
+\end{block}
+\end{textblock}}
+
+## Spectacle sales
+
+\placefig{1}{1.4}{width=9.5cm}{spectacles.jpg}
+\vspace*{4.8cm}
+
+ * Monthly UK sales data from 2000 -- 2014
+ * Provided by a large spectacle manufacturer
+ * Split by brand (26), gender (3), price range (6), materials (4), and stores (600)
+ * About 1 million bottom-level series
+
+## Hierarchical time series
+\fontsize{13}{14}\sf
+
+A \alert{\textbf{hierarchical time series}} is a collection of several time series that are linked together in a hierarchical structure.
+
+\begin{minipage}{9.6cm}
+\begin{block}{}
+\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,fill=red!15]
+\tikzstyle[level distance=.1cm]
+\tikzstyle[sibling distance=7cm]
+\tikzstyle{level 1}=[sibling distance=33mm,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=yellow]}]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+   child {node {AA}}
+   child {node {AB}}
+   child {node {AC}}
+ }
+ child {node {B}
+   child {node {BA}}
+   child {node {BB}}
+   child {node {BC}}
+ }
+ child {node {C}
+   child {node {CA}}
+   child {node {CB}}
+   child {node {CC}}
+ };
+\end{tikzpicture}
+\end{block}
+\end{minipage}
+
+\pause\alert{Examples}\vspace*{-0.2cm}
+
+ * Pharmaceutical sales
+ * Tourism demand by state and region
+
+## Grouped time series
+\fontsize{13}{14}\sf
+
+A \alert{\textbf{grouped time series}} is a collection of time series that can be grouped together in a number of non-hierarchical ways.
+
+\begin{minipage}{9.2cm}
+\begin{block}{}
+\begin{tikzpicture}[level distance=1.5cm]
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,outer sep=0pt, fill=red!15]
+\tikzstyle{level 1}=[sibling distance=23mm,set style={{every node}+=[fill=blue!15]},level distance=1cm]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=yellow]}, level distance=0.9cm]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+   child {node {AX}}
+   child {node {AY}}
+ }
+ child {node {B}
+   child {node {BX}}
+   child {node {BY}}
+ };
+\end{tikzpicture}\hspace*{1cm}
+\begin{tikzpicture}[level distance=1.5cm]
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,outer sep=0pt, fill=red!15]
+\tikzstyle{level 1}=[sibling distance=23mm,set style={{every node}+=[fill=blue!15]},level distance=1cm]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=yellow]}, level distance=0.9cm]
+\node{Total}[edge from parent fork down]
+ child {node {X}
+   child {node {AX}}
+   child {node {BX}}
+ }
+ child {node {Y}
+   child {node {AY}}
+   child {node {BY}}
+ };
+\end{tikzpicture}
+\end{block}
+\end{minipage}
+
+\pause\alert{Examples}
+
+ * Spectacle sales by brand, gender, stores, etc.
+ * Tourism by state and purpose of travel
+
+## The problem
+\fontsize{13}{14}\sf
+
+\begin{alertblock}{}
+\begin{enumerate}\tightlist
+ \item How to forecast time series at all nodes such that the forecasts add up in the same way as the original data?
+ \item Can we exploit relationships between the series to improve the forecasts?
+\end{enumerate}
+\end{alertblock}\pause
+
+### The solution
+
+1. Forecast all series at all levels of aggregation using an automatic forecasting algorithm.\newline (e.g., `ets`, `auto.arima`, ...)
+2. Reconcile the resulting forecasts so they add up correctly using least squares optimization (i.e., find closest reconciled forecasts to the original forecasts).
+3. This is available in the \textbf{hts} package in R.
+
+# hts package for R
+
+## hts package for R
+\placefig{9.5}{1}{width=2cm}{Rlogo}
+
+\begin{textblock}{12.}(0.5,1.5)\fontsize{11}{14}\sf
+\alert{hts: Hierarchical and Grouped Time Series}
+
+Methods for analysing and forecasting hierarchical and grouped time series\vspace*{0.1cm}
+
+\tabcolsep=0.1cm
+\begin{tabular}{@{}ll}
+Version: & 5.1.5\\
+Depends: & R ($\ge$ 3.2.0), forecast ($\ge$ 8.1) \\
+Imports: & SparseM, Matrix, matrixcalc, parallel, utils, methods, graphics, grDevices, stats\\
+LinkingTo: & Rcpp ($\ge$ 0.11.0), RcppEigen\\
+Suggests: &testthat, knitr, rmarkdown\\
+Published: & 2018-03-26\\
+Author: &Rob J Hyndman, Alan Lee, Earo Wang, Shanika Wickramasuriya\\
+Maintainer: &Rob J Hyndman $<$Earo.Wang at gmail.com$>$\\
+BugReports: & \url{https://github.com/earowang/hts/issues} \\
+License: & GPL ($\ge2$) \\
+URL: & \url{http://pkg.earo.me/hts}
+\end{tabular}
+\end{textblock}
+
+## Example using R
+\fontsize{10}{10}\sf
+
+```r
+library(hts)
+
+# bts is a matrix containing the bottom level time series
+# nodes describes the hierarchical structure
+y <- hts(bts, nodes=list(2, c(3,2)))
+```
+
+\only<2>{\begin{textblock}{5}(7,3.5){\begin{block}{}\centering\small
+\begin{tikzpicture}[level distance=1cm]
+\tikzstyle{every node}=[ellipse,draw,fill=red!15,inner sep=2pt]
+\tikzstyle[level distance=.01cm]
+\tikzstyle[sibling distance=4cm]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\scriptsize,set style={{every node}+=[fill=yellow]}]
+\tikzstyle{level 1}=[sibling distance=30mm,font=\footnotesize,set style={{every node}+=[fill=blue!15]}]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+   child {node {AX}}
+   child {node {AY}}
+   child {node {AZ}}
+ }
+ child {node {B}
+   child {node {BX}}
+   child {node {BY}}
+ };
+\end{tikzpicture}\end{block}}\end{textblock}}
+
+\vspace*{10cm}
+
+## Example using R
+\fontsize{10}{10}\sf
+
+```r
+library(hts)
+
+# bts is a matrix containing the bottom level time series
+# nodes describes the hierarchical structure
+y <- hts(bts, nodes=list(2, c(3,2)))
+```
+
+\begin{textblock}{5}(7,3.5){\begin{block}{}\centering\small
+\begin{tikzpicture}[level distance=1cm]
+\tikzstyle{every node}=[ellipse,draw,fill=red!15,inner sep=2pt]
+\tikzstyle[level distance=.01cm]
+\tikzstyle[sibling distance=4cm]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\scriptsize,set style={{every node}+=[fill=yellow]}]
+\tikzstyle{level 1}=[sibling distance=30mm,font=\footnotesize,set style={{every node}+=[fill=blue!15]}]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+   child {node {AX}}
+   child {node {AY}}
+   child {node {AZ}}
+ }
+ child {node {B}
+   child {node {BX}}
+   child {node {BY}}
+ };
+\end{tikzpicture}\end{block}}\end{textblock}
+
+\vspace*{3.4cm}
+
+```r
+# Forecast 10-step-ahead using WLS combination method
+# ETS used for each series by default
+fc <- forecast(y, h=10)
+```
+
+\vspace*{10cm}
+
+## forecast.gts() function
+\fontsize{10}{10}\sf
+
+\alert{Usage}
+
+```r
+forecast(object, h,
+  method = c("comb", "bu", "mo", "tdgsf", "tdgsa", "tdfp"),
+  fmethod = c("ets", "rw", "arima"),
+  weights = c("wls", "ols", "mint", "nseries"),
+  covariance = c("shr","sam"),
+  positive = TRUE,
+  parallel = FALSE, num.cores = 2, ...)
+```
+
+\vspace*{-0.2cm}
+
+\alert{Arguments}\vspace*{-0.2cm}
+
+\begin{tabular}{lp{9.4cm}}
+\Verb|object| & Hierarchical time series object of class \texttt{gts}.\\
+\Verb|h| & Forecast horizon\\
+\Verb|method| & Method for distributing forecasts within the hierarchy. \\
+\Verb|fmethod| & Forecasting method to use\\
+\Verb|weights| & Weights used for "optimal combination" method. \\
+\Verb|covariance| & Shrinkage estimator or sample estimator for GLS covariance.\\
+\Verb|positive| & If TRUE, forecasts are forced to be strictly positive\\
+\Verb|parallel| & If TRUE, allow parallel processing\\
+\Verb|num.cores| & If parallel = TRUE, specify how many cores to be used
+\end{tabular}
+
+# Application: Australian tourism
+
+## Australian tourism
+\full{regions1_with_labels}
+\only<3-4>{\begin{textblock}{6.8}(2,2)
+\begin{block}{Hierarchy:}
+  \begin{itemize}
+      \item  States (7)
+      \item  Zones (27)
+      \item  Regions (82)
+  \end{itemize}
+\end{block}
+\end{textblock}}
+\only<4>{\begin{textblock}{6.8}(2,6)
+\begin{block}{Base forecasts}
+ETS (exponential smoothing) models
+\end{block}\end{textblock}}
+
+\only<2>{\begin{textblock}{10.}(1.4,2)
+\begin{block}{Domestic visitor nights}
+Quarterly data: 1998 -- 2006.\\
+From: \textit{National Visitor Survey}, based on annual interviews of 120,000 Australians aged 15+, collected by Tourism Research Australia.
+\end{block}
+\end{textblock}}
+
+## Base forecasts
+\only<1>{\full{austourism1}}
+\only<2>{\full{austourism2}}
+\only<3>{\full{austourism3}}
+\only<4>{\full{austourism4}}
+\only<5>{\full{austourism5}}
+\only<6>{\full{austourism6}}
+\only<7>{\full{austourism7}}
+\only<8>{\full{austourism8}}
+\only<9>{\full{austourism9}}
+
+## Reconciled forecasts
+\only<1>{\full{Australia}}
+\only<2>{\full{States}}
+\only<3>{\full{Capitals}}
+
+## Forecast evaluation
+
+  * Select models using all observations;
+  * Re-estimate models using first 12 observations and generate 1- to 8-step-ahead forecasts;
+  * Increase sample size one observation at a time, re-estimate models, generate forecasts until the end of the sample;
+  * In total 24 1-step-ahead, 23 2-steps-ahead, up to 17 8-steps-ahead for forecast evaluation.
+
+## Forecast evaluation
+
+```{r rorigin, include=FALSE}
+for(i in 2:6)
+{
+  fname <- paste("rollingorigin",i,sep="")
+  savepdf(fname,height=9.5,width=15)
+  plot(0,0,xlim=c(0,28),ylim=c(0,1),
+       xaxt="n",yaxt="n",bty="n",xlab="",ylab="",type="n")
+  for(j in 1:20)
+  {
+    test <- (6+j):26
+    train <- 1:(5+j)
+    arrows(0,1-j/20,27,1-j/20,0.05)
+    points(train,rep(1-j/20,length(train)),pch=19,col="blue")
+    if(length(test) >= i)
+      points(test[i], 1-j/20, pch=19, col="red")
+    if(length(test) >= i)
+      points(test[-i], rep(1-j/20,length(test)-1), pch=19, col="gray")
+    else
+      points(test, rep(1-j/20,length(test)), pch=19, col="gray")
+  }
+  text(28,.95,"time")
+  endpdf()
+}
+for(k in 1:20) {
+  fname <- paste("rorigin",k,sep="")
+  savepdf(fname,height=9.5,width=15)
+  plot(0,0,xlim=c(0,28),ylim=c(0,1),
+     xaxt="n",yaxt="n",bty="n",xlab="",ylab="",type="n")
+  for(j in 1:k) {
+    test <- (6+j):26
+    train <- 1:(5+j)
+    arrows(0,1-j/20,27,1-j/20,0.05)
+    points(train,rep(1-j/20,length(train)),pch=19,col="blue")
+    if(length(test) >= 1) {
+      points(test[1], 1-j/20, pch=19, col="red")
+      points(test[-1], rep(1-j/20,length(test)-1), pch=19, col="gray")
+    }
+    else {
+      points(test, rep(1-j/20,length(test)), pch=19, col="gray")
+    }
+  }
+  text(28,.95,"time")
+  endpdf()
+}
+```
+
+\begin{textblock}{14}(0.3,1.4)
+\textbf{\textcolor{blue}{Training sets}} \hspace*{3cm}
+\textbf{\textcolor{red}{Test sets
+\only<1-20>{$h=1$}%
+\only<21>{$h=2$}%
+\only<22>{$h=3$}%
+\only<23>{$h=4$}%
+\only<24>{$h=5$}%
+\only<25>{$h=6$}%
+}}
+
+\end{textblock}
+\only<1>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin1}}
+\only<2>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin2}}
+\only<3>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin3}}
+\only<4>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin4}}
+\only<5>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin5}}
+\only<6>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin6}}
+\only<7>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin7}}
+\only<8>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin8}}
+\only<9>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin9}}
+\only<10>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin10}}
+\only<11>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin11}}
+\only<12>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin12}}
+\only<13>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin13}}
+\only<14>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin14}}
+\only<15>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin15}}
+\only<16>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin16}}
+\only<17>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin17}}
+\only<18>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin18}}
+\only<19>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin19}}
+\only<20>{\placefig{0.0}{2.0}{width=12.6cm}{rorigin20}}
+
+\only<21>{\placefig{0.0}{2.0}{width=12.6cm}{rollingorigin2}}
+\only<22>{\placefig{0.0}{2.0}{width=12.6cm}{rollingorigin3}}
+\only<23>{\placefig{0.0}{2.0}{width=12.6cm}{rollingorigin4}}
+\only<24>{\placefig{0.0}{2.0}{width=12.6cm}{rollingorigin5}}
+\only<25>{\placefig{0.0}{2.0}{width=12.6cm}{rollingorigin6}}
+
+## Hierarchy: states, zones, regions
+\fontsize{10}{10.5}\sf\tabcolsep=0.12cm\vspace*{-0.6cm}
+\hspace*{-0.2cm}\begin{tabular}{lrrrrrrr}
+            & \multicolumn{6}{c}{\bf Forecast horizon} & \\
+\textbf{RMSE} & $h=1$  & $h=2$ & $h=3$ & $h=4$ & $h=5$ & $h=6$ & \textbf{Ave}\\
+\midrule
+\multicolumn{8}{c}{\bf\alert{Australia}}\\
+Base   & 1762.04    & 1770.29    & 1766.02     & 1818.82    & 1705.35    & 1721.17    & \bf 1757.28 \\
+Bottom & 1736.92    & 1742.69    & 1722.79     & 1752.74    & 1666.73    & 1687.43    & \bf 1718.22 \\
+WLS    & 1705.21    & 1715.87    & \hl 1703.75 & 1729.56    & 1627.79    & \hl1661.24 & \bf 1690.57 \\
+GLS    & \hl1704.64 & \hl1715.60 & 1705.31     & \hl1729.04 & \hl1626.36 & 1661.64    & \bf \hl 1690.43 \\[0.1cm]
+\multicolumn{8}{c}{\bf\alert{States}}\\
+Base   & 399.77     & 404.16     & 401.92      & 407.26     & 395.38     & 401.17     & \bf 401.61 \\
+Bottom & 404.29     & 406.95     & 404.96      & 409.02     & 399.80     & 401.55     & \bf 404.43 \\
+WLS    & \hl 398.84 & \hl 402.12 & \hl 400.71  & \hl 405.03 & 394.76     & 398.23     & \bf \hl 399.95 \\
+GLS    & \hl 398.84 & 402.16     & 400.86      & \hl 405.03 & \hl 394.59 & \hl 398.22 & \bf \hl 399.95 \\[0.1cm]
+\multicolumn{8}{c}{\bf\alert{Regions}}\\
+Base   & 93.15      & 93.38      & 93.45       & 93.79      & 93.50      & 93.56      & \bf 93.47 \\
+Bottom & 93.15      & 93.38      & 93.45       & 93.79      & 93.50      & 93.56      & \bf 93.47 \\
+WLS    & 93.02      & 93.32      & 93.38       & 93.72      & 93.39      & 93.53      & \bf 93.39 \\
+GLS    & \hl 92.98  & \hl 93.27  & \hl 93.34   & \hl 93.66  & \hl 93.34  & \hl 93.46  & \bf \hl 93.34
+\end{tabular}
+
+# Optimal forecast reconciliation
+
+## Hierarchical time series
+
+\begin{minipage}{4cm}\vspace*{0.2cm}
+\begin{block}{}\centering
+\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,draw,fill=red!15,inner sep=2pt]
+\tikzstyle[level distance=.3cm]
+\tikzstyle[sibling distance=12cm]
+\tikzstyle{level 1}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=blue!15]}]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+ }
+ child {node {B}
+ }
+ child {node {C}
+ };
+\end{tikzpicture}
+\end{block}
+\end{minipage}
+
+\only<2->{\begin{textblock}{6.3}(6,1)\small
+\begin{itemize}\itemsep=0cm\parskip=0cm
+\item[ $ y_{t}: $] observed aggregate of all series at time
+$t$.
+\item[ $ y_{X,t}: $] observation on series $X$ at time $t$.
+\item[ $ \bm{b}_{t}: $] vector of all series at bottom level
+in time $t$.
+\end{itemize}
+\end{textblock}}\vspace*{0.6cm}
+\only<3->{
+$\bY_{t}= \begin{pmatrix}
+  y_{t}\\
+  y_{A,t}\\
+  y_{B,t}\\
+  y_{C,t}
+  \end{pmatrix} = \only<3>{\hspace*{0.01cm}\begin{pmatrix}
+                1 & 1 & 1 \\
+                1 & 0 & 0 \\
+                0 & 1 & 0\\
+                0 & 0 & 1
+                \end{pmatrix}}\only<4->{{\color{red}\underbrace{\begin{pmatrix}
+                1 & 1 & 1 \\
+                1 & 0 & 0 \\
+                0 & 1 & 0\\
+                0 & 0 & 1
+                \end{pmatrix}}_{\bS}}}\only<3>{\hspace*{0.08cm}}\only<3>{\hspace*{-0.1cm}\begin{pmatrix}Y_{A,t}\\y_{B,t}\\y_{C,t}\end{pmatrix}}\rule{0cm}{1.6cm}
+                \only<4->{\hspace*{0.08cm}{\color{blue}\underbrace{\begin{pmatrix}y_{A,t}\\y_{B,t}\\y_{C,t}\end{pmatrix}}_{\bm{b}_{t}}}}$}
+
+\vspace*{-0.6cm}
+
+\only<4>{\hspace*{8cm}\colorbox[gray]{.8}{$\bY_{t}=\color{red}\bS\color{blue}\bm{b}_{t}$}}
+
+\vspace*{10cm}
+
+## Hierarchical time series
+
+\begin{block}{}\hspace*{.6cm}{\centering\small
+\begin{tikzpicture}[level distance=1cm]
+\tikzstyle{every node}=[ellipse,draw,fill=red!15,inner sep=2pt]
+\tikzstyle[level distance=.01cm]
+\tikzstyle[sibling distance=12cm]
+\tikzstyle{level 2}=[sibling distance=10mm,font=\scriptsize,set style={{every node}+=[fill=yellow]}]
+\tikzstyle{level 1}=[sibling distance=40mm,font=\footnotesize,set style={{every node}+=[fill=blue!15]}]
+\node{Total}[edge from parent fork down]
+ child {node {A}
+   child {node {AX}}
+   child {node {AY}}
+   child {node {AZ}}
+ }
+ child {node {B}
+   child {node {BX}}
+   child {node {BY}}
+   child {node {BZ}}
+ }
+ child {node {C}
+   child {node {CX}}
+   child {node {CY}}
+   child {node {CZ}}
+ };
+\end{tikzpicture}}
+\end{block}\vspace*{0.1cm}\pause
+
+\hbox{$\by_{t}= {\footnotesize\begin{pmatrix}
+    y_t\\[-0.15cm]
+    y_{A,t}\\[-0.15cm]
+    y_{B,t}\\[-0.15cm]
+    y_{C,t}\\[-0.15cm]
+    y_{AX,t}\\[-0.15cm]
+    y_{AY,t}\\[-0.15cm]
+    y_{AZ,t}\\[-0.15cm]
+    y_{BX,t}\\[-0.15cm]
+    y_{BY,t}\\[-0.15cm]
+    y_{BZ,t}\\[-0.15cm]
+    y_{CX,t}\\[-0.15cm]
+    y_{CY,t}\\[-0.15cm]
+    y_{CZ,t}\end{pmatrix}}=
+    {\color{red}\underbrace{\footnotesize\begin{pmatrix}
+                1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1\\[-0.15cm]
+                1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\[-0.15cm]
+                0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0\\[-0.15cm]
+                0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 1\\[-0.15cm]
+                1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\[-0.15cm]
+                0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\[-0.15cm]
+                0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\[-0.15cm]
+                0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0\\[-0.15cm]
+                0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0\\[-0.15cm]
+                0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0\\[-0.15cm]
+                0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0\\[-0.15cm]
+                0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0\\[-0.15cm]
+                0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1\\
+             \end{pmatrix}}_{\bS}}{\color{blue}\underbrace{\footnotesize\begin{pmatrix}
+    y_{AX,t}\\[-0.15cm]
+    y_{AY,t}\\[-0.15cm]
+    y_{AZ,t}\\[-0.15cm]
+    y_{BX,t}\\[-0.15cm]
+    y_{BY,t}\\[-0.15cm]
+    y_{BZ,t}\\[-0.15cm]
+    y_{CX,t}\\[-0.15cm]
+    y_{CY,t}\\[-0.15cm]
+    y_{CZ,t}\end{pmatrix}}_{\bm{b}_{t}}}$}
+
+\vspace*{10cm}
+
+\only<3>{\begin{textblock}{3}(10.5,8)\colorbox[gray]{.8}{$\by_{t}=\color{red}\bS\color{blue}\bm{b}_{t}$}\end{textblock}}
+
+## Grouped time series
+
+\begin{block}{}
+\begin{center}\small
+\tikzstyle{every node}=[inner sep=2pt]
+\begin{tikzpicture}
+    \matrix[ampersand replacement=\&,column sep=0.3cm] {
+        \node[ellipse,draw,fill=yellow,font=\scriptsize,distance=1cm] {AX};~ \&
+        \node[ellipse,draw,fill=yellow,font=\scriptsize] {AY};~ \&
+        \node[ellipse,draw,fill=blue!15] {A}; \\[0.3cm]
+        \node[ellipse,draw,fill=yellow,font=\scriptsize] {BX};~ \&
+        \node[ellipse,draw,fill=yellow,font=\scriptsize] {BY};~ \&
+        \node[ellipse,draw,fill=blue!15] {B}; \\[0.3cm]
+        \node[ellipse,draw,fill=blue!15] {X};~ \&
+        \node[ellipse,draw,fill=blue!15] {Y};~ \&
+        \node[ellipse,draw,fill=red!15] {Total}; \\
+};
+\end{tikzpicture}
+\end{center}
+\end{block}\vspace*{0.0cm}\pause\fontsize{13}{14}\sf
+
+\hbox{$\by_{t}= {\small\begin{pmatrix}
+    y_t\\[-0.15cm]
+    y_{A,t}\\[-0.15cm]
+    y_{B,t}\\[-0.15cm]
+    y_{X,t}\\[-0.15cm]
+    y_{Y,t}\\[-0.15cm]
+    y_{AX,t}\\[-0.15cm]
+    y_{AY,t}\\[-0.15cm]
+    y_{BX,t}\\[-0.15cm]
+    y_{BY,t}
+    \end{pmatrix}}=
+    \color{red}\underbrace{\small\begin{pmatrix}
+                1 & 1 & 1 & 1 \\[-0.15cm]
+                1 & 1 & 0 & 0 \\[-0.15cm]
+                0 & 0 & 1 & 1 \\[-0.15cm]
+                1 & 0 & 1 & 0 \\[-0.15cm]
+                0 & 1 & 0 & 1 \\[-0.15cm]
+                1 & 0 & 0 & 0 \\[-0.15cm]
+                0 & 1 & 0 & 0 \\[-0.15cm]
+                0 & 0 & 1 & 0 \\[-0.15cm]
+                0 & 0 & 0 & 1
+             \end{pmatrix}}_{\bS} \color{blue}\underbrace{\small\begin{pmatrix}
+    y_{AX,t}\\[-0.15cm]
+    y_{AY,t}\\[-0.15cm]
+    y_{BX,t}\\[-0.15cm]
+    y_{BY,t}
+    \end{pmatrix}}_{\bm{b}_{t}}$}
+
+\vspace*{-1cm}
+
+\only<3>{\begin{textblock}{3}(10.5,8)\colorbox[gray]{.8}{$\by_{t}=\color{red}\bS\color{blue}\bm{b}_{t}$}\end{textblock}}
+
+\vspace*{10cm}
+
+## Hierarchical and grouped time series
+
+Every collection of time series with aggregation constraints can be written as
+\begin{block}{}
+\centerline{$\by_{t}=\bS\bm{b}_{t}$}
+\end{block}
+where
+
+ * $\by_t$ is a vector of all series at time $t$
+ * $\bm{b}_t$ is a vector of the most disaggregated series at time $t$
+ * $\bS$ is a ``summing matrix'' containing the aggregation constraints.
+
+## Forecasting notation
+
+Let $\hat{\by}_n(h)$ be vector of initial $h$-step forecasts, made at time $n$, stacked in same order as $\by_t$. \pause\newline  (In general, they will not ``add up''.)\pause
+
+\begin{block}{}
+Reconciled forecasts must be of the form:
+$$\tilde{\by}_{n}(h)=\bS\bm{P}\hat{\by}_{n}(h)$$
+for some matrix $\bm{P}$.
+\end{block}\pause
+
+ * $\bm{P}$ extracts and combines base forecasts $\hat{\by}_{n}(h)$ to get bottom-level forecasts.
+ * $\bS$ adds them up
+
+## Optimal combination forecasts
+\fontsize{14}{15}\sf
+
+\begin{alertblock}{Main result}
+The best (minimum sum of variances) unbiased forecasts are obtained when
+$\bm{P} = (\bS'\bSigma^{-1}_{h}\bS)^{-1}\bS'\bSigma^{-1}_{h}$,
+where $\bSigma_h$ is the $h$-step base forecast error covariance matrix.
+\end{alertblock}
+
+\pause
+
+\begin{block}{}
+\centerline{$\displaystyle\textcolor{red}{\tilde{\by}_{n}(h)}
+=\bS(\bS'\bSigma^{-1}_{h}\bS)^{-1}\bS'\bSigma^{-1}_{h}\textcolor{blue}{\hat{\by}_{n}(h)}$}
+\end{block}\fontsize{14}{15}\sf
+
+\alert{\textbf{Problem:}} $\bSigma_h$ hard to estimate, especially for $h>1$.
+
+\alert{Solutions:}\vspace*{-0.4cm}
+
+ * Ignore $\bSigma_h$ (OLS)
+ * Assume $\bSigma_h$ diagonal (WLS) [Default in `hts`]
+ * Try to estimate $\bSigma_h$ (GLS)
+
+## Features
+\fontsize{15}{17}\sf
+
+ * Covariates can be included in initial forecasts.
+ * Adjustments can be made to initial forecasts at any level.
+ * Very simple and flexible method. Can work with *any* hierarchical or grouped time series.
+ * Conceptually easy to implement: regression of base forecasts on structure matrix.
+
+# Lab Session 22
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 22**
+
+# Temporal hierarchies
+
+## Temporal hierarchies
+
+\begin{center}
+\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,fill=red!15,font=\small]
+\tikzstyle[level distance=.1cm]
+\tikzstyle[sibling distance=7cm]
+\tikzstyle{level 1}=[sibling distance=60mm,font=\small,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 2}=[sibling distance=30mm,font=\small,set style={{every node}+=[fill=yellow]}]
+\tikzstyle{level 3}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=green]}]
+\node{Annual}[edge from parent fork down]
+ child {node {Semi-Annual$_1$}
+   child {node {Q$_1$}
+   }
+   child {node {Q$_2$}
+   }
+ }
+ child {node {Semi-Annual$_2$}
+   child {node {Q$_3$}
+   }
+   child {node {Q$_4$}
+   }
+ };
+\end{tikzpicture}
+\end{center}
+\pause
+\begin{alertblock}{Basic idea:}
+\begin{itemize}
+\item Forecast series at each available frequency.
+\item Optimally reconcile forecasts within the same year.
+\end{itemize}
+\end{alertblock}
+
+## Monthly series
+
+\only<1>{
+\hspace*{-0.5cm}\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,fill=red!15,font=\small]
+\tikzstyle[level distance=.1cm]
+\tikzstyle[sibling distance=7cm]
+\tikzstyle{level 1}=[sibling distance=60mm,font=\small,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 2}=[sibling distance=30mm,font=\small,set style={{every node}+=[fill=yellow]}]
+\tikzstyle{level 3}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=green]}]
+\node{Annual}[edge from parent fork down]
+ child {node {Semi-Annual$_1$}
+   child {node {Q$_1$}
+     child {node {M$_1$}}
+     child {node {M$_2$}}
+     child {node {M$_3$}}
+   }
+   child {node {Q$_2$}
+     child {node {M$_4$}}
+     child {node {M$_5$}}
+     child {node {M$_6$}}
+   }
+ }
+ child {node {Semi-Annual$_2$}
+   child {node {Q$_3$}
+     child {node {M$_7$}}
+     child {node {M$_8$}}
+     child {node {M$_9$}}
+   }
+   child {node {Q$_4$}
+     child {node {M$_{10}$}}
+     child {node {M$_{11}$}}
+     child {node {M$_{12}$}}
+   }
+ };
+\end{tikzpicture}}
+
+\only<2->{
+\hspace*{-0.5cm}\begin{tikzpicture}
+\tikzstyle{every node}=[ellipse,draw,inner sep=0.2pt,fill=red!15,font=\small]
+\tikzstyle[level distance=.1cm]
+\tikzstyle[sibling distance=7cm]
+\tikzstyle{level 1}=[sibling distance=40mm,font=\small,set style={{every node}+=[fill=blue!15]}]
+\tikzstyle{level 2}=[sibling distance=20mm,font=\small,set style={{every node}+=[fill=yellow]}]
+\tikzstyle{level 3}=[sibling distance=10mm,font=\small,set style={{every node}+=[fill=green]}]
+\node{Annual}[edge from parent fork down]
+ child {node {FourM$_1$}
+   child {node {BiM$_1$}
+     child {node {M$_1$}}
+     child {node {M$_2$}}
+   }
+   child {node {BiM$_2$}
+     child {node {M$_3$}}
+     child {node {M$_4$}}
+   }
+ }
+ child {node {FourM$_2$}
+   child {node {BiM$_3$}
+     child {node {M$_5$}}
+     child {node {M$_6$}}
+   }
+   child {node {BiM$_4$}
+     child {node {M$_7$}}
+     child {node {M$_8$}}
+   }
+ }
+  child {node {FourM$_3$}
+   child {node {BiM$_5$}
+     child {node {M$_9$}}
+     child {node {M$_{10}$}}
+   }
+   child {node {BiM$_6$}
+     child {node {M$_{11}$}}
+     child {node {M$_{12}$}}
+   }
+ };
+\end{tikzpicture}}
+
+\biz\tightlist
+\item $k=2,4,12$ nodes
+\item $k=3,6,12$ nodes
+\item Why not $k=2,3,4,6,12$ nodes?
+\eiz
+
+## Monthly data
+\fontsize{11}{11}\sf\vspace*{-0.4cm}
+
+$${\underbrace{
+\begin{pmatrix}
+    A\\
+    SemiA_{1}\\
+    SemiA_{2}\\
+    FourM_{1}\\
+    FourM_{2}\\
+    FourM_{3}\\
+    Q_{1}\\
+    \vdots\\
+    Q_{4}\\
+    BiM_{1}\\
+    \vdots\\
+    BiM_{6}\\
+    M_{1}\\
+    \vdots\\
+    M_{12}
+    \end{pmatrix}}_{(28\times1)}}=
+    {\color{red}\underbrace{
+    \begin{pmatrix}
+                1 & 1 & 1 & 1 & 1~~~1~~~1~~~1 & 1 & 1& 1& 1\\
+                1 & 1 & 1 & 1 & 1~~~1~~~0~~~0 & 0 & 0& 0& 0\\
+                0 & 0 & 0 & 0 & 0~~~0~~~1~~~1 & 1 & 1& 1& 1\\
+                1 & 1 & 1 & 1 & 0~~~0~~~0~~~0 & 0 & 0& 0& 0\\
+                0 & 0 & 0 & 0 & 1~~~1~~~1~~~1 & 0 & 0& 0& 0\\
+                0 & 0 & 0 & 0 & 0~~~0~~~0~~~0 & 1 & 1& 1& 1\\
+                1 & 1 & 1 & 0 & 0~~~0~~~0~~~0 & 0 & 0& 0& 0\\
+                  &   &   &   & \vdots        &   &  &  &  \\
+                0 & 0 & 0 & 0 & 0~~~0~~~0~~~0 & 0 & 1& 1& 1\\
+                1 & 1 & 0 & 0 & 0~~~0~~~0~~~0 & 0 & 0& 0& 0\\
+                  &   &   &   & \vdots        &   &  &  &  \\
+                0 & 0 & 0 & 0 & 0~~~0~~~0~~~0 & 0 & 0& 1& 1\\
+                  &   &   &  &  &  &  &  & \\
+                \phantom{\vdots}  &   &   &  & \bm{I}_{12} &  &  &  & \\
+                  &   &   &  &  &  &  &  & \\
+                \end{pmatrix}}_{\bS}}{\color{blue}\underbrace{\begin{pmatrix}
+    M_{1}\\
+    M_{2}\\
+    M_{3}\\
+    M_{4}\\
+    M_{5}\\
+    M_{6}\\
+    M_{7}\\
+    M_{8}\\
+    M_{9}\\
+    M_{10}\\
+    M_{11}\\
+    M_{12}\end{pmatrix}}_{\bm{b}_{t}}}$$
+
+\vspace*{10cm}
+
+## In general
+\vspace{-.3cm}
+
+For a time series  $y_1,\dots,y_T$, observed at frequency $m$, we generate aggregate series
+\begin{alertblock}{}%\vspace*{-0.4cm}
+\[
+y_j^{\left[k\right]} = \sum^{jk}_{t=1+(j-1)k}{y_t},\qquad \text{for $j = 1,\dots,\lfloor T/k\rfloor$}
+\]
+\end{alertblock}
+
+ * $k \in F(m)=\{\text{factors of $m$}\}$.
+ * A single unique hierarchy is only possible when there are no coprime pairs in $F(m)$.
+ * $M_k=m/k$ is seasonal period of aggregated series.
+
+## UK Accidents and Emergency Demand}
+\full{AEexample}
+
+\begin{textblock}{12}(0.3,8.5)
+\textcolor{red}{-- -- -- -- base} \hspace*{1cm}
+\textcolor{blue}{\raisebox{0.5ex}{\rule{1.5cm}{1pt}} reconciled}
+\end{textblock}
+
+## UK Accidents and Emergency Demand
+\fontsize{13}{15}\sf
+
+1. Type 1 Departments --- Major A\&E
+1. Type 2 Departments --- Single Specialty
+1. Type 3 Departments --- Other A\&E/Minor Injury
+1. Total Attendances
+1. Type 1 Departments --- Major A\&E $>4$ hrs
+1. Type 2 Departments --- Single Specialty $>4$ hrs
+1. Type 3 Departments --- Other A\&E/Minor Injury $>4$ hrs
+1. Total Attendances $>4$  hrs
+1. Emergency Admissions via Type 1 A\&E
+1. Total Emergency Admissions via A\&E
+1. Other Emergency Admissions (i.e., not via A\&E)
+1. Total Emergency Admissions
+1. Number of patients spending $>4$ hrs from decision to admission
+
+## UK Accidents and Emergency Demand
+\vspace*{-0.3cm}
+
+ * **Minimum training set**: all data except the last year
+ * Base forecasts using \texttt{auto.arima()}.
+ * Mean Absolute Scaled Errors for 1, 4 and 13 weeks ahead using a rolling origin.
+
+\pause\fontsize{12}{14}\sf
+###
+\centering
+\begin{tabular}{lrccr}
+\bf Aggr. Level     & $h$   & \bf Base  & \bf Reconciled & \bf Change \\
+\midrule
+Weekly & 1      & 1.6   & 1.3   & $-17.2\%$ \\
+Weekly & 4      & 1.9   & 1.5   & $-18.6\%$ \\
+Weekly & 13     & 2.3   & 1.9   & $-16.2\%$ \\
+Weekly & 1--52  & 2.0   & 1.9   & $-5.0\%$ \\
+Annual & 1      & 3.4   & 1.9   & $-42.9\%$
+\end{tabular}
+
+
+## thief package for R
+
+\alert{\fontsize{20}{25}\sffamily \alert{thief:} \alert{T}emporal \alert{HIE}rarchical \alert{F}orecasting}\vspace*{.6cm}\pause
+
+\begin{block}{Install from CRAN}
+  \texttt{install.packages("thief")}
+\end{block}
+
+\begin{alertblock}{Usage}
+  \texttt{library(thief)}\\
+  \texttt{thief(y)}
+\end{alertblock}
+
+# Lab session 23
+
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 23**

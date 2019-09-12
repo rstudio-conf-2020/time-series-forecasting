@@ -1,0 +1,606 @@
+---
+title: "Forecasting: principles and practice"
+author: "Rob J Hyndman"
+date: "1.3&nbsp; Forecast evaluation"
+fontsize: 14pt
+output:
+  beamer_presentation:
+    fig_width: 7
+    fig_height: 4.3
+    highlight: tango
+    theme: metropolis
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+options(digits=4, width=55)
+```
+
+# Benchmark methods
+
+## Some simple forecasting methods
+\small
+
+```{r, fig.height=4.2, echo=FALSE}
+beertrain <- window(ausbeer, start=1992)
+autoplot(beertrain) +
+  xlab("Year") + ylab("megalitres") +
+    ggtitle("Australian quarterly beer production")
+```
+
+\begin{textblock}{7}(0.2,8.7)
+\begin{alertblock}{}
+\small{How would you forecast these data?}
+\end{alertblock}
+\end{textblock}
+
+## Some simple forecasting methods
+\small
+
+```{r, fig.height=4.2, echo=FALSE}
+autoplot(window(pigs/1e3, start=1990)) +
+  xlab("Year") + ylab("thousands") +
+  ggtitle("Number of pigs slaughtered in Victoria")
+```
+
+\begin{textblock}{7}(0.2,8.7)
+\begin{alertblock}{}
+\small{How would you forecast these data?}
+\end{alertblock}
+\end{textblock}
+
+## Some simple forecasting methods
+\small
+
+```{r, fig.height=4.2, echo=FALSE}
+autoplot(dj) + xlab("Day") +
+  ggtitle("Dow-Jones index") + ylab("")
+```
+
+\begin{textblock}{7}(0.2,8.7)
+\begin{alertblock}{}
+\small{How would you forecast these data?}
+\end{alertblock}
+\end{textblock}
+
+## Some simple forecasting methods
+
+\fontsize{13}{15}\sf
+
+### Average method
+
+  * Forecast of all future values is equal to mean of historical data $\{y_1,\dots,y_T\}$.
+  * Forecasts: $\hat{y}_{T+h|T} = \bar{y} = (y_1+\dots+y_T)/T$
+
+\pause
+
+### Naïve method
+
+  * Forecasts equal to last observed value.
+  * Forecasts: $\hat{y}_{T+h|T} =y_T$.
+  * Consequence of efficient market hypothesis.
+
+\pause
+
+### Seasonal naïve method
+
+  * Forecasts equal to last value from same season.
+  * Forecasts: $\hat{y}_{T+h|T} =y_{T+h-km}$ where $m=$ seasonal period and $k$ is integer part of $(h-1)/m$.
+
+## Some simple forecasting methods
+
+### Drift method
+
+ * Forecasts equal to last value plus average change.
+ * Forecasts:\vspace*{-1cm}
+
+ \begin{align*}
+ \hat{y}_{T+h|T} & =  y_{T} + \frac{h}{T-1}\sum_{t=2}^T (y_t-y_{t-1})\\
+                 & = y_T + \frac{h}{T-1}(y_T -y_1).
+ \end{align*}\vspace*{-0.5cm}
+
+   * Equivalent to extrapolating a line drawn between first and last observations.
+
+## Some simple forecasting methods
+
+```{r beerf, warning=FALSE, message=FALSE, echo=FALSE, fig.height=4.6}
+beertrain <- window(ausbeer,start=1992,end=c(2007,4))
+# Plot some forecasts
+autoplot(beertrain) +
+  forecast::autolayer(meanf(beertrain, h=11), PI=FALSE, series="Mean") +
+  forecast::autolayer(naive(beertrain, h=11), PI=FALSE, series="Naïve") +
+  forecast::autolayer(snaive(beertrain, h=11), PI=FALSE, series="Seasonal naïve") +
+  ggtitle("Forecasts for quarterly beer production") +
+  xlab("Year") + ylab("Megalitres") +
+  guides(colour=guide_legend(title="Forecast"))
+```
+
+## Some simple forecasting methods
+
+```{r djf,  message=FALSE, warning=FALSE, echo=FALSE, fig.height=4.6}
+# Set training data to first 250 days
+dj2 <- window(dj,end=250)
+# Plot some forecasts
+autoplot(dj2) +
+  forecast::autolayer(meanf(dj2, h=42), PI=FALSE, series="Mean") +
+  forecast::autolayer(rwf(dj2, h=42), PI=FALSE, series="Naïve") +
+  forecast::autolayer(rwf(dj2, drift=TRUE, h=42), PI=FALSE, series="Drift") +
+  ggtitle("Dow Jones Index (daily ending 15 Jul 94)") +
+  xlab("Day") + ylab("") +
+  guides(colour=guide_legend(title="Forecast"))
+```
+
+## Some simple forecasting methods
+
+  * Mean: `meanf(y, h=20)`
+  * Naïve:  `naive(y, h=20)`
+  * Seasonal naïve: `snaive(y, h=20)`
+  * Drift: `rwf(y, drift=TRUE, h=20)`
+
+# Forecasting residuals
+
+## Fitted values
+
+ - $\hat{y}_{t|t-1}$ is the forecast of $y_t$ based on observations $y_1,\dots,y_t$.
+ - We call these "fitted values".
+ - Sometimes drop the subscript: $\hat{y}_t \equiv \hat{y}_{t|t-1}$.
+ - Often not true forecasts since parameters are estimated on all data.
+
+### For example:
+
+ - $\hat{y}_{t} = \bar{y}$ for average method.
+ - $\hat{y}_{t} = y_{t-1} + (y_{T}-y_1)/(T-1)$ for drift method.
+
+## Forecasting residuals
+
+\begin{block}{}
+\textbf{Residuals in forecasting:} difference between observed value and its fitted value: $e_t = y_t-\hat{y}_{t|t-1}$.
+\end{block}
+\pause\fontsize{13}{14}\sf
+
+\alert{Assumptions}
+
+  1. $\{e_t\}$ uncorrelated. If they aren't, then information left in  residuals that should be used in computing forecasts.
+  2. $\{e_t\}$ have mean zero. If they don't, then forecasts are biased.
+
+\pause
+
+\alert{Useful properties} (for prediction intervals)
+
+  3. $\{e_t\}$ have constant variance.
+  4. $\{e_t\}$ are normally distributed.
+
+## Example: Google stock price
+\fontsize{10}{10}\sf
+
+```{r dj3, echo=TRUE}
+autoplot(goog200) +
+  xlab("Day") + ylab("Closing Price (US$)") +
+  ggtitle("Google Stock (daily ending 6 December 2013)")
+```
+
+## Example: Google stock price
+
+\alert{Na\"{\i}ve forecast:}
+
+\[\hat{y}_{t|t-1}= y_{t-1}\]\pause
+\[e_t = y_t-y_{t-1}\]\pause
+
+\begin{alertblock}{}
+Note: $e_t$ are one-step-forecast residuals
+\end{alertblock}
+
+## Example: Google stock price
+\fontsize{10}{10}\sf
+
+```{r dj4, echo=TRUE, warning=FALSE, fig.height=3.6}
+fits <- fitted(naive(goog200))
+autoplot(goog200, series="Data") +
+  autolayer(fits, series="Fitted") +
+  xlab("Day") + ylab("Closing Price (US$)") +
+  ggtitle("Google Stock (daily ending 6 December 2013)")
+```
+
+## Example: Google stock price
+\fontsize{10}{10}\sf
+
+```{r dj5, echo=TRUE, fig.height=3.6}
+res <- residuals(naive(goog200))
+autoplot(res) + xlab("Day") + ylab("") +
+  ggtitle("Residuals from naïve method")
+```
+
+## Example: Google stock price
+\fontsize{11}{11}\sf
+
+```{r dj6, warning=FALSE}
+gghistogram(res, add.normal=TRUE) +
+  ggtitle("Histogram of residuals")
+```
+
+## Example: Google stock price
+\fontsize{11}{11}\sf
+
+```{r dj7}
+ggAcf(res) + ggtitle("ACF of residuals")
+```
+
+## ACF of residuals
+
+  * We assume that the residuals are white noise (uncorrelated, mean zero, constant variance). If they aren't, then there is information left in  the residuals that should be used in computing forecasts.
+
+  * So a standard residual diagnostic is to check the ACF of the residuals of a forecasting method.
+
+  * We *expect* these to look like white noise.
+
+## `checkresiduals` function
+
+```{r, echo=TRUE, fig.height=4}
+checkresiduals(naive(goog200))
+```
+
+## Portmanteau tests
+\fontsize{14}{14.5}\sf
+
+Test whether *set* of $r_{k}$  values are significantly different from a zero set.
+
+\begin{block}{Ljung-Box test}
+\centerline{$\displaystyle
+ Q^* = T(T+2) \sum_{k=1}^h (T-k)^{-1}r_k^2$}
+where $h$  is max lag being considered and $T$ is number of observations.
+\end{block}
+
+  * My preferences: $h=10$ for non-seasonal data, $h=2m$ for seasonal data.
+  * If each $r_k$ close to zero, $Q$ will be **small**.
+  * p-value measures probability of results if residuals are WN.
+
+\vspace*{10cm}
+
+## `checkresiduals` function
+
+```r
+checkresiduals(naive(goog200))
+```
+
+```{r, echo=FALSE}
+object <- naive(dj2)
+main <- paste("Residuals from", object$method)
+res <- residuals(object)
+# Do Ljung-Box test
+      LBtest <- Box.test(zoo::na.approx(res), fitdf=0, lag=10, type="Ljung")
+      LBtest$method <- "Ljung-Box test"
+      LBtest$data.name <- main
+      names(LBtest$statistic) <- "Q*"
+      print(LBtest)
+      cat(paste("Model df: ",0,".   Total lags used: ",10,"\n\n",sep=""))
+```
+
+# Lab session 4
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 4**
+
+# Evaluating forecast accuracy
+
+## Training and test sets
+
+```{r traintest, fig.height=1, echo=FALSE, cache=TRUE}
+train = 1:18
+test = 19:24
+par(mar=c(0,0,0,0))
+plot(0,0,xlim=c(0,26),ylim=c(0,2),xaxt="n",yaxt="n",bty="n",xlab="",ylab="",type="n")
+arrows(0,0.5,25,0.5,0.05)
+points(train, train*0+0.5, pch=19, col="blue")
+points(test,  test*0+0.5,  pch=19, col="red")
+text(26,0.5,"time")
+text(10,1,"Training data",col="blue")
+text(21,1,"Test data",col="red")
+```
+
+-   A model which fits the training data well will not necessarily forecast well.
+-   A perfect fit can always be obtained by using a model with enough parameters.
+-   Over-fitting a model to data is just as bad as failing to identify a systematic pattern in the data.
+  * The test set must not be used for *any* aspect of model development or calculation of forecasts.
+  * Forecast accuracy is based only on the test set.
+
+## Forecast errors
+
+Forecast "error": the difference between an observed value and its forecast.
+$$
+  e_{T+h} = y_{T+h} - \hat{y}_{T+h|T},
+$$
+where the training data is given by $\{y_1,\dots,y_T\}$
+
+- Unlike residuals, forecast errors on the test set involve multi-step forecasts.
+- These are *true* forecast errors as the test data is not used in computing $\hat{y}_{T+h|T}$.
+
+## Measures of forecast accuracy
+
+```{r googaccuracy, echo=FALSE, fig.height=5}
+googtrain <- window(goog200,end=180)
+googfc1 <- meanf(googtrain,h=20)
+googfc2 <- rwf(googtrain,h=20)
+googfc3 <- rwf(googtrain,h=20,drift=TRUE)
+tmp <- cbind(Data=goog200,
+             Mean=googfc1[["mean"]],
+             Naive=googfc2[["mean"]],
+             Drift=googfc3[["mean"]])
+autoplot(tmp) + xlab("Day") + ylab("Price") +
+  ggtitle("Forecasts for GOOG stock price") +
+  scale_color_manual(values=c('#000000','#1b9e77','#d95f02','#7570b3'),
+                     breaks=c("Mean","Naive","Drift"),
+                     name="Forecast Method")
+```
+
+## Measures of forecast accuracy
+
+\begin{tabular}{rl}
+$y_{T+h}=$ & $(T+h)$th observation, $h=1,\dots,H$ \\
+$\pred{y}{T+h}{T}=$ & its forecast based on data up to time $T$. \\
+$e_{T+h} =$  & $y_{T+h} - \pred{y}{T+h}{T}$
+\end{tabular}\vspace*{0.3cm}
+
+\begin{block}{}\vspace*{-0.2cm}
+\begin{align*}
+\text{MAE} &= \text{mean}(|e_{T+h}|) \\[-0.2cm]
+\text{MSE} &= \text{mean}(e_{T+h}^2) \qquad
+&&\hspace*{-0.4cm}\text{RMSE}\hspace*{-0.2cm} &= \sqrt{\text{mean}(e_{T+h}^2)} \\[-0.1cm]
+\text{MAPE} &= 100\text{mean}(|e_{T+h}|/ |y_{T+h}|)
+\end{align*}
+\end{block}\pause\vspace*{-0.2cm}
+
+  * MAE, MSE, RMSE are all scale dependent.
+  * MAPE is scale independent but is only sensible if $y_t\gg 0$ for all $t$, and $y$ has a natural zero.
+
+## Measures of forecast accuracy
+
+\begin{block}{Mean Absolute Scaled Error}
+$$
+\text{MASE} = T^{-1}\sum_{t=1}^T |y_t - \pred{y}{t}{t-1}|/Q
+$$
+where $Q$ is a stable measure of the scale of the time series $\{y_t\}$.
+\end{block}
+Proposed by Hyndman and Koehler (IJF, 2006).
+
+For non-seasonal time series,
+$$
+  Q = (T-1)^{-1}\sum_{t=2}^T |y_t-y_{t-1}|
+$$
+works well. Then MASE is equivalent to MAE relative to a naïve method.
+
+\vspace*{10cm}
+
+## Measures of forecast accuracy
+
+\begin{block}{Mean Absolute Scaled Error}
+$$
+\text{MASE} = T^{-1}\sum_{t=1}^T |y_t - \pred{y}{t}{t-1}|/Q
+$$
+where $Q$ is a stable measure of the scale of the time series $\{y_t\}$.
+\end{block}
+Proposed by Hyndman and Koehler (IJF, 2006).
+
+For seasonal time series,
+$$
+  Q = (T-m)^{-1}\sum_{t=m+1}^T |y_t-y_{t-m}|
+$$
+works well. Then MASE is equivalent to MAE relative to a seasonal naïve method.
+
+\vspace*{10cm}
+
+## Measures of forecast accuracy
+
+```{r googaccuracyagain, echo=FALSE, fig.height=5, dependson="googaccuracy"}
+autoplot(tmp) + xlab("Day") + ylab("Price") +
+  ggtitle("Forecasts for GOOG stock price") +
+  scale_color_manual(values=c('#000000','#1b9e77','#d95f02','#7570b3'),
+                     breaks=c("Mean","Naive","Drift"),
+                     name="Forecast Method")
+```
+
+## Measures of forecast accuracy
+\fontsize{11}{11}\sf
+
+```r
+googtrain <- window(goog200,end=180)
+googfc1 <- meanf(googtrain,h=20)
+googfc2 <- rwf(googtrain,h=20)
+googfc3 <- rwf(googtrain,h=20,drift=TRUE)
+accuracy(googfc1, goog200)
+accuracy(googfc2, goog200)
+accuracy(googfc3, goog200)
+```
+
+\fontsize{13}{15}\sf
+
+```{r beertable, echo=FALSE, dependson='googaccuracy'}
+tab <- matrix(NA,ncol=4,nrow=3)
+tab[1,] <- accuracy(googfc1, goog200)[2,c(2,3,5,6)]
+tab[2,] <- accuracy(googfc2, goog200)[2,c(2,3,5,6)]
+tab[3,] <- accuracy(googfc3, goog200)[2,c(2,3,5,6)]
+colnames(tab) <- c("RMSE","MAE","MAPE","MASE")
+rownames(tab) <- c("Mean method", "Naïve method", "Drift method")
+knitr::kable(tab, digits=2)
+```
+
+## Poll: true or false?
+
+  1. Good forecast methods should have normally distributed residuals.
+  2. A model with small residuals will give good forecasts.
+  3. The best measure of forecast accuracy is MAPE.
+  4. If your model doesn't forecast well, you should make it more complicated.
+  5. Always choose the model with the best forecast accuracy as measured on the test set.
+
+# Lab session 5
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 5**
+
+# Time series cross-validation
+
+## Time series cross-validation
+
+**Traditional evaluation**
+
+```{r traintest2, fig.height=1, echo=FALSE, cache=TRUE}
+train = 1:18
+test = 19:24
+par(mar=c(0,0,0,0))
+plot(0,0,xlim=c(0,26),ylim=c(0,2),xaxt="n",yaxt="n",bty="n",xlab="",ylab="",type="n")
+arrows(0,0.5,25,0.5,0.05)
+points(train, train*0+0.5, pch=19, col="blue")
+points(test,  test*0+0.5,  pch=19, col="red")
+text(26,0.5,"time")
+text(10,1,"Training data",col="blue")
+text(21,1,"Test data",col="red")
+```
+
+\vspace*{10cm}
+
+## Time series cross-validation
+
+**Traditional evaluation**
+
+```{r traintest3, fig.height=1, echo=FALSE, cache=TRUE}
+train = 1:18
+test = 19:24
+par(mar=c(0,0,0,0))
+plot(0,0,xlim=c(0,26),ylim=c(0,2),xaxt="n",yaxt="n",bty="n",xlab="",ylab="",type="n")
+arrows(0,0.5,25,0.5,0.05)
+points(train, train*0+0.5, pch=19, col="blue")
+points(test,  test*0+0.5,  pch=19, col="red")
+text(26,0.5,"time")
+text(10,1,"Training data",col="blue")
+text(21,1,"Test data",col="red")
+```
+
+**Time series cross-validation**
+
+```{r cv1, cache=TRUE, echo=FALSE, fig.height=4}
+par(mar=c(0,0,0,0))
+plot(0,0,xlim=c(0,28),ylim=c(0,1),
+       xaxt="n",yaxt="n",bty="n",xlab="",ylab="",type="n")
+i <- 1
+for(j in 1:10)
+{
+  test <- (16+j):26
+  train <- 1:(15+j)
+  arrows(0,1-j/20,27,1-j/20,0.05)
+  points(train,rep(1-j/20,length(train)),pch=19,col="blue")
+  if(length(test) >= i)
+    points(test[i], 1-j/20, pch=19, col="red")
+  if(length(test) >= i)
+    points(test[-i], rep(1-j/20,length(test)-1), pch=19, col="gray")
+  else
+    points(test, rep(1-j/20,length(test)), pch=19, col="gray")
+}
+text(28,.95,"time")
+```
+
+\pause\fontsize{12}{14}\sf
+
+ * Forecast accuracy averaged over test sets.
+ * Also known as "evaluation on a rolling forecasting origin"
+
+ \vspace*{10cm}
+
+## tsCV function:
+
+\small
+
+```{r tscv, cache=TRUE}
+e <- tsCV(goog200, rwf, drift=TRUE, h=1)
+sqrt(mean(e^2, na.rm=TRUE))
+sqrt(mean(residuals(rwf(goog200, drift=TRUE))^2,
+                                     na.rm=TRUE))
+```
+
+\begin{alertblock}{}
+A good way to choose the best forecasting model is to find the model with the smallest RMSE computed using time series cross-validation.
+\end{alertblock}
+
+## Pipe function
+
+\fontsize{12}{15}\sf
+
+Ugly code:
+```r
+e <- tsCV(goog200, rwf, drift=TRUE, h=1)
+sqrt(mean(e^2, na.rm=TRUE))
+sqrt(mean(residuals(rwf(goog200, drift=TRUE))^2,
+                                     na.rm=TRUE))
+```
+
+Better with a pipe:
+
+```r
+goog200 %>%
+  tsCV(forecastfunction=rwf, drift=TRUE, h=1) -> e
+e^2 %>% mean(na.rm=TRUE) %>% sqrt
+goog200 %>% rwf(drift=TRUE) %>% residuals -> res
+res^2 %>% mean(na.rm=TRUE) %>% sqrt
+```
+
+# Lab session 6
+##
+\fontsize{48}{60}\sf\centering
+**Lab Session 6**
+
+# Prediction intervals
+
+## Prediction intervals
+\fontsize{14}{15}\sf
+
+ * A forecast $\hat{y}_{T+h|T}$ is (usually) the mean of the conditional distribution $y_{T+h} \mid y_1, \dots, y_{T}$.
+ * A prediction interval gives a region within which we expect $y_{T+h}$ to lie with a specified probability.
+ * Assuming forecast errors are normally distributed, then a 95% PI is
+ \begin{alertblock}{}
+\centerline{$
+  \hat{y}_{T+h|T} \pm 1.96 \hat\sigma_h
+$}
+\end{alertblock}
+where $\hat\sigma_h$ is the st dev of the $h$-step distribution.
+
+ * When $h=1$, $\hat\sigma_h$ can be estimated from the residuals.
+
+## Prediction intervals
+
+**Drift forecasts with prediction interval:**
+
+```{r djforecasts, echo=TRUE, cache=TRUE}
+rwf(goog200, level=95, drift=TRUE)
+```
+
+## Prediction intervals
+
+ * Point forecasts are often useless without prediction intervals.
+ * Prediction intervals require a stochastic model (with random errors, etc).
+ * Multi-step forecasts for time series require a more sophisticated approach (with PI getting wider as the forecast horizon increases).
+  * Check residual assumptions before believing them.
+  * Usually too narrow due to unaccounted uncertainty.
+
+## Prediction intervals
+
+\fontsize{14}{18}\sf
+
+Assume residuals are normal, uncorrelated, sd = $\hat\sigma$:
+
+\begin{block}{}
+\begin{tabular}{ll}
+\bf Mean forecasts: & $\hat\sigma_h = \hat\sigma\sqrt{1 + 1/T}$\\[0.2cm]
+\bf Naïve forecasts: & $\hat\sigma_h = \hat\sigma\sqrt{h}$\\[0.2cm]
+\bf Seasonal naïve forecasts & $\hat\sigma_h = \hat\sigma\sqrt{k+1}$\\[0.2cm]
+\bf Drift forecasts: & $\hat\sigma_h = \hat\sigma\sqrt{h(1+h/T)}$.
+\end{tabular}
+\end{block}
+
+where $k$ is the integer part of $(h-1)/m$.
+
+Note that when $h=1$ and $T$ is large, these all give the same approximate value $\hat\sigma$.
