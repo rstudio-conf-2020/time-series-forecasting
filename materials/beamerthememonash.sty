@@ -1,0 +1,75 @@
+%% This is the Monash beamer theme
+%% Created for Monash Business School
+%% Updated by Rob J Hyndman. 8 October 2018
+
+\RequirePackage{beamerthememetropolis}
+% For binb, one can alter the color theme by by setting eg 'colortheme: monashblue' in the YAML header
+%\usecolortheme{monashwhite}
+\usefonttheme{monash}
+
+\metroset{progressbar=foot}
+
+% Plenty of room
+\setbeamersize{text margin left=2em,text margin right=2em}
+
+% Rounded corners on boxes
+\useinnertheme{rounded}
+
+% Square bullets and enumerated items
+\setbeamertemplate{items}[square]
+
+% larger squares for enumeration
+\defbeamertemplate{enumerate item}{mysquare}
+{ \raisebox{-0.ex}{\hbox{%
+    \usebeamerfont*{item projected}%
+    \usebeamercolor{enumerate item}%
+    \vrule width4ex height2.7ex depth.7ex%
+    \hskip-4ex%
+    \hbox to4ex{%
+      \hfil%
+      \color{LightGrey}\raisebox{.2ex}{\insertenumlabel}%
+      \hfil}%
+  }}%
+}
+[action]
+{\setbeamerfont{item projected}{size=\scriptsize}}
+\setbeamertemplate{enumerate item}[mysquare]
+\setbeamertemplate{itemize item}[square]
+\setbeamertemplate{items}[mysquare]
+
+\usesubitemizeitemtemplate{%
+    \tiny\raise1.5pt\hbox{\color{beamerstructure}$\blacktriangleright$}%
+}
+\usesubsubitemizeitemtemplate{%
+    \tiny\raise1.5pt\hbox{\color{beamerstructure}$\bigstar$}%
+}
+
+\setbeamertemplate{section in toc}[square]
+\setbeamerfont{section number projected}{size=\large}
+\setbeamertemplate{section in toc shaded}[default][50]
+
+\usepackage{etoolbox}
+\patchcmd{\beamer@sectionintoc}{\vskip1.5em}{\vskip0.2em}{}{}
+
+% Figure placement
+\RequirePackage[absolute,overlay]{textpos}
+\setlength{\TPHorizModule}{1cm}
+\setlength{\TPVertModule}{1cm}
+\def\placefig#1#2#3#4{\begin{textblock}{.1}(#1,#2)\rlap{\includegraphics[#3]{#4}}\end{textblock}}
+
+
+% Reduce vertical space around displayed equations
+\preto\frame{%
+\setlength{\abovedisplayskip}{1pt}%
+\setlength{\belowdisplayskip}{4pt}%
+\setlength{\abovedisplayshortskip}{0pt}%
+\setlength{\belowdisplayshortskip}{0pt}}
+
+% Redefine shaded environment if it exists (for R plots)
+\ifcsname Shaded\endcsname
+  \definecolor{shadecolor}{RGB}{225,225,225}
+  \renewenvironment{Shaded}{\color{black}\begin{snugshade}\color{black}}{\end{snugshade}}
+\fi
+
+%%
+%% End of file `beamerthememonash.sty'.

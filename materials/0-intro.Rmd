@@ -1,0 +1,131 @@
+---
+title: "Tidy Time Series & Forecasting in R"
+date: "robjhyndman.com/workshop2020"
+author: ""
+toc: false
+output:
+  binb::monash:
+    colortheme: monashwhite
+    fig_width: 7
+    fig_height: 3.5
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache=TRUE,
+  warning=FALSE,
+  message=FALSE)
+library(fpp2)
+options(digits=4, width=55)
+```
+
+## Resources
+
+\large
+
+ * Slides
+ * Exercises
+ * Textbook
+ * Useful links
+
+\vspace*{2cm}\begin{alertblock}{}{\centerline{\Large\textbf{\url{robjhyndman.com/workshop2020}}}}
+\end{alertblock}
+
+## Brief bio
+
+  - Professor of Statistics, Monash University
+  - Head of Department of Econometrics & Business Statistics, Monash University
+  - Editor-in-Chief, \textit{International Journal of Forecasting}, 2005--2018
+
+\pause\vspace*{0.15cm}
+
+\begin{block}{How my forecasting methodology is used:}
+\begin{itemize}\tightlist
+ \item Pharmaceutical Benefits \rlap{Scheme}
+ \item Cancer incidence and mortality
+ \item Electricity demand
+ \item Ageing population
+ \item Fertilizer sales
+\end{itemize}
+\end{block}
+
+\only<3>{\begin{textblock}{5.5}(6.9,8.1)\begin{alertblock}{}\Large robjhyndman.com\end{alertblock}\end{textblock}}
+
+\vspace*{10cm}
+
+## Assumptions
+
+  * This is not an introduction to R. I assume you are broadly comfortable with R code and the RStudio environment.
+  * This is not a statistics course. I assume you are familiar with concepts such as the mean, standard deviation, quantiles, regression, normal distribution, likelihood, etc.
+  * This is not a theory course. I am not going to derive anything. I will teach you forecasting tools, when to use them and how to use them most effectively.
+
+## Key reference
+
+\large
+
+\begin{block}{}\bf
+\hangafter=1\hangindent=.3cm
+ {Hyndman, R.~J. \& Athanasopoulos, G. (2020) \emph{Forecasting: principles and practice}, 3rd ed.}
+\end{block}\pause
+\begin{alertblock}{}\Large
+\centerline{\bf OTexts.org/fpp3/}
+\end{alertblock}
+
+\pause
+
+  * Free and online
+  * Data sets in associated R package
+  * R code for examples
+
+## Poll: How experienced are you in forecasting
+
+  1. Guru: I wrote the book, done it for decades, now I do the conference circuit.
+  2. Expert: It has been my full time job for more than a decade.
+  3. Skilled: I have been doing it for years.
+  1. Comfortable: I understand it and have done it.
+  1. Learner: I am still learning.
+  1. Beginner: I have heard of it and would like to learn more.
+  1. Unknown: What is forecasting? Is that what the weather people do?
+
+## Poll: How proficient are you in using R?
+
+\fontsize{14}{15}\sf
+
+  1. Guru: The R core team come to me for advice.
+  1. Expert: I have written several packages on CRAN.
+  1. Skilled: I use it regularly and it is an important part of my job.
+  1. Comfortable: I use it often and am comfortable with the tool.
+  1. User: I use it sometimes, but I am often searching around for the right function.
+  1. Learner: I have used it a few times.
+  1. Beginner: I've managed to download and install it.
+  1. Unknown: Why are you speaking like a pirate?
+
+## Install required packages
+
+```r
+install.packages("fpp3", dependencies=TRUE)
+```
+
+## Approximate outline
+\vspace*{-0.1cm}\centering\fontsize{12}{12}\sf
+\begin{tabular}{rp{6.6cm}l}
+  \toprule
+  \bf Day & \bf Topic                     & \bf Chapter \\
+  \midrule
+  1 & Introduction to tsibbles    & 2 \\
+  2 & Time series graphics        & 2 \\
+  3 & Time series features        & -- \\
+  4 & Transformations             & 3 \\
+  5 & Seasonality and trends      & 7 \\
+  \midrule
+  6 & Introduction to forecasting & 1,3 \\
+  7 & Exponential smoothing       & 8 \\
+  8 & ARIMA models                & 9 \\
+  9 & Dynamic regression          & 10 \\
+  10 & Hierarchical forecasting    & 11 \\
+  \bottomrule
+\end{tabular}
+
