@@ -1,6 +1,6 @@
 ---
-title: "High dimensional time series analysis"
-date: "robjhyndman.com/hdtsa"
+title: "Tidy Time Series & Forecasting in R"
+date: "robjhyndman.com/workshop2020"
 author: "3. Time series features"
 toc: true
 output:
@@ -9,7 +9,7 @@ output:
     fig_width: 7
     fig_height: 3.5
     includes:
-      in_header: ../header.tex
+      in_header: header.tex
 ---
 
 ```{r setup, include=FALSE}
