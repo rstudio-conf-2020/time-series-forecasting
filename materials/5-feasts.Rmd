@@ -1,0 +1,275 @@
+---
+title: "Tidy Time Series & Forecasting in R"
+date: "robjhyndman.com/workshop2020"
+author: "5. Time series features"
+toc: true
+output:
+  binb::monash:
+    colortheme: monashwhite
+    fig_width: 7
+    fig_height: 3.5
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
+  dev.args = list(pointsize = 11)
+)
+options(digits = 3, width = 60)
+library(fpp3)
+library(broom)
+```
+
+# STL Features
+
+## Strength of seasonality and trend
+
+\begin{alertblock}{STL decomposition}
+\centerline{$y_t = T_t+S_t+R_t$}
+\end{alertblock}
+
+### Seasonal strength
+$$\max\left(0, 1-\frac{\text{Var}(R_t)}{\text{Var}(S_t+R_t)}\right)$$
+
+### Trend strength
+$$\max\left(0, 1-\frac{\text{Var}(R_t)}{\text{Var}(T_t+R_t)}\right)$$
+
+## Feature extraction and statistics
+
+\fontsize{9}{10}\sf
+
+```{r features}
+tourism %>% features(Trips, feat_stl)
+```
+
+## Feature extraction and statistics
+\fontsize{8}{9}\sf
+
+```{r features-plot, fig.height=4.1}
+tourism %>% features(Trips, feat_stl) %>%
+  ggplot(aes(x=trend_strength, y=seasonal_strength_year, col=Purpose)) +
+    geom_point() + facet_wrap(vars(State))
+```
+
+\only<2->{\begin{textblock}{4.7}(7.8,7.3)
+\begin{alertblock}{}\fontsize{10}{10}\sf
+\begin{itemize}\tightlist
+\item Holidays more seasonal than other travel.
+\item WA has strongest trends.
+\end{itemize}
+\end{alertblock}\end{textblock}}
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+Find the most seasonal time series:
+
+```{r extreme}
+most_seasonal <- tourism %>%
+  features(Trips, feat_stl) %>%
+  filter(seasonal_strength_year == max(seasonal_strength_year))
+```
+
+\pause\vspace*{-0.3cm}
+
+```{r extreme2, fig.height=2.8}
+tourism %>%
+  right_join(most_seasonal, by = c("State","Region","Purpose")) %>%
+  ggplot(aes(x = Quarter, y = Trips)) + geom_line() +
+  facet_grid(vars(State,Region,Purpose))
+```
+
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+Find the most trended time series:
+
+```{r extreme3}
+most_trended <- tourism %>%
+  features(Trips, feat_stl) %>%
+  filter(trend_strength == max(trend_strength))
+```
+
+\pause\vspace*{-0.3cm}
+
+```{r extreme4, fig.height=2.8}
+tourism %>%
+  right_join(most_trended, by = c("State","Region","Purpose")) %>%
+  ggplot(aes(x = Quarter, y = Trips)) + geom_line() +
+  facet_grid(vars(State,Region,Purpose))
+```
+
+# Lab Session 8
+
+## Lab Session 8
+
+ * Use ``GGally::ggpairs()`` to look at the relationships between the STL-based features. You might wish to change `seasonal_peak_year` and `seasonal_trough_year` to factors.
+ * Which is the peak quarter for holidays in each state?
+
+
+## Feature extraction and statistics
+
+\fontsize{9}{10}\sf
+
+```{r featuresacf}
+tourism %>% features(Trips, feat_acf)
+```
+
+# Dimension reduction for features
+
+```{r pca, echo=FALSE}
+# Save pdf figures
+savepdf <- function(file, width=16, height=10) {
+  fname <<- paste("figs/",file,".pdf",sep="")
+  pdf(fname, width=width/2.54, height=height/2.54, pointsize=10)
+  par(mgp=c(2.2,0.45,0), tcl=-0.4, mar=c(3.3,3.6,1.1,1.1))
+}
+endpdf <- function() {
+  crop::dev.off.crop(fname)
+}
+# Compute features
+tourism_features <- tourism %>%
+  features(Trips, feature_set(pkgs="feasts"))
+# Compute PCs
+pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
+  prcomp(scale=TRUE) %>% augment(tourism_features)
+# Save some PC plots
+savepdf("pca1", 18, 10)
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) +
+  geom_point() + theme(aspect.ratio=1)
+endpdf()
+savepdf("pca2", 18, 10)
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=State)) +
+  geom_point() + theme(aspect.ratio=1)
+endpdf()
+savepdf("pca3", 18, 10)
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
+  geom_point() + theme(aspect.ratio=1)
+endpdf()
+# Find outliers
+outliers <- pcs %>%
+  filter(.fittedPC1 > 12 | (.fittedPC1 > 10 & .fittedPC2 > 0))
+savepdf("pca4", 18, 10)
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
+  geom_point() + theme(aspect.ratio=1) +
+  geom_point(data=outliers, aes(x=.fittedPC1, y=.fittedPC2), col="black", shape=1, size=3)
+endpdf()
+```
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+```{r tourismfeatures}
+tourism_features <- tourism %>%
+  features(Trips, feature_set(pkgs="feasts"))
+```
+
+```{r echo=FALSE}
+tourism_features
+```
+
+\begin{textblock}{2.5}(9.6,1.3)
+\begin{alertblock}{}\fontsize{10}{12}\sf
+All features from the feasts package
+\end{alertblock}
+\end{textblock}
+
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+```{r pcatable}
+pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
+  prcomp(scale=TRUE) %>% augment(tourism_features)
+```
+
+```{r echo=FALSE}
+pcs
+```
+
+\begin{textblock}{2.5}(9.6,3)
+\begin{alertblock}{}\fontsize{10}{12}\sf
+Principal components based on all features from the feasts package
+\end{alertblock}
+\end{textblock}
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+\begin{textblock}{3.3}(.4,3)
+\begin{alertblock}{}\fontsize{10}{12}\sf
+Principal components based on all features from the feasts package
+\end{alertblock}
+\end{textblock}
+
+```r
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) +
+  geom_point() + theme(aspect.ratio=1)
+```
+
+\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca1}
+\vspace*{10cm}
+
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+
+\begin{textblock}{3.3}(.4,3)
+\begin{alertblock}{}\fontsize{10}{12}\sf
+Principal components based on all features from the feasts package
+\end{alertblock}
+\end{textblock}
+
+```r
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=State)) +
+  geom_point() + theme(aspect.ratio=1)
+```
+
+\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca2}
+\vspace*{10cm}
+
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+
+\begin{textblock}{3.3}(.4,3)
+\begin{alertblock}{}\fontsize{10}{12}\sf
+Principal components based on all features from the feasts package
+\end{alertblock}
+\end{textblock}
+
+```r
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
+  geom_point() + theme(aspect.ratio=1)
+```
+
+\only<1>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca3}}
+\only<2>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca4}}
+\vspace*{10cm}
+
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+```{r outliers2, fig.height=3.5}
+outliers %>%
+  left_join(tourism, by = c("State", "Region", "Purpose")) %>%
+  ggplot(aes(x = Quarter, y = Trips)) + geom_line() +
+    facet_grid(vars(State,Region,Purpose)) +
+    ggtitle("Outlying time series in PC space") +
+    theme(legend.position = "none")
+```
+
+# Lab Session 9
+
+## Lab Session 9
+
+* Use a feature-based approach to look for outlying series in `PBS`.
+
+* What is unusual about these series?
+

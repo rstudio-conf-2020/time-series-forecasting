@@ -1,0 +1,152 @@
+---
+title: "Tidy Time Series & Forecasting in R"
+date: "robjhyndman.com/workshop2020"
+author: "4. Seasonality and trends"
+toc: true
+output:
+  binb::monash:
+    colortheme: monashwhite
+    keep_tex: no
+    fig_width: 7
+    fig_height: 3.5
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
+  dev.args = list(pointsize = 11)
+)
+options(digits = 3, width = 60)
+library(fpp3)
+library(purrr)
+```
+
+
+# Time series decompositions
+
+## Time series decomposition
+
+Trend-Cycle
+: aperiodic changes in level over time.
+
+Seasonal
+: (almost) periodic changes in level due to seasonal factors (e.g., the quarter of the year, the month, or day of the week).
+
+\begin{block}{Additive decomposition}\vspace*{-0.3cm}
+\[ y_t = S_t + T_t + R_t \]
+\end{block}
+\begin{tabular}{@{}llp{8cm}@{}}
+where & $y_t=$ & data at period $t$ \\
+      & $T_t=$ & trend-cycle component at period $t$\\
+      & $S_t=$ & seasonal component at period $t$ \\
+      & $R_t=$ & remainder component at period $t$
+\end{tabular}
+
+
+## STL decomposition
+
+\fontsize{13}{14}\sf
+
+  *  STL: "Seasonal and Trend decomposition using Loess"
+  *  Very versatile and robust.
+  *  Seasonal component allowed to change over time, and rate of change controlled by user.
+  *  Smoothness of trend-cycle also controlled by user.
+  *  Optionally robust to outliers
+  *  Not trading day or calendar adjustments.
+  *  Only additive.
+  *  Take logs to get multiplicative decomposition.
+  *  Use Box-Cox transformations to get other decompositions.
+
+## Australian holidays
+\fontsize{9}{10}\sf
+
+```{r holidays, include=FALSE}
+holidays <- tourism %>%
+  filter(Purpose=="Holiday") %>%
+  group_by(State) %>%
+  summarise(Trips = sum(Trips))
+```
+
+```{r holidays-plot2, echo=TRUE, dependson="holidays", fig.height=3.9}
+holidays %>% autoplot(Trips) +
+  ylab("thousands of trips") + xlab("Year") +
+  ggtitle("Australian domestic holiday nights")
+```
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r stlagain2, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
+holidays %>%
+  STL(Trips ~ season(window="periodic"), robust=TRUE) %>%
+  autoplot()
+```
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r stlagain, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
+holidays %>%
+  STL(Trips ~ season(window = 5), robust = TRUE) %>%
+  autoplot()
+```
+
+## STL decomposition
+\fontsize{11}{13}\sf
+
+```r
+holidays %>%
+  STL(Trips ~ trend(window=15) + season(window=13),
+      robust = TRUE)
+```
+
+\fontsize{14}{16}\sf
+
+  *  `trend(window = ?)` controls wiggliness of trend component.
+  *  `season(window = ?)` controls variation on seasonal component.
+  * `STL()` chooses `season(window=13)` by default
+  * A large seasonal window is equivalent to setting `window="periodic"`.
+  * Odd numbers should be used for symmetry.
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r dable}
+dcmp <- holidays %>% STL(Trips)
+dcmp
+```
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r holidays3, fig.height=4.6}
+dcmp %>% gg_subseries(season_year)
+```
+
+## Holidays decomposition
+\fontsize{9}{10}\sf
+
+```{r holidays-trend, message=FALSE, warning=FALSE, fig.height=4.3}
+autoplot(dcmp, trend, scale_bars=FALSE) +
+  autolayer(holidays, alpha=0.4)
+```
+
+# Lab Session 7
+
+## Lab Session 7
+
+Repeat the decomposition using
+
+\fontsize{11}{14}\sf
+
+```r
+holidays %>%
+  STL(Trips ~ season(window=7) + trend(window=11)) %>%
+  autoplot()
+```
+
+\fontsize{14}{15}\sf
+What happens as you change `season(window = ???)` and `trend(window = ???)`?
+

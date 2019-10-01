@@ -253,133 +253,335 @@ prettify(p1, size = 3, label.padding = unit(0.15, "lines"))
 # Lab Session 3
 ## Lab Session 3
 
-Look at the quarterly tourism data for the Snowy Mountains
+1. Look at the quarterly tourism data for the Snowy Mountains
 
-```r
-snowy <- filter(tourism,
-  Region == "Snowy Mountains")
+    ```r
+    snowy <- filter(tourism,
+      Region == "Snowy Mountains")
+    ```
+
+    - Use `autoplot()`, `gg_season()` and `gg_subseries()` to explore the data.
+    - What do you learn?
+
+2. Produce a calendar plot for the `pedestrian` data from one location and one year.
+
+
+# Lag plots and autocorrelation
+
+## Example: Beer production
+\fontsize{11}{12}\sf
+
+```{r}
+new_production <- aus_production %>%
+  filter(year(Quarter) >= 1992)
+new_production
 ```
 
-  - Use `autoplot()`, `gg_season()` and `gg_subseries()` to explore the data.
-  - What do you learn?
+## Example: Beer production
+\fontsize{13}{15}\sf
+
+```{r, fig.height=6.5, fig.width=6.5, out.width="8cm"}
+new_production %>% gg_lag(Beer)
+```
+
+## Example: Beer production
+\fontsize{13}{15}\sf
+
+```{r, fig.height=6.5, fig.width=6.5, out.width="8cm"}
+new_production %>% gg_lag(Beer, geom='point')
+```
+
+## Lagged scatterplots
+
+  * Each graph shows $y_t$ plotted against $y_{t-k}$ for
+different values of $k$.
+  * The autocorrelations are the correlations associated
+with these scatterplots.
+
+## Autocorrelation
+
+**Covariance** and **correlation**: measure extent of **linear relationship** between two variables ($y$ and $X$).\pause
+
+**Autocovariance** and **autocorrelation**: measure linear relationship between **lagged values** of a time series $y$.\pause
+
+We measure the relationship between:
+
+  * $y_{t}$ and $y_{t-1}$
+  * $y_{t}$ and $y_{t-2}$
+  * $y_{t}$ and $y_{t-3}$
+  * etc.
+
+## Autocorrelation
+
+We denote the sample autocovariance at lag $k$ by $c_k$ and the sample autocorrelation at lag $k$ by $r_k$.  Then define
+
+\begin{block}{}
+\begin{align*}
+c_k &= \frac{1}{T}\sum_{t=k+1}^T (y_t-\bar{y})(y_{t-k}-\bar{y}) \\[0.cm]
+\text{and}\qquad
+r_{k} &= c_k/c_0
+\end{align*}
+\end{block}\pause\small
+
+  * $r_1$ indicates how successive values of  $y$  relate to each other
+  * $r_2$ indicates how  $y$ values two periods apart relate to each other
+  * $r_k$ is \textit{almost} the same as the sample correlation between $y_t$ and $y_{t-k}$.
+
+## Autocorrelation
 
 
-# Decompositions
+Results for first 9 lags for beer data:
 
-## Time series decomposition
+\fontsize{11}{13}\sf
 
-Trend-Cycle
-: aperiodic changes in level over time.
+```{r, echo=TRUE}
+new_production %>% ACF(Beer, lag_max = 9)
+```
 
-Seasonal
-: (almost) periodic changes in level due to seasonal factors (e.g., the quarter of the year, the month, or day of the week).
+## Autocorrelation
 
-\begin{block}{Additive decomposition}\vspace*{-0.3cm}
-\[ y_t = S_t + T_t + R_t \]
-\end{block}
-\begin{tabular}{@{}llp{8cm}@{}}
-where & $y_t=$ & data at period $t$ \\
-      & $T_t=$ & trend-cycle component at period $t$\\
-      & $S_t=$ & seasonal component at period $t$ \\
-      & $R_t=$ & remainder component at period $t$
-\end{tabular}
+Results for first 9 lags for beer data:
 
+\fontsize{11}{13}\sf
 
-## STL decomposition
+```{r beeracf, fig.height=2.5}
+new_production %>% ACF(Beer, lag_max = 9) %>% autoplot()
+```
 
-\fontsize{13}{14}\sf
+\vspace*{10cm}
 
-  *  STL: "Seasonal and Trend decomposition using Loess"
-  *  Very versatile and robust.
-  *  Seasonal component allowed to change over time, and rate of change controlled by user.
-  *  Smoothness of trend-cycle also controlled by user.
-  *  Optionally robust to outliers
-  *  Not trading day or calendar adjustments.
-  *  Only additive.
-  *  Take logs to get multiplicative decomposition.
-  *  Use Box-Cox transformations to get other decompositions.
+## Autocorrelation
+
+  * $r_{4}$  higher than for the other lags. This is due to **the seasonal pattern in the data**: the peaks tend to be **4 quarters** apart and the troughs tend to be **2 quarters** apart.
+  * $r_2$ is more negative than for the other lags because troughs tend to be 2 quarters behind peaks.
+  * Together, the autocorrelations at lags 1, 2, \dots, make up the \emph{autocorrelation} or ACF.
+  * The plot is known as a **correlogram**
+
+## ACF
+
+```{r, fig.height=4, echo=TRUE}
+new_production %>% ACF(Beer) %>% autoplot()
+```
 
 ## Australian holidays
 \fontsize{9}{10}\sf
 
-```{r holidays-plot2, echo=TRUE, dependson="holidays", fig.height=3.9}
-holidays %>% autoplot(Trips) +
-  ylab("thousands of trips") + xlab("Year") +
-  ggtitle("Australian domestic holiday nights")
+```{r tourismacf}
+holidays %>% ACF(Trips)
 ```
 
-## Holidays decomposition
+## Australian holidays
 \fontsize{9}{10}\sf
 
-```{r stlagain2, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
-holidays %>%
-  STL(Trips ~ season(window="periodic"), robust=TRUE) %>%
+```{r tourismacf2, fig.height=6}
+holidays %>% ACF(Trips) %>% autoplot()
+```
+
+
+## Trend and seasonality in ACF plots
+
+- When data have a trend, the autocorrelations for small lags tend to be large and positive.
+- When data are seasonal, the autocorrelations will be larger at the seasonal lags (i.e., at multiples of the seasonal frequency)
+- When data are trended and seasonal, you see a combination of these effects.
+
+## Aus monthly electricity production
+
+```{r}
+elec2 <- as_tsibble(fma::elec) %>%
+  filter(year(index) >= 1980)
+elec2 %>% autoplot(value)
+```
+
+## Aus monthly electricity production
+
+```{r}
+elec2 %>% ACF(value, lag_max=48) %>%
   autoplot()
 ```
 
-## Holidays decomposition
-\fontsize{9}{10}\sf
+## Aus monthly electricity production
 
-```{r stlagain, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
-holidays %>%
-  STL(Trips ~ season(window = 5), robust = TRUE) %>%
-  autoplot()
+Time plot shows clear trend and seasonality.
+
+The same features are reflected in the ACF.
+
+  * The slowly decaying ACF indicates trend.
+  * The ACF peaks at lags 12, 24, 36, \dots, indicate seasonality of length 12.
+
+## Google stock price
+\fontsize{12}{14}\sf
+
+```{r google-2015}
+google_2015 <- gafa_stock %>%
+  filter(Symbol == "GOOG", year(Date) == 2015) %>%
+  select(Date, Close)
+google_2015
 ```
 
-## STL decomposition
-\fontsize{11}{13}\sf
+## Google stock price
+
+```{r}
+google_2015 %>% autoplot(Close)
+```
+
+## Google stock price
+\fontsize{12}{16}\sf
 
 ```r
-holidays %>%
-  STL(Trips ~ trend(window=15) + season(window=13),
-      robust = TRUE)
+google_2015 %>%
+  ACF(Close, lag_max=100)
+# Error: Can't handle tsibble of irregular interval.
 ```
 
-\fontsize{14}{16}\sf
+\pause
 
-  *  `trend(window = ?)` controls wiggliness of trend component.
-  *  `season(window = ?)` controls variation on seasonal component.
-  * `STL()` chooses `season(window=13)` by default
-  * A large seasonal window is equivalent to setting `window="periodic"`.
-  * Odd numbers should be used for symmetry.
-
-## Holidays decomposition
-\fontsize{9}{10}\sf
-
-```{r dable}
-dcmp <- holidays %>% STL(Trips)
-dcmp
+```{r}
+google_2015
 ```
 
-## Holidays decomposition
-\fontsize{9}{10}\sf
+## Google stock price
+\fontsize{12}{14}\sf
 
-```{r holidays3, fig.height=4.6}
-dcmp %>% gg_subseries(season_year)
+```{r}
+google_2015 <- google_2015 %>%
+  mutate(trading_day = row_number()) %>%
+  update_tsibble(index=trading_day, regular=TRUE)
+google_2015
 ```
 
-## Holidays decomposition
-\fontsize{9}{10}\sf
+## Google stock price
 
-```{r holidays-trend, message=FALSE, warning=FALSE, fig.height=4.3}
-autoplot(dcmp, trend, scale_bars=FALSE) +
-  autolayer(holidays, alpha=0.4)
+```{r}
+google_2015 %>%
+  ACF(Close, lag_max=100) %>%
+  autoplot()
 ```
 
 # Lab Session 4
 
 ## Lab Session 4
 
-Repeat the decomposition using
+We have introduced the following functions:
 
-\fontsize{11}{14}\sf
+  - `gg_lag`
+  - `ACF`
 
-```r
-holidays %>%
-  STL(Trips ~ season(window=7) + trend(window=11)) %>%
-  autoplot()
+Explore the following time series using these functions. Can you spot any seasonality, cyclicity and trend? What do you learn about the series?
+
+  - Bricks from `aus_production`
+  - Lynx from `pelt`
+  - Victorian Electricity Demand from `aus_elec`
+
+## Which is which?
+
+```{r, fig.height=6, fig.width=12, echo=FALSE, warning=FALSE, out.width="11.5cm"}
+cowtemp <- as_tsibble(fma::cowtemp)
+USAccDeaths <- as_tsibble(USAccDeaths)
+AirPassengers <- as_tsibble(AirPassengers)
+mink <- as_tsibble(fma::mink)
+tp1 <- autoplot(cowtemp, value) + xlab("") + ylab("chirps per minute") +
+  ggtitle("1. Daily temperature of cow")
+tp2 <- autoplot(USAccDeaths, value) + xlab("") + ylab("thousands") +
+  ggtitle("2. Monthly accidental deaths")
+tp3 <- autoplot(AirPassengers, value) + xlab("") + ylab("thousands") +
+  ggtitle("3. Monthly air passengers")
+tp4 <- autoplot(mink, value) + xlab("") + ylab("thousands") +
+  ggtitle("4. Annual mink trappings")
+acfb <- ACF(cowtemp, value) %>% autoplot() + xlab("") + ggtitle("B") + ylim(-0.4,1)
+acfa <- ACF(USAccDeaths, value) %>% autoplot() + xlab("") + ggtitle("A") + ylim(-0.4,1)
+acfd <- ACF(AirPassengers, value) %>% autoplot() + xlab("") + ggtitle("D") + ylim(-0.4,1)
+acfc <- ACF(mink, value) %>% autoplot() + xlab("") + ggtitle("C") + ylim(-0.4,1)
+gridExtra::grid.arrange(tp1,tp2,tp3,tp4,
+                        acfa,acfb,acfc,acfd,nrow=2)
 ```
 
-\fontsize{14}{15}\sf
-What happens as you change `season(window = ???)` and `trend(window = ???)`?
+# White noise
 
+## Example: White noise
+\fontsize{13}{15}\sf
+
+```{r}
+wn <- tsibble(t = seq_len(36), y = rnorm(36),
+              index = t)
+wn %>% autoplot(y)
+```
+
+## Example: White noise
+\fontsize{10}{15}\sf\tabcolsep=0.1cm
+
+```{r, echo=FALSE}
+wn %>% ACF(y, lag_max = 10) %>%
+  as_tibble() %>%
+  tidyr::spread(lag, acf) %>%
+  rename_all(function(x){paste("$r_{",x,"}$",sep="")}) %>%
+  knitr::kable(booktabs=TRUE,
+               escape=FALSE, align="c", digits=3,
+               format.args=list(nsmall=3))
+```
+
+```{r, echo=FALSE}
+wn %>% ACF(y) %>% autoplot()
+```
+
+## \large Sampling distribution of autocorrelations
+
+Sampling distribution of $r_k$ for white noise data is asymptotically N(0,$1/T$).\pause
+
+  *  95% of all $r_k$ for white noise must lie within $\pm 1.96/\sqrt{T}$.
+  * If this is not the case, the series is probably not WN.
+  * Common to plot lines at $\pm 1.96/\sqrt{T}$ when plotting ACF.
+These are the \alert{critical values}.
+
+## Example: Pigs slaughtered
+
+\fontsize{12}{13}\sf
+
+```{r, fig.height=3}
+pigs <- aus_livestock %>%
+  filter(State == "Victoria", Animal == "Pigs",
+         year(Month) >= 2014)
+pigs %>% autoplot(Count/1e3) +
+  xlab("Year") + ylab("Thousands") +
+  ggtitle("Number of pigs slaughtered in Victoria")
+```
+
+## Example: Pigs slaughtered
+
+```{r}
+pigs %>% ACF(Count) %>% autoplot()
+```
+
+## Example: Pigs slaughtered
+
+Monthly total number of pigs slaughtered
+in the state of Victoria, Australia, from January 2014 through December 2018
+(Source: Australian Bureau of Statistics.)\pause
+
+  * Difficult to detect pattern in time plot.
+  * ACF shows significant autocorrelation for lag 2 and 12.
+  * Indicate some slight seasonality.
+
+\pause
+
+These show the series is **not a white noise series**.
+
+# Lab Session 5
+## Lab Session 5
+
+
+You can compute the daily changes in the Google stock price in 2018 using
+
+\fontsize{11.5}{15}\sf
+
+
+```{r, eval = FALSE}
+dgoog <- gafa_stock %>%
+  filter(Symbol == "GOOG", year(Date) >= 2018) %>%
+  mutate(trading_day = row_number()) %>%
+  update_tsibble(index=trading_day, regular=TRUE) %>%
+  mutate(diff = difference(Close))
+```
+
+\fontsize{14}{16}\sf
+
+Does `diff` look like white noise?
