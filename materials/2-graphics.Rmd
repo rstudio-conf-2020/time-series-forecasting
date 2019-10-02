@@ -21,99 +21,6 @@ options(digits = 3, width = 60)
 library(fpp3)
 ```
 
-# Time plots
-## Are line plots best?
-\fontsize{11}{12}\sf
-
-```{r maxtemp, fig.height=3}
-maxtemp <- vic_elec %>%
-  index_by(Day = date(Time)) %>%
-  summarise(Temperature = max(Temperature))
-maxtemp %>%
-  autoplot(Temperature) +
-  xlab("Week") + ylab("Max temperature")
-```
-
-## Are line plots best?
-\fontsize{11}{12}\sf
-
-```{r maxtemp2, warning=FALSE, message=FALSE, dependson="maxtemp"}
-maxtemp %>%
-  ggplot(aes(x = Day, y = Temperature)) +
-  geom_point() +
-  xlab("Week") + ylab("Max temperature")
-```
-
-## Are line plots best?
-\fontsize{11}{12}\sf
-
-```{r maxtemp3, warning=FALSE, message=FALSE, dependson="maxtemp", fig.height=2.5}
-maxtemp %>%
-  ggplot(aes(x = Day, y = 1)) +
-  geom_tile(aes(fill = Temperature)) +
-  scale_fill_gradient2(low = "navy", mid = "yellow",
-                       high = "red", midpoint=28) +
-  ylab("") + scale_y_discrete(expand=c(0,0))
-```
-
-## Are line plots best?
-
-\full{TemperatureBlanket}
-
-
-## Ansett airlines
-
-\full{ansettlogo}
-
-## Ansett airlines
-\fontsize{11}{12}\sf
-
-```{r, echo=TRUE, fig.height=3.8}
-ansett %>%
-  autoplot(Passengers)
-```
-
-## Ansett airlines
-\fontsize{11}{12}\sf
-
-```{r, echo=TRUE, fig.height=3.8}
-ansett %>%
-  filter(Class=="Economy") %>%
-  autoplot(Passengers)
-```
-
-## Ansett airlines
-\fontsize{11}{12}\sf
-
-```{r, echo=TRUE, fig.height=3.8}
-ansett %>%
-  filter(Airports=="MEL-SYD") %>%
-  autoplot(Passengers)
-```
-
-## Ansett airlines
-\fontsize{11}{12}\sf
-
-```{r, echo=TRUE, fig.height=3.8}
-ansett %>%
-  filter(Airports=="MEL-SYD") %>%
-  autoplot(Passengers)
-```
-
-\begin{textblock}{2.2}(10,7.3)
-\begin{alertblock}{}
-Not the real data! Or is it?
-\end{alertblock}
-\end{textblock}
-
-
-# Lab Session 2
-## Lab Session 2
-
-- Create time plots of the following time series: `Beer` from `aus_production`, `Lynx` from `pelt`, `Close` from `gafa_stock`
-- Use `help()` to find out about the data in each series.
-- For the last plot, modify the axis labels and title.
-
 # Seasonal plots
 
 ## Seasonal plots
@@ -265,6 +172,91 @@ prettify(p1, size = 3, label.padding = unit(0.15, "lines"))
 
 2. Produce a calendar plot for the `pedestrian` data from one location and one year.
 
+
+# Seasonal or cyclic?
+
+## Time series patterns
+
+Trend
+  : pattern exists when there is a long-term increase or decrease in the data.
+
+Seasonal
+  : pattern exists when a series is influenced by seasonal factors (e.g., the quarter of the year, the month, or day of the week).
+
+Cyclic
+  : pattern exists when data exhibit rises and falls that are \emph{not of fixed period} (duration usually of at least 2 years).
+
+## Time series components
+
+### Differences between seasonal and cyclic patterns:
+
+* seasonal pattern constant length; cyclic pattern variable length
+* average length of cycle longer than length of seasonal pattern
+* magnitude of cycle more variable than magnitude of seasonal pattern
+
+## Time series patterns
+\fontsize{13}{15}\sf
+
+```{r, fig.height=3}
+as_tsibble(fma::elec) %>%
+  filter(index >= 1980) %>%
+  autoplot(value) + xlab("Year") + ylab("GWh") +
+  ggtitle("Australian electricity production")
+```
+
+## Time series patterns
+\fontsize{13}{15}\sf
+
+```{r, warning=FALSE, fig.height=3}
+aus_production %>%
+  autoplot(Bricks) +
+  ggtitle("Australian clay brick production") +
+  xlab("Year") + ylab("million units")
+```
+
+## Time series patterns
+\fontsize{13}{15}\sf
+
+```{r, fig.height=3}
+as_tsibble(fma::hsales) %>%
+  autoplot(value) +
+  ggtitle("Sales of new one-family houses, USA") +
+  xlab("Year") + ylab("Total sales")
+```
+
+## Time series patterns
+\fontsize{13}{15}\sf
+
+```{r, fig.height=3}
+as_tsibble(fma::ustreas) %>%
+  autoplot(value) +
+  ggtitle("US Treasury Bill Contracts") +
+  xlab("Day") + ylab("price")
+```
+
+## Time series patterns
+\fontsize{13}{15}\sf
+
+```{r, fig.height=3}
+pelt %>%
+  autoplot(Lynx) +
+  ggtitle("Annual Canadian Lynx Trappings") +
+  xlab("Year") + ylab("Number trapped")
+```
+
+## Seasonal or cyclic?
+
+\alert{Differences between seasonal and cyclic patterns:}
+
+  * seasonal pattern constant length; cyclic pattern variable length
+  * average length of cycle longer than length of seasonal pattern
+  * magnitude of cycle more variable than magnitude of seasonal pattern
+
+\pause
+
+\begin{alertblock}{}
+The timing of peaks and troughs is predictable with seasonal data, but unpredictable in the long term with cyclic data.
+\end{alertblock}
 
 # Lag plots and autocorrelation
 
