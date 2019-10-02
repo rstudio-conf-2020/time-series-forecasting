@@ -21,6 +21,7 @@ knitr::opts_chunk$set(
 options(digits = 3, width = 60)
 library(fpp3)
 library(purrr)
+elecequip <- as_tsibble(fpp2::elecequip)
 ```
 
 
@@ -58,6 +59,39 @@ where & $y_t=$ & data at period $t$ \\
   *  Only additive.
   *  Take logs to get multiplicative decomposition.
   *  Use Box-Cox transformations to get other decompositions.
+
+
+## Decomposition dable
+
+\fontsize{10}{11}\sf
+
+```{r dable}
+dcmp <- elecequip %>% STL(value ~ season(window = 7))
+dcmp
+```
+
+## Euro electrical equipment
+
+\fontsize{11}{14}\sf
+
+```{r elecequip-stl, fig.width=8, fig.height=5}
+autoplot(dcmp) + xlab("Year")
+```
+
+## Euro electrical equipment
+
+```{r elecequip3}
+dcmp %>% gg_subseries(season_year)
+```
+
+## Euro electrical equipment
+
+\fontsize{10}{13}\sf
+
+```{r elecequip-trend, message=FALSE, warning=FALSE}
+autoplot(elecequip, series="Data") +
+  autolayer(dcmp, trend, series="Trend-cycle")
+```
 
 ## Australian holidays
 \fontsize{9}{10}\sf
@@ -113,7 +147,7 @@ holidays %>%
 ## Holidays decomposition
 \fontsize{9}{10}\sf
 
-```{r dable}
+```{r dable2}
 dcmp <- holidays %>% STL(Trips)
 dcmp
 ```
@@ -150,3 +184,36 @@ holidays %>%
 \fontsize{14}{15}\sf
 What happens as you change `season(window = ???)` and `trend(window = ???)`?
 
+## Multiple seasonality
+
+```{r vic_elec, fig.height=5}
+vic_elec %>% STL(Demand) %>% autoplot()
+```
+
+# Seasonal adjustment
+
+## Seasonal adjustment
+
+  *  Useful by-product of decomposition:  an easy way to calculate seasonally adjusted data.
+  *  Additive decomposition: seasonally adjusted data given by
+$$y_t - S_t = T_t + R_t$$
+  *  Multiplicative decomposition: seasonally adjusted data given by
+$$y_t / S_t = T_t \times R_t$$
+
+## Euro electrical equipment
+
+\fontsize{11}{12}\sf
+
+```{r elecequip-sa, echo=TRUE}
+dcmp <- elecequip %>% STL(value ~ season(window=7))
+elecequip %>% autoplot(value, col='gray') +
+    autolayer(dcmp, season_adjust, col='blue') +
+    xlab("Year") + ylab("New orders index") +
+    ggtitle("Electrical equipment manufacturing (Euro area)")
+```
+
+## Seasonal adjustment
+
+  * We use estimates of $S$ based on past values to seasonally adjust a current value.
+  *  Seasonally adjusted  series reflect **remainders** as well as **trend**. Therefore they are not "smooth"" and "downturns"" or "upturns" can be misleading.
+  *  It is better to use the trend-cycle component to look for turning points.
