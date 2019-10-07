@@ -1,0 +1,407 @@
+---
+title: "Tidy Time Series & Forecasting in R"
+date: "robjhyndman.com/workshop2020"
+author: "7. Exponential smoothing"
+toc: true
+output:
+  binb::monash:
+    colortheme: monashwhite
+    fig_width: 7
+    fig_height: 3.5
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
+  dev.args = list(pointsize = 11)
+)
+options(digits = 3, width = 66)
+library(tidyverse)
+library(fpp3)
+usmelec <- as_tsibble(fpp2::usmelec) %>%
+  rename(Month = index, Generation = value)
+us_change <- readr::read_csv("https://otexts.com/fpp3/extrafiles/us_change.csv")  %>%
+  mutate(Time = yearquarter(Time)) %>%
+  as_tsibble(index = Time)
+eu_retail <- as_tsibble(fpp2::euretail)
+h02 <- tsibbledata::PBS %>%
+  filter(ATC2 == "H02") %>%
+  summarise(Cost = sum(Cost))
+melsyd <- tsibbledata::ansett %>%
+  filter(Airports == "MEL-SYD")
+austa <- as_tsibble(fpp2::austa) %>%
+  rename(Year = index, Visitors = value)
+```
+
+
+# Exponential smoothing
+
+## Historical perspective
+
+ * Developed in the 1950s and 1960s as methods (algorithms) to produce point forecasts.
+ * Combine a "level", "trend" (slope) and "seasonal" component to describe a time series.
+ * The rate of change of the components are controlled by "smoothing parameters":\newline $\alpha$, $\beta$ and $\gamma$ respectively.
+  * Need to choose best values for the smoothing parameters (and initial states).
+  * Equivalent ETS state space models developed in the 1990s and 2000s.
+
+## A model for levels, trends, and seasonalities
+\fontsize{13}{14}\sf
+
+We want a model that captures the level ($\ell_t$), trend ($b_t$) and seasonality ($s_t$).
+
+\alert{How do we combine these elements?}
+
+\pause
+
+\begin{block}{Additively?}
+$y_t = \ell_{t-1} + b_{t-1} + s_{t-m} + \varepsilon_t$
+\end{block}\pause
+\begin{block}{Multiplicatively?}
+$y_t = \ell_{t-1}b_{t-1}s_{t-m}(1 + \varepsilon_t)$
+\end{block}\pause
+\begin{block}{Perhaps a mix of both?}
+$y_t = (\ell_{t-1} + b_{t-1}) s_{t-m} + \varepsilon_t$
+\end{block}\pause
+
+\alert{How do the level, trend and seasonal components evolve over time?}
+
+## ETS models
+
+\begin{block}{}
+\hspace*{-0.25cm}\begin{tabular}{l@{}p{2.3cm}@{}c@{}l}
+\structure{General n\rlap{otation}}
+    &       & ~E T S~  & ~:\hspace*{0.3cm}\textbf{E}xponen\textbf{T}ial \textbf{S}moothing               \\ [-0.2cm]
+    & \hfill{$\nearrow$\hspace*{-0.1cm}}        & {$\uparrow$} & {\hspace*{-0.2cm}$\nwarrow$} \\
+    & \hfill{\textbf{E}rror\hspace*{0.2cm}} & {\textbf{T}rend}      & {\hspace*{0.2cm}\textbf{S}eason}
+\end{tabular}
+\end{block}
+
+\alert{\textbf{E}rror:} Additive (`"A"`) or multiplicative (`"M"`)
+\pause
+
+\alert{\textbf{T}rend:} None (`"N"`), additive (`"A"`), multiplicative (`"M"`), or damped (`"Ad"` or `"Md"`).
+\pause
+
+\alert{\textbf{S}easonality:} None (`"N"`), additive (`"A"`) or multiplicative (`"M"`)
+
+## ETS(A,N,N): SES with additive errors
+
+\begin{block}{}\vspace*{-0.4cm}
+\begin{align*}
+\text{Forecast equation}&& \hat{y}_{T+h|T} &= \ell_T \\
+\text{Measurement equation}&& y_t &= \ell_{t-1} + \varepsilon_t\\
+\text{State equation}&& \ell_t&=\ell_{t-1}+\alpha \varepsilon_t
+\end{align*}
+\end{block}
+where $\varepsilon_t\sim\text{NID}(0,\sigma^2)$.
+\pause
+
+  * "innovations" or "single source of error" because equations have the same error process, $\varepsilon_t$.
+  * Measurement equation: relationship between observations and states.
+  * Transition/state equation(s): evolution of the state(s) through time.
+
+\vspace*{10cm}
+
+## ETS(M,N,N): SES with multiplicative errors
+
+\begin{block}{}\vspace*{-0.4cm}
+\begin{align*}
+\text{Forecast equation}&& \hat{y}_{T+h|T} &= \ell_T \\
+\text{Measurement equation}&& y_t &= \ell_{t-1}(1 + \varepsilon_t)\\
+\text{State equation}&& \ell_t&=\ell_{t-1}(1+\alpha \varepsilon_t)
+\end{align*}
+\end{block}
+where $\varepsilon_t\sim\text{NID}(0,\sigma^2)$.
+\pause
+
+  * Models with additive and multiplicative errors with the same parameters generate the same point forecasts but different prediction intervals.
+
+\vspace*{10cm}
+
+## ETS(A,A,N): Holt's linear trend
+
+\begin{block}{Additive errors}\vspace*{-0.4cm}
+\begin{align*}
+\text{Forecast equation}&& \hat{y}_{T+h|T} &= \ell_T + hb_T\\
+\text{Measurement equation}&& y_t &= \ell_{t-1}+b_{t-1}+\varepsilon_t\\
+\text{State equations}&&       \ell_t&=\ell_{t-1}+b_{t-1}+\alpha \varepsilon_t\\
+&&      b_t&=b_{t-1}+\beta \varepsilon_t
+\end{align*}
+\end{block}
+\pause
+
+\begin{block}{Multiplicative errors}\vspace*{-0.4cm}
+\begin{align*}
+\text{Forecast equation}&& \hat{y}_{T+h|T} &= \ell_T + hb_T\\
+\text{Measurement equation}&& y_t &= (\ell_{t-1}+b_{t-1})(1+\varepsilon_t)\\
+\text{State equations}&&       \ell_t&=(\ell_{t-1}+b_{t-1})(1+\alpha \varepsilon_t)\\
+&&      b_t&=b_{t-1}+\beta \varepsilon_t
+\end{align*}
+\end{block}
+
+## Example: Australian population
+
+\fontsize{9}{9}\sf
+
+```{r holt-fit, echo=TRUE}
+aus_economy <- global_economy %>% filter(Code == "AUS") %>%
+  mutate(Pop = Population/1e6)
+fit <- aus_economy %>% model(AAN = ETS(Pop))
+report(fit)
+```
+
+## Example: Australian population
+
+\fontsize{10}{11}\sf
+
+```{r holt-cmp, echo=TRUE, dependson='holt-fit'}
+components(fit)
+```
+
+## Example: Australian population
+
+\fontsize{10}{11}\sf
+
+```{r holt-cmp-plot, echo=TRUE, dependson='holt-fit', fig.height=4.5}
+components(fit) %>% autoplot()
+```
+
+## Example: Australian population
+
+\fontsize{12}{12}\sf
+
+```{r holt-fc, echo=TRUE, cache=TRUE, dependson='holt-fit'}
+fit %>%
+  forecast(h = 20) %>%
+  autoplot(aus_economy) +
+  ylab("Population") + xlab("Year")
+```
+
+## ETS(A,Ad,N): Damped trend method
+\fontsize{14}{16}\sf
+
+\begin{block}{Additive errors}\vspace*{-0.2cm}
+\begin{align*}
+\text{Forecast equation}&& \hat{y}_{T+h|T} &= \ell_T + (\phi + \cdots + \phi^{h-1})b_T\\
+\text{Measurement equation}&& y_t &= (\ell_{t-1}+\phi b_{t-1})+\varepsilon_t\\
+\text{State equations}&&       \ell_t&=(\ell_{t-1}+\phi b_{t-1})+\alpha \varepsilon_t\\
+&&      b_t&=\phi b_{t-1}+\beta \varepsilon_t
+\end{align*}
+\end{block}
+\pause
+
+  * Damping parameter $0<\phi<1$.
+  * If $\phi=1$, identical to Holt's linear trend.
+  * As $h\rightarrow\infty$, $\pred{y}{T+h}{T}\rightarrow \ell_T+\phi b_T/(1-\phi)$.
+  * Short-run forecasts trended, long-run forecasts constant.
+
+## Example: Australian population
+\fontsize{12}{12}\sf
+
+```{r, echo=TRUE, fig.height=3.6}
+aus_economy %>%
+  model(holt = ETS(Pop ~ trend("Ad"))) %>%
+  forecast(h = 20) %>%
+  autoplot(aus_economy)
+```
+
+## Example: National populations
+
+\fontsize{9}{9}\sf
+
+```{r popfit, echo=TRUE, cache=TRUE}
+fit <- global_economy %>%
+  mutate(Pop = Population/1e6) %>%
+  model(ets = ETS(Pop))
+fit
+```
+
+## Example: National populations
+\fontsize{12}{12}\sf
+
+```{r popfc, echo=TRUE, cache=TRUE, dependson="popfit"}
+fit %>%
+  forecast(h = 5)
+```
+
+## \fontsize{16}{16}\sf\bfseries ETS(A,A,A): Holt-Winters additive method
+
+\begin{block}{}\vspace*{-0.4cm}
+\begin{align*}
+\text{Forecast equation} && \hat{y}_{t+h|t} &= \ell_{t} + hb_{t} + s_{t+h-m(k+1)}\\
+\text{Observation equation}&& y_t&=\ell_{t-1}+b_{t-1}+s_{t-m} + \varepsilon_t\\
+\text{State equations}&& \ell_t&=\ell_{t-1}+b_{t-1}+\alpha \varepsilon_t\\
+&&        b_t&=b_{t-1}+\beta \varepsilon_t \\
+&&s_t &= s_{t-m} + \gamma\varepsilon_t
+\end{align*}
+\end{block}
+
+* $k=$ integer part of $(h-1)/m$.
+* $\sum_i s_i \approx 0$.
+* Parameters:&nbsp; $0\le \alpha\le 1$,&nbsp; $0\le \beta^*\le 1$,&nbsp; $0\le \gamma\le 1-\alpha$&nbsp;  and $m=$  period of seasonality (e.g. $m=4$ for quarterly data).
+
+## \fontsize{16}{16}\sf\bfseries ETS(M,A,M): Holt-Winters multiplicative method
+
+\begin{block}{}\vspace*{-0.4cm}
+\begin{align*}
+\text{Forecast equation} && \hat{y}_{t+h|t} &= (\ell_{t} + hb_{t}) s_{t+h-m(k+1)}\\
+\text{Observation equation}&& y_t&= (\ell_{t-1}+b_{t-1})s_{t-m}(1 + \varepsilon_t)\\
+\text{State equations}&& \ell_t&=(\ell_{t-1}+b_{t-1})(1+\alpha \varepsilon_t)\\
+&&        b_t&=b_{t-1}(1+\beta \varepsilon_t) \\
+&&s_t &= s_{t-m}(1 + \gamma\varepsilon_t)
+\end{align*}
+\end{block}
+
+* $k$ is integer part of $(h-1)/m$.
+* $\sum_i s_i \approx m$.
+* Parameters:&nbsp; $0\le \alpha\le 1$,&nbsp; $0\le \beta^*\le 1$,&nbsp; $0\le \gamma\le 1-\alpha$&nbsp;  and $m=$  period of seasonality (e.g. $m=4$ for quarterly data).
+
+## Example: Australian holiday tourism
+
+\fontsize{9}{10}\sf
+
+```{r ausholidays-fit, echo=TRUE}
+holidays <- tourism %>%
+  filter(Purpose == "Holiday")
+fit <- holidays %>% model(ets = ETS(Trips))
+fit
+```
+
+
+## Example: Australian holiday tourism
+
+\fontsize{9}{10}\sf
+
+```{r ausholidays-report}
+fit %>% filter(Region=="Snowy Mountains") %>% report()
+```
+
+## Example: Australian holiday tourism
+
+\fontsize{9}{10}\sf
+
+```{r ausholidays-components}
+fit %>% filter(Region=="Snowy Mountains") %>% components(fit)
+```
+
+## Example: Australian holiday tourism
+
+\fontsize{9}{10}\sf
+
+```{r ausholidays-components-plot, fig.height=4.3}
+fit %>% filter(Region=="Snowy Mountains") %>%
+  components(fit) %>% autoplot()
+```
+
+## Example: Australian holiday tourism
+
+\fontsize{9}{10}\sf
+
+```{r ausholidays-forecast}
+fit %>% forecast()
+```
+
+## Example: Australian holiday tourism
+
+\fontsize{9}{10}\sf
+
+```{r ausholidays-forecast-plot}
+fit %>% forecast() %>%
+  filter(Region=="Snowy Mountains") %>%
+  autoplot(holidays) +
+    xlab("Year") + ylab("Overnight trips (thousands)")
+```
+
+
+## Exponential smoothing models
+\fontsize{11}{12}\sf
+
+\begin{block}{}
+\begin{tabular}{ll|ccc}
+  \multicolumn{2}{l}{\alert{\bf Additive Error}} &        \multicolumn{3}{c}{\bf Seasonal Component}         \\
+          \multicolumn{2}{c|}{\bf Trend}         &         N         &         A         &         M         \\
+        \multicolumn{2}{c|}{\bf Component}       &     ~(None)~      &    (Additive)     & (Multiplicative)  \\ \cline{3-5}
+           &                                     &                   &                   &  \\[-0.3cm]
+  N        & (None)                              &       A,N,N       &       A,N,A       &    \st{A,N,M}     \\
+           &                                     &                   &                   &  \\[-0.3cm]
+  A        & (Additive)                          &       A,A,N       &       A,A,A       &    \st{A,A,M}     \\
+           &                                     &                   &                   &  \\[-0.3cm]
+  A\damped & (Additive damped)                   &   A,A\damped,N    &   A,A\damped,A    & \st{A,A\damped,M}
+\end{tabular}
+\end{block}
+
+\begin{block}{}
+\begin{tabular}{ll|ccc}
+  \multicolumn{2}{l}{\alert{\bf Multiplicative Error}} &     \multicolumn{3}{c}{\bf Seasonal Component}      \\
+             \multicolumn{2}{c|}{\bf Trend}            &      N       &         A         &        M         \\
+           \multicolumn{2}{c|}{\bf Component}          &   ~(None)~   &    (Additive)     & (Multiplicative) \\ \cline{3-5}
+           &                                           &              &                   &  \\[-0.3cm]
+  N        & (None)                                    &    M,N,N     &       M,N,A       &      M,N,M       \\
+           &                                           &              &                   &  \\[-0.3cm]
+  A        & (Additive)                                &    M,A,N     &       M,A,A       &      M,A,M       \\
+           &                                           &              &                   &  \\[-0.3cm]
+  A\damped & (Additive damped)                         & M,A\damped,N &   M,A\damped,A    &   M,A\damped,M
+\end{tabular}
+\end{block}
+
+## Estimating ETS models
+
+  * Smoothing parameters $\alpha$, $\beta$, $\gamma$ and $\phi$, and the initial states $\ell_0$, $b_0$, $s_0,s_{-1},\dots,s_{-m+1}$ are estimated by maximising the "likelihood" = the probability of the data arising from the specified model.
+  * For models with additive errors equivalent to minimising SSE.
+  * For models with multiplicative errors, \textbf{not} equivalent to minimising SSE.
+
+## Model selection
+\fontsize{13}{15}\sf
+
+\begin{block}{Akaike's Information Criterion}
+\[
+\text{AIC} = -2\log(\text{L}) + 2k
+\]
+\end{block}\vspace*{-0.2cm}
+where $L$ is the likelihood and $k$ is the number of parameters initial states estimated in the model.\pause
+
+\begin{block}{Corrected AIC}
+\[
+\text{AIC}_{\text{c}} = \text{AIC} + \frac{2(k+1)(k+2)}{T-k}
+\]
+\end{block}
+which is the AIC corrected (for small sample bias).
+\pause
+\begin{block}{Bayesian Information Criterion}
+\[
+\text{BIC} = \text{AIC} + k(\log(T)-2).
+\]
+\end{block}
+
+## AIC and cross-validation
+
+\Large
+
+\begin{alertblock}{}
+Minimizing the AIC assuming Gaussian residuals is asymptotically equivalent to minimizing one-step time series cross validation MSE.
+\end{alertblock}
+
+## Automatic forecasting
+
+**From Hyndman et al.\ (IJF, 2002):**
+
+1. Apply each model that is appropriate to the data.
+Optimize parameters and initial values using MLE.
+1. Select best method using AICc.
+1. Produce forecasts using best method.
+1. Obtain forecast intervals using underlying state space model.
+
+* Method performed very well in M3 competition.
+* Used as a benchmark in the M4 competition.
+
+# Lab Session 7
+
+## Lab Session 7
+
+Find an ETS model for the Gas data from `aus_production`.
+
+  * Why is multiplicative seasonality necessary here?
+  * Experiment with making the trend damped.
+
