@@ -120,9 +120,11 @@ where $\varepsilon_t\sim\text{NID}(0,\sigma^2)$.
 
 \vspace*{10cm}
 
-## ETS(A,A,N): Holt's linear trend
+# Trend methods
 
-\begin{block}{Additive errors}\vspace*{-0.4cm}
+## Holt's linear trend
+
+\begin{block}{Additive errors: ETS(A,A,N)}\vspace*{-0.4cm}
 \begin{align*}
 \text{Forecast equation}&& \hat{y}_{T+h|T} &= \ell_T + hb_T\\
 \text{Measurement equation}&& y_t &= \ell_{t-1}+b_{t-1}+\varepsilon_t\\
@@ -132,7 +134,7 @@ where $\varepsilon_t\sim\text{NID}(0,\sigma^2)$.
 \end{block}
 \pause
 
-\begin{block}{Multiplicative errors}\vspace*{-0.4cm}
+\begin{block}{Multiplicative errors: ETS(M,A,N)}\vspace*{-0.4cm}
 \begin{align*}
 \text{Forecast equation}&& \hat{y}_{T+h|T} &= \ell_T + hb_T\\
 \text{Measurement equation}&& y_t &= (\ell_{t-1}+b_{t-1})(1+\varepsilon_t)\\
@@ -226,6 +228,8 @@ fit %>%
   forecast(h = 5)
 ```
 
+# Seasonal methods
+
 ## \fontsize{16}{16}\sf\bfseries ETS(A,A,A): Holt-Winters additive method
 
 \begin{block}{}\vspace*{-0.4cm}
@@ -314,6 +318,7 @@ fit %>% forecast() %>%
     xlab("Year") + ylab("Overnight trips (thousands)")
 ```
 
+# ETS taxonomy
 
 ## Exponential smoothing models
 \fontsize{11}{12}\sf
