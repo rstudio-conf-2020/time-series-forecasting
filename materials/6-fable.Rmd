@@ -35,7 +35,6 @@ austa <- as_tsibble(fpp2::austa) %>%
   rename(Year = index, Visitors = value)
 ```
 
-
 # What can we forecast?
 
 ## Forecasting is difficult
@@ -129,7 +128,6 @@ wrong and fix it.
 
 \placefig{8}{1.4}{width=4.8cm}{tableware2}
 
-
 ## CASE STUDY 1: Paperware company
 
 ### Methods currently used
@@ -160,7 +158,6 @@ K
 
 \full{pills}
 
-
 ## CASE STUDY 2: PBS
 
 ### The Pharmaceutical Benefits Scheme (PBS) is the Australian government drugs subsidy scheme.
@@ -181,7 +178,6 @@ K
   * Although monthly data available for 10 years, data are aggregated to annual values, and only the first three years are used in estimating the forecasts.
   * All forecasts being done with the \texttt{FORECAST} function in MS-Excel!
 
-
 ## CASE STUDY 3: Car fleet company
 
 **Client:** One of Australia's largest car fleet companies
@@ -195,12 +191,9 @@ should this affect leasing and sales policies?
  - They can provide a large amount of data on previous vehicles and their eventual resale values.
  - The resale values are currently estimated by a group of specialists. They see me as a threat and do not cooperate.
 
-
-
 ## CASE STUDY 4: Airline
 
 \full{ansettlogo}
-
 
 ## CASE STUDY 4: Airline
 
@@ -216,26 +209,6 @@ melsyd %>%
   ylab("Thousands")
 ```
 
-
-## CASE STUDY 4: Airline
-
-```{r, echo=FALSE, fig.height=5}
-melsyd %>%
-  filter(Class == "Economy") %>%
-  autoplot(Passengers) +
-  labs(
-    title = "Economy class passengers",
-    subtitle = "Melbourne-Sydney"
-  ) +
-  ylab("Thousands")
-```
-
-\begin{textblock}{4.2}(7,6.3)
-\begin{alertblock}{}
-Not the real data! Or is it?
-\end{alertblock}
-\end{textblock}
-
 ## CASE STUDY 4: Airline
 
 **Problem:** how to forecast passenger traffic on major routes?
@@ -247,7 +220,6 @@ Not the real data! Or is it?
 the Grand Prix, advertising campaigns, competition behaviour, etc.
   * They have a highly capable team of people who are able to do
 most of the computing.
-
 
 # The statistical forecasting perspective
 
@@ -282,7 +254,6 @@ fit %>%
   ggtitle("Forecasts of total international visitors to Australia")
 ```
 
-
 ## Statistical forecasting
 
 \fontsize{14}{16}\sf
@@ -294,7 +265,6 @@ fit %>%
 - A prediction interval or ``interval forecast'' is a range of values of $y_t$ with high \rlap{probability.}
 - With time series, \rlap{${y}_{t|t-1} = y_t | \{y_1,y_2,\dots,y_{t-1}\}$. }
 - $\hat{y}_{T+h|T} =\text{E}[y_{T+h} | y_1,\dots,y_T]$ (an $h$-step forecast taking account of all observations up to time $T$).
-
 
 # Forecast accuracy measures
 
