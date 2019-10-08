@@ -289,38 +289,14 @@ new_production %>% gg_lag(Beer, geom='point')
 different values of $k$.
   * The autocorrelations are the correlations associated
 with these scatterplots.
+  * ACF (autocorrelation function):
+     * $r_1=\text{Correlation}(y_{t}, y_{t-1})$
+     * $r_2=\text{Correlation}(y_{t}, y_{t-2})$
+     * $r_3=\text{Correlation}(y_{t}, y_{t-3})$
+     * etc.
+  * If there is **seasonality**, the ACF at the seasonal lag (e.g., 12 for monthly data) will be **large and positive**.
 
 ## Autocorrelation
-
-**Covariance** and **correlation**: measure extent of **linear relationship** between two variables ($y$ and $X$).\pause
-
-**Autocovariance** and **autocorrelation**: measure linear relationship between **lagged values** of a time series $y$.\pause
-
-We measure the relationship between:
-
-  * $y_{t}$ and $y_{t-1}$
-  * $y_{t}$ and $y_{t-2}$
-  * $y_{t}$ and $y_{t-3}$
-  * etc.
-
-## Autocorrelation
-
-We denote the sample autocovariance at lag $k$ by $c_k$ and the sample autocorrelation at lag $k$ by $r_k$.  Then define
-
-\begin{block}{}
-\begin{align*}
-c_k &= \frac{1}{T}\sum_{t=k+1}^T (y_t-\bar{y})(y_{t-k}-\bar{y}) \\[0.cm]
-\text{and}\qquad
-r_{k} &= c_k/c_0
-\end{align*}
-\end{block}\pause\small
-
-  * $r_1$ indicates how successive values of  $y$  relate to each other
-  * $r_2$ indicates how  $y$ values two periods apart relate to each other
-  * $r_k$ is \textit{almost} the same as the sample correlation between $y_t$ and $y_{t-k}$.
-
-## Autocorrelation
-
 
 Results for first 9 lags for beer data:
 
@@ -342,12 +318,6 @@ new_production %>% ACF(Beer, lag_max = 9) %>% autoplot()
 
 \vspace*{10cm}
 
-## Autocorrelation
-
-  * $r_{4}$  higher than for the other lags. This is due to **the seasonal pattern in the data**: the peaks tend to be **4 quarters** apart and the troughs tend to be **2 quarters** apart.
-  * $r_2$ is more negative than for the other lags because troughs tend to be 2 quarters behind peaks.
-  * Together, the autocorrelations at lags 1, 2, \dots, make up the \emph{autocorrelation} or ACF.
-  * The plot is known as a **correlogram**
 
 ## ACF
 
@@ -390,15 +360,6 @@ elec2 %>% autoplot(value)
 elec2 %>% ACF(value, lag_max=48) %>%
   autoplot()
 ```
-
-## Aus monthly electricity production
-
-Time plot shows clear trend and seasonality.
-
-The same features are reflected in the ACF.
-
-  * The slowly decaying ACF indicates trend.
-  * The ACF peaks at lags 12, 24, 36, \dots, indicate seasonality of length 12.
 
 ## Google stock price
 \fontsize{12}{14}\sf
@@ -490,16 +451,33 @@ gridExtra::grid.arrange(tp1,tp2,tp3,tp4,
 # White noise
 
 ## Example: White noise
-\fontsize{13}{15}\sf
+\fontsize{12}{14}\sf
 
-```{r}
-wn <- tsibble(t = seq_len(36), y = rnorm(36),
-              index = t)
+```{r, fig.height=3.3}
+wn <- tsibble(t=seq(36), y=rnorm(36), index=t)
 wn %>% autoplot(y)
 ```
 
+\only<2>{
+\begin{textblock}{10}(1.4,7.2)\fontsize{13}{15}\sf
+\begin{alertblock}{}
+White noise data is uncorrelated across time with zero mean and constant variance.
+
+(Technically, we require independence as well.)
+\end{alertblock}
+\end{textblock}}
+
+\vspace*{10cm}
+
 ## Example: White noise
-\fontsize{10}{15}\sf\tabcolsep=0.1cm
+\fontsize{11}{11}\sf
+
+```r
+wn %>% ACF(y)
+```
+
+\fontsize{10}{11}\sf\tabcolsep=0.1cm
+
 
 ```{r, echo=FALSE}
 wn %>% ACF(y, lag_max = 10) %>%
@@ -511,18 +489,17 @@ wn %>% ACF(y, lag_max = 10) %>%
                format.args=list(nsmall=3))
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height=2}
 wn %>% ACF(y) %>% autoplot()
 ```
 
-## \large Sampling distribution of autocorrelations
+\pause\fontsize{11}{12}\sf
 
-Sampling distribution of $r_k$ for white noise data is asymptotically N(0,$1/T$).\pause
+ * Sample autocorrelations for white noise series.
+ * Expect each autocorrelation to be close to zero.
+ * Blue lines show 95% critical values.
 
-  *  95% of all $r_k$ for white noise must lie within $\pm 1.96/\sqrt{T}$.
-  * If this is not the case, the series is probably not WN.
-  * Common to plot lines at $\pm 1.96/\sqrt{T}$ when plotting ACF.
-These are the \alert{critical values}.
+\vspace*{10cm}
 
 ## Example: Pigs slaughtered
 
