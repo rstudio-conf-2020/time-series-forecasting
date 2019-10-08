@@ -75,6 +75,13 @@ library(feasts)
 library(tsibbledata)
 ```
 
+\pause
+
+```{r}
+# All of the above and more
+library(fpp3)
+```
+
 ## `tsibble` objects
 
 \fontsize{10}{11.2}\sf
@@ -388,8 +395,6 @@ options(width=60)
  3. Find what combination of `Region` and `Purpose` had the maximum number of overnight trips on average.
  4. Create a new tsibble which combines the Purposes and Regions, and just has total trips by State.
 
-
-
 # Time plots
 ## Are line plots best?
 \fontsize{11}{12}\sf
@@ -428,7 +433,6 @@ maxtemp %>%
 ## Are line plots best?
 
 \full{TemperatureBlanket}
-
 
 ## Ansett airlines
 
@@ -474,7 +478,6 @@ ansett %>%
 Not the real data! Or is it?
 \end{alertblock}
 \end{textblock}
-
 
 # Lab Session 2
 ## Lab Session 2
