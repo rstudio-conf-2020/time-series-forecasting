@@ -1,7 +1,7 @@
 ---
-title: "High dimensional time series analysis"
-date: "robjhyndman.com/hdtsa"
-author: "5. Forecast reconciliation"
+title: "Tidy Time Series & Forecasting in R"
+date: "robjhyndman.com/workshop2020"
+author: "10. Forecast reconciliation"
 toc: true
 output:
   binb::monash:
@@ -9,7 +9,7 @@ output:
     fig_width: 7
     fig_height: 3.5
     includes:
-      in_header: ../header.tex
+      in_header: header.tex
 ---
 
 ```{r setup, include=FALSE}
