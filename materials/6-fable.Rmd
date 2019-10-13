@@ -1,7 +1,7 @@
 ---
 title: "Tidy Time Series & Forecasting in R"
 date: "robjhyndman.com/workshop2020"
-author: "6. Automatic forecasting algorithms"
+author: "6. Introduction to forecasting"
 toc: true
 output:
   binb::monash:
@@ -22,9 +22,6 @@ library(tidyverse)
 library(fpp3)
 usmelec <- as_tsibble(fpp2::usmelec) %>%
   rename(Month = index, Generation = value)
-us_change <- readr::read_csv("https://otexts.com/fpp3/extrafiles/us_change.csv")  %>%
-  mutate(Time = yearquarter(Time)) %>%
-  as_tsibble(index = Time)
 eu_retail <- as_tsibble(fpp2::euretail)
 h02 <- tsibbledata::PBS %>%
   filter(ATC2 == "H02") %>%
@@ -266,6 +263,456 @@ fit %>%
 - With time series, \rlap{${y}_{t|t-1} = y_t | \{y_1,y_2,\dots,y_{t-1}\}$. }
 - $\hat{y}_{T+h|T} =\text{E}[y_{T+h} | y_1,\dots,y_T]$ (an $h$-step forecast taking account of all observations up to time $T$).
 
+# Benchmark methods
+
+## Some simple forecasting methods
+
+```{r ausbeer, fig.height=4.6, echo=FALSE}
+new_production <- aus_production %>%
+  filter(year(Quarter) >= 1992)
+new_production %>% autoplot(Beer) +
+  xlab("Year") + ylab("megalitres") +
+    ggtitle("Australian quarterly beer production")
+```
+
+\begin{textblock}{7}(0.2,8.7)
+\begin{alertblock}{}
+\small{How would you forecast these series?}
+\end{alertblock}
+\end{textblock}
+
+## Some simple forecasting methods
+
+```{r pigs, fig.height=4.6, echo=FALSE}
+aus_livestock %>% filter(between(year(Month), 1992, 1996),
+  Animal == "Pigs", State == "Victoria") %>%
+  autoplot(Count) +
+  xlab("Year") + ylab("thousands") +
+  ggtitle("Number of pigs slaughtered in Victoria, 1990-1995")
+```
+
+\begin{textblock}{7}(0.2,8.7)
+\begin{alertblock}{}
+\small{How would you forecast these series?}
+\end{alertblock}
+\end{textblock}
+
+## Some simple forecasting methods
+
+```{r dj, fig.height=4.6, echo=FALSE}
+gafa_stock %>%
+  filter(Symbol == "FB", Date >= ymd("2018-01-01")) %>%
+  autoplot(Close) +
+  labs(title = "Facebook closing stock price in 2018",
+       x = NULL, y = "Closing price ($USD)")
+```
+
+\begin{textblock}{7}(0.2,8.7)
+\begin{alertblock}{}
+\small{How would you forecast these series?}
+\end{alertblock}
+\end{textblock}
+
+## Some simple forecasting methods
+\fontsize{13}{14}\sf
+
+### `MEAN(y)`: Average method
+
+  * Forecast of all future values is equal to mean of historical data $\{y_1,\dots,y_T\}$.
+  * Forecasts: $\hat{y}_{T+h|T} = \bar{y} = (y_1+\dots+y_T)/T$
+
+```{r mean-method-explained, echo=FALSE, message=FALSE, warning=FALSE, fig.height = 3.3}
+bricks <- aus_production %>%
+  filter(!is.na(Bricks)) %>%
+  mutate(average = mean(Bricks))
+
+fc <- bricks %>% model(MEAN(Bricks)) %>% forecast(h = "5 years")
+
+bricks %>%
+  ggplot(aes(x = Quarter, y = Bricks)) +
+  geom_line() +
+  geom_line(aes(y = average), colour = "blue", linetype = "dashed") +
+  geom_line(aes(y = Bricks), data = fc, colour = "blue") +
+  ggtitle("Clay brick production in Australia")
+```
+
+## Some simple forecasting methods
+\fontsize{13}{14}\sf
+
+### `NAIVE(y)`: Naïve method
+
+  * Forecasts equal to last observed value.
+  * Forecasts: $\hat{y}_{T+h|T} =y_T$.
+  * Consequence of efficient market hypothesis.
+
+```{r naive-method-explained, echo = FALSE, warning = FALSE, fig.height = 3.1}
+bricks %>%
+  filter(!is.na(Bricks)) %>%
+  model(NAIVE(Bricks)) %>%
+  forecast(h = "5 years") %>%
+  autoplot(filter(bricks, year(Quarter) > 1990), level = NULL) +
+  geom_point(data = slice(bricks, n()), colour = "blue") +
+  ggtitle("Clay brick production in Australia")
+```
+
+## Some simple forecasting methods
+\fontsize{13}{14}\sf
+
+### `SNAIVE(y ~ lag(m))`: Seasonal naïve method
+
+  * Forecasts equal to last value from same season.
+  * Forecasts: $\hat{y}_{T+h|T} =y_{T+h-m(k+1)}$, where $m=$ seasonal period and $k$ is the integer part of $(h-1)/m$.
+
+```{r snaive-method-explained, echo = FALSE, warning = FALSE, fig.height = 2.8}
+bricks %>%
+  model(SNAIVE(Bricks ~ lag("year"))) %>%
+  forecast(h = "5 years") %>%
+  autoplot(filter(bricks, year(Quarter) > 1990), level = NULL) +
+  geom_point(data = slice(bricks, (n()-3):n()), colour = "blue") +
+  ggtitle("Clay brick production in Australia")
+```
+
+## Some simple forecasting methods
+\fontsize{13}{14}\sf
+
+### `RW(y ~ drift())`: Drift method
+
+ * Forecasts equal to last value plus average change.
+ * Forecasts:\vspace*{-.7cm}
+
+ \begin{align*}
+ \hat{y}_{T+h|T} & =  y_{T} + \frac{h}{T-1}\sum_{t=2}^T (y_t-y_{t-1})\\
+                 & = y_T + \frac{h}{T-1}(y_T -y_1).
+ \end{align*}\vspace*{-0.2cm}
+
+   * Equivalent to extrapolating a line drawn between first and last observations.
+
+## Some simple forecasting methods
+
+### Drift method
+
+```{r drift-method-explained, echo = FALSE, warning = FALSE}
+aus_production %>%
+  filter(!is.na(Bricks)) %>%
+  model(RW(Bricks ~ drift())) %>%
+  forecast(h = "5 years") %>%
+  autoplot(aus_production, level = NULL) +
+  geom_line(data = slice(aus_production, range(cumsum(!is.na(Bricks)))),
+            linetype = "dashed", colour = "blue") +
+  ggtitle("Clay brick production in Australia")
+```
+
+## Model fitting
+
+The `model()` function trains models to data.
+
+\fontsize{10}{11}\sf
+
+```{r beer-model}
+# Fit the models
+beer_fit <- aus_production %>%
+  model(
+    Mean = MEAN(Beer),
+    `Naïve` = NAIVE(Beer),
+    `Seasonal naïve` = SNAIVE(Beer),
+    Drift = RW(Beer ~ drift())
+  )
+beer_fit
+```
+
+\vspace*{-0.2cm}\begin{alertblock}{}
+A \texttt{mable} is a model table, each cell corresponds to a fitted model.
+\end{alertblock}
+
+## Producing forecasts
+
+\fontsize{10}{13}\sf
+
+```{r beer-fc, echo = TRUE, dependson='beer-model'}
+beer_fc <- beer_fit %>%
+  forecast(h = 11)
+```
+
+```{r beer-fbl, echo = FALSE, dependson='beer-fc'}
+print(beer_fc, n = 4)
+```
+
+\begin{alertblock}{}
+A \texttt{fable} is a forecast table with point forecasts and distributions.
+\end{alertblock}
+
+
+
+## Visualising forecasts
+
+\footnotesize
+
+```{r beer-fc-plot, warning=FALSE, message=FALSE, fig.height=3}
+beer_fc %>%
+  autoplot(train, level = NULL) +
+  ggtitle("Forecasts for quarterly beer production") +
+  xlab("Year") + ylab("Megalitres") +
+  guides(colour=guide_legend(title="Forecast"))
+```
+
+## Facebook closing stock price
+
+\fontsize{9}{10}\sf
+
+```{r fbf, eval=FALSE}
+# Extract training data
+fb_stock <- gafa_stock %>%
+  group_by(Symbol) %>%
+  mutate(trading_day = row_number()) %>%
+  update_tsibble(index=trading_day, regular=TRUE) %>%
+  filter(Symbol == "FB",
+         between(Date, ymd("2018-01-01"), ymd("2018-09-01")))
+# Specify, estimate and forecast
+fb_stock %>%
+  model(
+    Mean = MEAN(Close),
+    `Naïve` = NAIVE(Close),
+    Drift = RW(Close ~ drift())
+  ) %>%
+  forecast(h=42) %>%
+  autoplot(fb_stock, level = NULL) +
+  ggtitle("Facebook closing stock price (daily ending Sep 2018)") +
+  xlab("Day") + ylab("") +
+  guides(colour=guide_legend(title="Forecast"))
+```
+
+## Facebook closing stock price
+
+```{r fb-fc-plot, echo=FALSE, fig.height=4.6}
+# Extract training data
+fb_stock <- gafa_stock %>%
+  mutate(trading_day = row_number()) %>%
+  update_tsibble(index=trading_day, regular=TRUE) %>%
+  filter(Symbol == "FB",
+         between(Date, ymd("2018-01-01"), ymd("2018-09-01")))
+
+# Specify, estimate and forecast
+fb_stock %>%
+  model(
+    Mean = MEAN(Close),
+    `Naïve` = NAIVE(Close),
+    Drift = RW(Close ~ drift())
+  ) %>%
+  forecast(h=42) %>%
+  autoplot(fb_stock, level = NULL) +
+  ggtitle("Facebook closing stock price (daily ending Sep 2018)") +
+  xlab("Day") + ylab("") +
+  guides(colour=guide_legend(title="Forecast"))
+```
+
+# Lab Session 10
+## Lab Session 10
+
+ * Produce forecasts from the appropriate method for Amazon closing price (`gafa_stock`) and Australian takeaway food turnover (`aus_retail`).
+ * Plot the results using `autoplot()`.
+
+
+# Residual diagnostics
+
+## Fitted values
+
+ - $\hat{y}_{t|t-1}$ is the forecast of $y_t$ based on observations $y_1,\dots,y_t$.
+ - We call these "fitted values".
+ - Sometimes drop the subscript: $\hat{y}_t \equiv \hat{y}_{t|t-1}$.
+ - Often not true forecasts since parameters are estimated on all data.
+
+### For example:
+
+ - $\hat{y}_{t} = \bar{y}$ for average method.
+ - $\hat{y}_{t} = y_{t-1} + (y_{T}-y_1)/(T-1)$ for drift method.
+
+## Forecasting residuals
+
+\begin{block}{}
+\textbf{Residuals in forecasting:} difference between observed value and its fitted value: $e_t = y_t-\hat{y}_{t|t-1}$.
+\end{block}
+\pause\fontsize{13}{15}\sf
+
+\alert{Assumptions}
+
+  1. $\{e_t\}$ uncorrelated. If they aren't, then information left in  residuals that should be used in computing forecasts.
+  2. $\{e_t\}$ have mean zero. If they don't, then forecasts are biased.
+
+\pause
+
+\alert{Useful properties} (for prediction intervals)
+
+  3. $\{e_t\}$ have constant variance.
+  4. $\{e_t\}$ are normally distributed.
+
+## Example: Google stock price
+\fontsize{10}{10}\sf
+
+```{r goog-create, echo=TRUE}
+google_2015 <- tsibbledata::gafa_stock %>%
+  filter(Symbol == "GOOG", year(Date) == 2015) %>%
+  mutate(trading_day = row_number()) %>%
+  update_tsibble(index = trading_day, regular = TRUE)
+```
+```{r, echo = FALSE}
+google_2015
+```
+
+## Example: Google stock price
+\fontsize{10}{10}\sf
+
+```{r dj3, echo = TRUE}
+google_2015 %>%
+  autoplot(Close) +
+    xlab("Day") + ylab("Closing Price (US$)") +
+    ggtitle("Google Stock (daily ending 6 December 2013)")
+```
+
+## Example: Google stock price
+
+\alert{Na\"{\i}ve forecast:}
+
+\[\hat{y}_{t|t-1}= y_{t-1}\]\pause
+\[e_t = y_t-y_{t-1}\]\pause
+
+\begin{alertblock}{}
+Note: $e_t$ are one-step-forecast residuals
+\end{alertblock}
+
+## Example: Google stock price
+\fontsize{10}{10}\sf
+
+```{r augment}
+fit <- google_2015 %>% model(NAIVE(Close))
+augment(fit)
+```
+
+## Example: Google stock price
+\fontsize{10}{10}\sf
+
+```{r dj4, echo=TRUE, warning=FALSE}
+augment(fit) %>%
+  ggplot(aes(x = trading_day)) +
+    geom_line(aes(y = Close, colour = "Data")) +
+    geom_line(aes(y = .fitted, colour = "Fitted")) +
+    xlab("Day") + ylab("Closing Price (US$)") +
+    ggtitle("Google Stock (daily ending 6 December 2013)")
+```
+
+## Example: Google stock price
+\fontsize{10}{10}\sf
+
+```{r dj5, echo=TRUE, warning = FALSE}
+augment(fit) %>%
+  autoplot(.resid) + xlab("Day") + ylab("") +
+    ggtitle("Residuals from naïve method")
+```
+
+## Example: Google stock price
+\fontsize{11}{11}\sf
+
+```{r dj6, warning=FALSE}
+augment(fit) %>%
+  ggplot(aes(x = .resid)) +
+    geom_histogram(bins = 30) +
+    ggtitle("Histogram of residuals")
+```
+
+## Example: Google stock price
+\fontsize{11}{11}\sf
+
+```{r dj7}
+augment(fit) %>% ACF(.resid) %>%
+  autoplot() + ggtitle("ACF of residuals")
+```
+
+## ACF of residuals
+
+  * We assume that the residuals are white noise (uncorrelated, mean zero, constant variance). If they aren't, then there is information left in  the residuals that should be used in computing forecasts.
+
+  * So a standard residual diagnostic is to check the ACF of the residuals of a forecasting method.
+
+  * We *expect* these to look like white noise.
+
+## Portmanteau tests
+
+Consider a *whole set* of $r_{k}$  values, and develop a test to see whether the set is significantly different from a zero set.\pause
+
+\begin{block}{Box-Pierce test\phantom{g}}
+\centerline{$\displaystyle
+Q = T \sum_{k=1}^h r_k^2$}
+where $h$  is max lag being considered and $T$ is number of observations.
+\end{block}
+
+  * If each $r_k$ close to zero, $Q$ will be **small**.
+  * If some $r_k$ values large (positive or negative), $Q$ will be **large**.
+
+## Portmanteau tests
+
+Consider a *whole set* of $r_{k}$  values, and develop a test to see whether the set is significantly different from a zero set.
+
+\begin{block}{Ljung-Box test}
+\centerline{$\displaystyle
+ Q^* = T(T+2) \sum_{k=1}^h (T-k)^{-1}r_k^2$}
+where $h$  is max lag being considered and $T$ is number of observations.
+\end{block}
+
+  * My preferences: $h=10$ for non-seasonal data, $h=2m$ for seasonal data.
+  * Better performance, especially in small samples.
+
+\vspace*{10cm}
+
+## Portmanteau tests
+\fontsize{13}{15}\sf
+
+  * If data are WN, $Q^*$ has $\chi^2$ distribution with  $(h - K)$ degrees of freedom where $K=$ no.\ parameters in model.
+  * When applied to raw data, set $K=0$.
+
+\fontsize{11}{12}\sf
+
+```{r dj9, echo=TRUE}
+# lag=h and fitdf=K
+Box.test(augment(fit)$.resid,
+  lag = 10, fitdf = 0, type = "Lj")
+```
+
+## `gg_tsresiduals` function
+\fontsize{11}{12}\sf
+
+```{r dj10, echo=TRUE, fig.height=4, warning = FALSE}
+fit %>% gg_tsresiduals()
+```
+
+# Lab Session 11
+
+## Lab Session 11
+
+
+Compute seasonal naïve forecasts for quarterly Australian beer production from 1992.
+
+\fontsize{10}{12}\sf
+
+```{r, results = 'hide', fig.show='hide'}
+recent <- aus_production %>% filter(year(Quarter) >= 1992)
+fit <- recent %>% model(SNAIVE(Beer))
+fit %>% forecast() %>% autoplot(recent)
+```
+
+\fontsize{14}{15}\sf
+
+Test if the residuals are white noise.
+
+\fontsize{10}{12}\sf
+
+```{r, results = 'hide', fig.show='hide', warning = FALSE}
+Box.test(augment(fit)$.resid, lag=10, fitdf=0, type="Lj")
+fit %>% gg_tsresiduals()
+```
+
+\fontsize{14}{15}\sf
+
+What do you conclude?
+
 # Forecast accuracy measures
 
 ## Training and test sets
@@ -383,3 +830,10 @@ beer_fit <- train %>%
 beer_fc <- forecast(beer_fit, h="4 years")
 accuracy(beer_fc, aus_production)
 ```
+
+# Lab Session 10
+
+## Lab Session 10
+
+??
+
