@@ -1,7 +1,7 @@
 ---
 title: "Tidy Time Series & Forecasting in R"
 date: "robjhyndman.com/workshop2020"
-author: "1. Tidy time series tsibbles"
+author: "1. Introduction to tsibbles"
 toc: true
 output:
   binb::monash:
