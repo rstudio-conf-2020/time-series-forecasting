@@ -345,7 +345,7 @@ bricks %>%
   * Forecasts: $\hat{y}_{T+h|T} =y_T$.
   * Consequence of efficient market hypothesis.
 
-```{r naive-method-explained, echo = FALSE, warning = FALSE, fig.height = 3.1}
+```{r naive-method-explained, echo = FALSE, warning = FALSE, fig.height = 3.3}
 bricks %>%
   filter(!is.na(Bricks)) %>%
   model(NAIVE(Bricks)) %>%
@@ -363,7 +363,7 @@ bricks %>%
   * Forecasts equal to last value from same season.
   * Forecasts: $\hat{y}_{T+h|T} =y_{T+h-m(k+1)}$, where $m=$ seasonal period and $k$ is the integer part of $(h-1)/m$.
 
-```{r snaive-method-explained, echo = FALSE, warning = FALSE, fig.height = 2.8}
+```{r snaive-method-explained, echo = FALSE, warning = FALSE, fig.height = 3.3}
 bricks %>%
   model(SNAIVE(Bricks ~ lag("year"))) %>%
   forecast(h = "5 years") %>%
@@ -462,11 +462,9 @@ beer_fc %>%
 ```{r fbf, eval=FALSE}
 # Extract training data
 fb_stock <- gafa_stock %>%
-  group_by(Symbol) %>%
+  filter(Symbol == "FB") %>%
   mutate(trading_day = row_number()) %>%
-  update_tsibble(index=trading_day, regular=TRUE) %>%
-  filter(Symbol == "FB",
-         between(Date, ymd("2018-01-01"), ymd("2018-09-01")))
+  update_tsibble(index=trading_day, regular=TRUE)
 # Specify, estimate and forecast
 fb_stock %>%
   model(
@@ -477,8 +475,8 @@ fb_stock %>%
   forecast(h=42) %>%
   autoplot(fb_stock, level = NULL) +
   ggtitle("Facebook closing stock price (daily ending Sep 2018)") +
-  xlab("Day") + ylab("") +
-  guides(colour=guide_legend(title="Forecast"))
+    xlab("Day") + ylab("") +
+    guides(colour=guide_legend(title="Forecast"))
 ```
 
 ## Facebook closing stock price
@@ -486,11 +484,9 @@ fb_stock %>%
 ```{r fb-fc-plot, echo=FALSE, fig.height=4.6}
 # Extract training data
 fb_stock <- gafa_stock %>%
+  filter(Symbol == "FB") %>%
   mutate(trading_day = row_number()) %>%
-  update_tsibble(index=trading_day, regular=TRUE) %>%
-  filter(Symbol == "FB",
-         between(Date, ymd("2018-01-01"), ymd("2018-09-01")))
-
+  update_tsibble(index=trading_day, regular=TRUE)
 # Specify, estimate and forecast
 fb_stock %>%
   model(
@@ -501,16 +497,15 @@ fb_stock %>%
   forecast(h=42) %>%
   autoplot(fb_stock, level = NULL) +
   ggtitle("Facebook closing stock price (daily ending Sep 2018)") +
-  xlab("Day") + ylab("") +
-  guides(colour=guide_legend(title="Forecast"))
+    xlab("Day") + ylab("") +
+    guides(colour=guide_legend(title="Forecast"))
 ```
 
 # Lab Session 10
 ## Lab Session 10
 
- * Produce forecasts from the appropriate method for Amazon closing price (`gafa_stock`) and Australian takeaway food turnover (`aus_retail`).
- * Plot the results using `autoplot()`.
-
+ * Produce forecasts using an appropriate benchmark method for household wealth (`hh_budget`). Plot the results using `autoplot()`.
+ * Produce forecasts using an appropriate benchmark method for Australian takeaway food turnover (`aus_retail`). Plot the results using `autoplot()`.
 
 # Residual diagnostics
 
