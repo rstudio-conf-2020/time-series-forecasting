@@ -441,8 +441,6 @@ print(beer_fc, n = 4)
 A \texttt{fable} is a forecast table with point forecasts and distributions.
 \end{alertblock}
 
-
-
 ## Visualising forecasts
 
 \footnotesize
@@ -575,7 +573,6 @@ augment(fit) %>%
     geom_line(aes(y = Close, colour = "Data")) +
     geom_line(aes(y = .fitted, colour = "Fitted"))
 ```
-
 
 ## Facebook closing stock price
 \fontsize{10}{10}\sf
