@@ -449,7 +449,7 @@ A \texttt{fable} is a forecast table with point forecasts and distributions.
 
 ```{r beer-fc-plot, warning=FALSE, message=FALSE, fig.height=3}
 beer_fc %>%
-  autoplot(train, level = NULL) +
+  autoplot(aus_production, level = NULL) +
   ggtitle("Forecasts for quarterly beer production") +
   xlab("Year") + ylab("Megalitres") +
   guides(colour=guide_legend(title="Forecast"))
@@ -474,7 +474,7 @@ fb_stock %>%
   ) %>%
   forecast(h=42) %>%
   autoplot(fb_stock, level = NULL) +
-  ggtitle("Facebook closing stock price (daily ending Sep 2018)") +
+  ggtitle("Facebook closing stock price") +
     xlab("Day") + ylab("") +
     guides(colour=guide_legend(title="Forecast"))
 ```
@@ -496,7 +496,7 @@ fb_stock %>%
   ) %>%
   forecast(h=42) %>%
   autoplot(fb_stock, level = NULL) +
-  ggtitle("Facebook closing stock price (daily ending Sep 2018)") +
+  ggtitle("Facebook closing stock price") +
     xlab("Day") + ylab("") +
     guides(colour=guide_legend(title="Forecast"))
 ```
@@ -540,61 +540,55 @@ fb_stock %>%
   3. $\{e_t\}$ have constant variance.
   4. $\{e_t\}$ are normally distributed.
 
-## Example: Google stock price
-\fontsize{10}{10}\sf
+## Facebook closing stock price
 
-```{r goog-create, echo=TRUE}
-google_2015 <- tsibbledata::gafa_stock %>%
-  filter(Symbol == "GOOG", year(Date) == 2015) %>%
-  mutate(trading_day = row_number()) %>%
-  update_tsibble(index = trading_day, regular = TRUE)
-```
-```{r, echo = FALSE}
-google_2015
+```{r}
+fb_stock %>%
+  autoplot(Close)
 ```
 
-## Example: Google stock price
-\fontsize{10}{10}\sf
-
-```{r dj3, echo = TRUE}
-google_2015 %>%
-  autoplot(Close) +
-    xlab("Day") + ylab("Closing Price (US$)") +
-    ggtitle("Google Stock (daily ending 6 December 2013)")
-```
-
-## Example: Google stock price
+## Facebook closing stock price
 
 \alert{Na\"{\i}ve forecast:}
 
 \[\hat{y}_{t|t-1}= y_{t-1}\]\pause
-\[e_t = y_t-y_{t-1}\]\pause
+\[e_t = y_t - \hat{y}_{t|t-1} = y_t-y_{t-1}\]\pause
 
 \begin{alertblock}{}
 Note: $e_t$ are one-step-forecast residuals
 \end{alertblock}
 
-## Example: Google stock price
+## Facebook closing stock price
 \fontsize{10}{10}\sf
 
 ```{r augment}
-fit <- google_2015 %>% model(NAIVE(Close))
+fit <- fb_stock %>% model(NAIVE(Close))
 augment(fit)
 ```
 
-## Example: Google stock price
+## Facebook closing stock price
 \fontsize{10}{10}\sf
 
-```{r dj4, echo=TRUE, warning=FALSE}
+```{r dj4, echo=TRUE, warning=FALSE, fig.height=3.7}
 augment(fit) %>%
   ggplot(aes(x = trading_day)) +
     geom_line(aes(y = Close, colour = "Data")) +
-    geom_line(aes(y = .fitted, colour = "Fitted")) +
-    xlab("Day") + ylab("Closing Price (US$)") +
-    ggtitle("Google Stock (daily ending 6 December 2013)")
+    geom_line(aes(y = .fitted, colour = "Fitted"))
 ```
 
-## Example: Google stock price
+
+## Facebook closing stock price
+\fontsize{10}{10}\sf
+
+```{r dj4a, echo=TRUE, warning=FALSE, fig.height=3.7}
+augment(fit) %>%
+  filter(trading_day > 1100) %>%
+  ggplot(aes(x = trading_day)) +
+    geom_line(aes(y = Close, colour = "Data")) +
+    geom_line(aes(y = .fitted, colour = "Fitted"))
+```
+
+## Facebook closing stock price
 \fontsize{10}{10}\sf
 
 ```{r dj5, echo=TRUE, warning = FALSE}
@@ -603,17 +597,17 @@ augment(fit) %>%
     ggtitle("Residuals from naïve method")
 ```
 
-## Example: Google stock price
+## Facebook closing stock price
 \fontsize{11}{11}\sf
 
 ```{r dj6, warning=FALSE}
 augment(fit) %>%
   ggplot(aes(x = .resid)) +
-    geom_histogram(bins = 30) +
+    geom_histogram(bins = 150) +
     ggtitle("Histogram of residuals")
 ```
 
-## Example: Google stock price
+## Facebook closing stock price
 \fontsize{11}{11}\sf
 
 ```{r dj7}
@@ -629,59 +623,53 @@ augment(fit) %>% ACF(.resid) %>%
 
   * We *expect* these to look like white noise.
 
-## Portmanteau tests
+## Combined diagnostic graph
+\fontsize{11}{11}\sf
 
-Consider a *whole set* of $r_{k}$  values, and develop a test to see whether the set is significantly different from a zero set.\pause
+```{r dj8}
+fit %>% gg_tsresiduals()
+```
 
-\begin{block}{Box-Pierce test\phantom{g}}
+## Ljung-Box test
+\fontsize{13}{15}\sf
+
+Test whether *whole set* of $r_{k}$ values is significantly different from zero set.
+
+\begin{block}{}
 \centerline{$\displaystyle
-Q = T \sum_{k=1}^h r_k^2$}
-where $h$  is max lag being considered and $T$ is number of observations.
+ Q = T(T+2) \sum_{k=1}^h (T-k)^{-1}r_k^2$}
+where $h=$ max lag and $T=$ \# observations.
 \end{block}
 
   * If each $r_k$ close to zero, $Q$ will be **small**.
-  * If some $r_k$ values large (positive or negative), $Q$ will be **large**.
-
-## Portmanteau tests
-
-Consider a *whole set* of $r_{k}$  values, and develop a test to see whether the set is significantly different from a zero set.
-
-\begin{block}{Ljung-Box test}
-\centerline{$\displaystyle
- Q^* = T(T+2) \sum_{k=1}^h (T-k)^{-1}r_k^2$}
-where $h$  is max lag being considered and $T$ is number of observations.
-\end{block}
-
+  * If some $r_k$ values large ($+$ or $-$), $Q$ will be **large**.
   * My preferences: $h=10$ for non-seasonal data, $h=2m$ for seasonal data.
-  * Better performance, especially in small samples.
-
-\vspace*{10cm}
-
-## Portmanteau tests
-\fontsize{13}{15}\sf
-
-  * If data are WN, $Q^*$ has $\chi^2$ distribution with  $(h - K)$ degrees of freedom where $K=$ no.\ parameters in model.
+  * If data are WN, $Q \sim \chi^2$ with $(h - K)$ degrees of freedom where $K=$ no.\ parameters in model.
   * When applied to raw data, set $K=0$.
 
-\fontsize{11}{12}\sf
+## Ljung-Box test
 
-```{r dj9, echo=TRUE}
-# lag=h and fitdf=K
-Box.test(augment(fit)$.resid,
-  lag = 10, fitdf = 0, type = "Lj")
+\begin{block}{}
+\centerline{$\displaystyle
+ Q = T(T+2) \sum_{k=1}^h (T-k)^{-1}r_k^2$}
+where $h=$ max lag and $T=$ \# observations.
+\end{block}
+
+\fontsize{11}{11}\sf
+
+```{r dj9extra, echo=FALSE, fig.height=2.}
+augment(fit) %>% ACF(.resid, lag_max=10) %>%
+  autoplot() + ggtitle("ACF of residuals")
 ```
 
-## `gg_tsresiduals` function
-\fontsize{11}{12}\sf
-
-```{r dj10, echo=TRUE, fig.height=4, warning = FALSE}
-fit %>% gg_tsresiduals()
+```{r dj9, echo=TRUE}
+# lag=h and dof=K
+ljung_box(augment(fit)$.resid, lag = 10, dof = 0)
 ```
 
 # Lab Session 11
 
 ## Lab Session 11
-
 
 Compute seasonal naïve forecasts for quarterly Australian beer production from 1992.
 
