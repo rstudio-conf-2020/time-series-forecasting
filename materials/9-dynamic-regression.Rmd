@@ -557,7 +557,7 @@ forecast(fit, h = "3 years") %>%
 \fontsize{9}{10}\sf
 
 ```{r calls, echo=TRUE, fig.height=4}
-(calls <- read_tsv("http://robjhyndman.com/data/callcenter.txt") %>%
+(calls <- readr::read_tsv("http://robjhyndman.com/data/callcenter.txt") %>%
   gather("date", "volume", -X1) %>% transmute(
     time = X1, date = as.Date(date, format = "%d/%m/%Y"),
     datetime = as_datetime(date) + time, volume) %>%
@@ -694,7 +694,7 @@ glance(fit)
 ```
 ```{r, echo = FALSE}
 glance(fit) %>%
-  transmute(`Lag order` = 0:3, sigma2, logLik, AIC, AICc, BIC) %>%
+  transmute(`Lag order` = 0:3, sigma2, log_lik, AIC, AICc, BIC) %>%
   knitr::kable()
 ```
 
@@ -713,7 +713,7 @@ report(fit)
 
 ```{r tvadvertparam, echo=FALSE}
 # Store coefficients
-coef <- set_names(tidy(fit)$estimate, tidy(fit)$term)
+coef <- rlang::set_names(tidy(fit)$estimate, tidy(fit)$term)
 phi1 <- coef['ar1']
 phi2 <- coef['ar2']
 phi3 <- coef['ar3']
