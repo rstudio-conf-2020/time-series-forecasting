@@ -401,9 +401,9 @@ Optimize parameters and initial values using MLE.
 * Method performed very well in M3 competition.
 * Used as a benchmark in the M4 competition.
 
-# Lab Session 7
+# Lab Session 12
 
-## Lab Session 7
+## Lab Session 12
 
 Find an ETS model for the Gas data from `aus_production`.
 

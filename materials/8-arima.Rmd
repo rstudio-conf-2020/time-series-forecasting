@@ -258,9 +258,9 @@ Step 2:
 
 \pause\alert{Repeat Step 2 until no lower AICc can be found.}
 
-# Lab Session 8
+# Lab Session 13
 
-## Lab Session 8
+## Lab Session 13
 
 For the United States GDP data (from `global_economy`):
 
@@ -418,8 +418,8 @@ fit %>% forecast %>% autoplot(h02) +
   ylab("H02 Expenditure ($AUD)") + xlab("Year")
 ```
 
-# Lab Session 9
-## Lab Session 9
+# Lab Session 14
+## Lab Session 14
 
 For the Australian tourism data (from `tourism`):
 
