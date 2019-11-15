@@ -423,7 +423,7 @@ Explore the following time series using these functions. Can you spot any season
 
   - Bricks from `aus_production`
   - Lynx from `pelt`
-  - Victorian Electricity Demand from `aus_elec`
+  - Victorian Electricity Demand from `vic_elec`
 
 ## Which is which?
 

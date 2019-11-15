@@ -318,6 +318,29 @@ forecast(fit, vic_elec_future) %>%
   autoplot(vic_elec_daily) + ylab("Electricity demand (GW)")
 ```
 
+# Lab Session 18
+## Lab Session 18
+
+Repeat the daily electricity example, but instead of a using a linear function of temperature, use a piecewise linear function with the "knot" around 20 degrees Celsius. How can you optimize the choice of knot?
+
+The data can be created as follows.
+
+```{r echo=TRUE, eval=FALSE}
+vic_elec_daily <- vic_elec %>%
+  filter(year(Time) == 2014) %>%
+  index_by(Date = date(Time)) %>%
+  summarise(
+    Demand = sum(Demand)/1e3,
+    Temperature = max(Temperature),
+    Holiday = any(Holiday)
+  ) %>%
+  mutate(Day_Type = case_when(
+    Holiday ~ "Holiday",
+    wday(Date) %in% 2:6 ~ "Weekday",
+    TRUE ~ "Weekend"
+  ))
+```
+
 # Stochastic and deterministic trends
 
 ## Stochastic \& deterministic trends
@@ -617,6 +640,11 @@ augment(fit) %>%
 fit %>% forecast(h = 1690) %>%
   autoplot(calls_mdl)
 ```
+
+# Lab Session 19
+## Lab Session 19
+
+Repeat Lab Session 18 but using all available data, and handling the annual seasonality using Fourier terms.
 
 # Lagged predictors
 

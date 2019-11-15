@@ -475,9 +475,9 @@ fc %>% accuracy(tourism_agg) %>%
   arrange(MASE)
 ```
 
-# Lab Session 10
+# Lab Session 20
 
-## Lab Session 10
+## Lab Session 20
 
 * Prepare aggregations of the PBS data by Concession, Type, and ATC1.
 * Use forecast reconciliation with the PBS data, using ETS, ARIMA and SNAIVE models, applied to all but the last 3 years of data.

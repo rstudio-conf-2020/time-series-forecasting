@@ -167,9 +167,9 @@ autoplot(dcmp, trend, scale_bars=FALSE) +
   autolayer(holidays, alpha=0.4)
 ```
 
-# Lab Session 7
+# Lab Session 8
 
-## Lab Session 7
+## Lab Session 8
 
 Repeat the decomposition using
 

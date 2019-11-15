@@ -100,8 +100,6 @@ Something is easier to forecast if:
 
 \full{ncep-skill}
 
-# Some case studies
-
 ## CASE STUDY 1: Paperware company
 
 \fontsize{12}{14}\sf
@@ -499,8 +497,8 @@ fb_stock %>%
     guides(colour=guide_legend(title="Forecast"))
 ```
 
-# Lab Session 10
-## Lab Session 10
+# Lab Session 11
+## Lab Session 11
 
  * Produce forecasts using an appropriate benchmark method for household wealth (`hh_budget`). Plot the results using `autoplot()`.
  * Produce forecasts using an appropriate benchmark method for Australian takeaway food turnover (`aus_retail`). Plot the results using `autoplot()`.
@@ -664,9 +662,8 @@ augment(fit) %>% ACF(.resid, lag_max=10) %>%
 ljung_box(augment(fit)$.resid, lag = 10, dof = 0)
 ```
 
-# Lab Session 11
-
-## Lab Session 11
+# Lab Session 12
+## Lab Session 12
 
 Compute seasonal naïve forecasts for quarterly Australian beer production from 1992.
 
@@ -811,9 +808,8 @@ beer_fc <- forecast(beer_fit, h="4 years")
 accuracy(beer_fc, aus_production)
 ```
 
-# Lab Session 10
-
-## Lab Session 10
+# Lab Session 13
+## Lab Session 13
 
 ??
 

@@ -58,6 +58,12 @@ global_economy %>%
   autoplot(GDP / Population)
 ```
 
+# Lab Session 6
+## Lab Session 6
+
+Consider the GDP information in `global_economy`. Plot the GDP per capita for each country over time. Which country has the highest GDP per capita? How has this changed over time?
+
+
 # Inflation adjustments
 
 ## Inflation adjustments
@@ -248,9 +254,9 @@ $$ y_t = \left\{\begin{array}{ll}
         (\lambda W_t+1)^{1/\lambda} ,   & \quad \lambda \ne 0.
 \end{array}\right.$$
 
-# Lab Session 6
+# Lab Session 7
 
-## Lab Session 6
+## Lab Session 7
 
 \fontsize{13}{14}\sf
 
