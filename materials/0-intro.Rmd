@@ -115,17 +115,17 @@ install.packages("fpp3", dependencies=TRUE)
   \toprule
   \bf Day & \bf Topic                   & \bf Chapter \\
   \midrule
-  1       & Introduction to tsibbles    & 2 \\
-  2       & Time series graphics        & 2 \\
-  3       & Transformations             & 3 \\
-  4       & Seasonality and trends      & 7 \\
-  5       & Time series features        & -- \\
+  1       & 1. Introduction to tsibbles    & 2 \\
+  1       & 2. Time series graphics        & 2 \\
+  1       & 3. Transformations             & 3 \\
+  1       & 4. Seasonality and trends      & 7 \\
+  1       & 5. Time series features        & -- \\
   \midrule
-  6       & Introduction to forecasting & 1,3 \\
-  7       & Exponential smoothing       & 8 \\
-  8       & ARIMA models                & 9 \\
-  9       & Dynamic regression          & 10 \\
-  10      & Hierarchical forecasting    & 11 \\
+  2       & 6. Introduction to forecasting & 1,3 \\
+  2       & 7. Exponential smoothing       & 8 \\
+  2       & 8. ARIMA models                & 9 \\
+  2       & 9. Dynamic regression          & 10 \\
+  2      & 10. Hierarchical forecasting    & 11 \\
   \bottomrule
 \end{tabular}
 
