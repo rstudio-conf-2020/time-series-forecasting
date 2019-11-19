@@ -163,8 +163,7 @@ prettify(p1, size = 3, label.padding = unit(0.15, "lines"))
 1. Look at the quarterly tourism data for the Snowy Mountains
 
     ```r
-    snowy <- filter(tourism,
-      Region == "Snowy Mountains")
+    snowy <- filter(tourism, Region == "Snowy Mountains")
     ```
 
     - Use `autoplot()`, `gg_season()` and `gg_subseries()` to explore the data.
@@ -414,16 +413,7 @@ google_2015 %>%
 
 ## Lab Session 4
 
-We have introduced the following functions:
-
-  - `gg_lag`
-  - `ACF`
-
-Explore the following time series using these functions. Can you spot any seasonality, cyclicity and trend? What do you learn about the series?
-
-  - Bricks from `aus_production`
-  - Lynx from `pelt`
-  - Victorian Electricity Demand from `vic_elec`
+We have introduced the following functions: `gg_lag` and `ACF`. Use these functions to explore the four time series: `Beer` from `aus_production`, `Lynx` from `pelt`, `Close` from `gafa_stock`, `Demand` from `vic_elec`. Can you spot any seasonality, cyclicity and trend? What do you learn about the series?
 
 ## Which is which?
 

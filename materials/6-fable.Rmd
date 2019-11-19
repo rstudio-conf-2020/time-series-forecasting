@@ -665,7 +665,7 @@ ljung_box(augment(fit)$.resid, lag = 10, dof = 0)
 # Lab Session 12
 ## Lab Session 12
 
-Compute seasonal naïve forecasts for quarterly Australian beer production from 1992.
+  * Compute seasonal naïve forecasts for quarterly Australian beer production from 1992.
 
 \fontsize{10}{12}\sf
 
@@ -677,7 +677,7 @@ fit %>% forecast() %>% autoplot(recent)
 
 \fontsize{14}{15}\sf
 
-Test if the residuals are white noise.
+  * Test if the residuals are white noise.
 
 \fontsize{10}{12}\sf
 
@@ -811,5 +811,8 @@ accuracy(beer_fc, aus_production)
 # Lab Session 13
 ## Lab Session 13
 
-??
+ * Split the household wealth (`hh_budget`) into a training and test set, with the last four years in the test set.
+ * Fit all the appropriate benchmark methods to the training set and forecast the periods covered by the test set.
+ * Compute the accuracy of your forecasts. Which method does best?
+ * Repeat the exercise using the Australian takeaway food turnover data (`aus_retail`) with a test set of four years.
 
