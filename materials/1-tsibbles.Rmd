@@ -202,7 +202,7 @@ tribble(
 \fontsize{13}{14}\sf
 
 ```{r prison, echo=FALSE, warning=FALSE, message=FALSE}
-prison <- readr::read_csv("prison_population.csv")
+prison <- readr::read_csv("data/prison_population.csv")
 prison %>%
   head(15) %>%
   knitr::kable(booktabs=TRUE)
@@ -223,7 +223,7 @@ prison
 \fontsize{10}{11}\sf
 
 ```{r prison3}
-prison <- readr::read_csv("prison_population.csv") %>%
+prison <- readr::read_csv("data/prison_population.csv") %>%
   mutate(Quarter = yearquarter(date))
 ```
 
@@ -235,7 +235,7 @@ prison
 \fontsize{10}{11}\sf
 
 ```{r prison4}
-prison <- readr::read_csv("prison_population.csv") %>%
+prison <- readr::read_csv("data/prison_population.csv") %>%
   mutate(Quarter = yearquarter(date)) %>%
   select(-date)
 ```
@@ -248,7 +248,7 @@ prison
 \fontsize{10}{11}\sf
 
 ```{r prison5}
-prison <- readr::read_csv("prison_population.csv") %>%
+prison <- readr::read_csv("data/prison_population.csv") %>%
   mutate(Quarter = yearquarter(date)) %>%
   select(-date) %>%
   as_tsibble(index=Quarter,
