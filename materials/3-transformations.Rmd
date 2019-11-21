@@ -265,9 +265,10 @@ $$ y_t = \left\{\begin{array}{ll}
     * United States GDP from `global_economy`
     * Slaughter of Victorian “Bulls, bullocks and steers” in `aus_livestock`
     * Gas production from `aus_production`
+    * Tobacco from `aus_production`
+    * Economy class passengers between Melbourne and Sydney from `ansett`
+    * Victorian Electricity Demand from `vic_elec`.
+
 
 2. Why is a Box-Cox transformation unhelpful for the `expsmooth::cangas` data?
-
-3. For each of the following series, make a graph of the data. If transforming seems appropriate, do so and describe the effect. Tobacco from `aus_production`, Economy class passengers between Melbourne and Sydney from `ansett`, and Victorian Electricity Demand from `vic_elec`.
-
 

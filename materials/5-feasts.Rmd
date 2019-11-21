@@ -265,11 +265,11 @@ outliers %>%
     theme(legend.position = "none")
 ```
 
-# Lab Session 10  
+# Lab Session 10
 
 ## Lab Session 10
 
 * Use a feature-based approach to look for outlying series in `PBS`.
 
-* What is unusual about these series?
+* What is unusual about the series you identify as outliers?
 

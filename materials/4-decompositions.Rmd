@@ -171,18 +171,20 @@ autoplot(dcmp, trend, scale_bars=FALSE) +
 
 ## Lab Session 8
 
-Repeat the decomposition using
+1. Produce the following decomposition
 
-\fontsize{11}{14}\sf
+    ```r
+    expsmooth::cangas %>%
+      as_tsibble() %>%
+      STL(value ~ season(window=7) + trend(window=11)) %>%
+      autoplot()
+    ```
 
-```r
-holidays %>%
-  STL(Trips ~ season(window=7) + trend(window=11)) %>%
-  autoplot()
-```
+2. What happens as you change the values of the two `window` arguments?
 
-\fontsize{14}{15}\sf
-What happens as you change `season(window = ???)` and `trend(window = ???)`?
+3. How does the seasonal shape change over time? [Hint: Try plotting the seasonal component using `gg_season`.]
+
+4. Can you produce a plausible seasonally adjusted series? [Hint: `season_adjust` is one of the variables returned by `STL`.]
 
 ## Multiple seasonality
 
