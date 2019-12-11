@@ -10,7 +10,7 @@ output:
     fig_height: 3.5
     includes:
       in_header: header.tex
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
@@ -320,10 +320,13 @@ forecast(fit, vic_elec_future) %>%
 
 # Lab Session 18
 ## Lab Session 18
+\fontsize{12}{14}\sf
 
 Repeat the daily electricity example, but instead of a using a linear function of temperature, use a piecewise linear function with the "knot" around 20 degrees Celsius. How can you optimize the choice of knot?
 
 The data can be created as follows.
+
+\fontsize{9}{10}\sf
 
 ```{r echo=TRUE, eval=FALSE}
 vic_elec_daily <- vic_elec %>%
@@ -332,13 +335,11 @@ vic_elec_daily <- vic_elec %>%
   summarise(
     Demand = sum(Demand)/1e3,
     Temperature = max(Temperature),
-    Holiday = any(Holiday)
-  ) %>%
+    Holiday = any(Holiday)) %>%
   mutate(Day_Type = case_when(
-    Holiday ~ "Holiday",
-    wday(Date) %in% 2:6 ~ "Weekday",
-    TRUE ~ "Weekend"
-  ))
+      Holiday ~ "Holiday",
+      wday(Date) %in% 2:6 ~ "Weekday",
+      TRUE ~ "Weekend"))
 ```
 
 # Stochastic and deterministic trends

@@ -170,8 +170,11 @@ autoplot(dcmp, trend, scale_bars=FALSE) +
 # Lab Session 8
 
 ## Lab Session 8
+\fontsize{13}{14}\sf
 
 1. Produce the following decomposition
+
+    \fontsize{10}{12}\sf
 
     ```r
     expsmooth::cangas %>%
@@ -179,6 +182,8 @@ autoplot(dcmp, trend, scale_bars=FALSE) +
       STL(value ~ season(window=7) + trend(window=11)) %>%
       autoplot()
     ```
+
+    \fontsize{13}{14}\sf
 
 2. What happens as you change the values of the two `window` arguments?
 

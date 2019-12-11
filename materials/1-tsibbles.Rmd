@@ -482,7 +482,7 @@ Not the real data! Or is it?
 # Lab Session 2
 ## Lab Session 2
 
-- Create time plots of the following four time series: `Beer` from `aus_production`, `Lynx` from `pelt`, `Close` from `gafa_stock`, `Demand` from `vic_elec`.
+- Create time plots of the following four time series: `Bricks` from `aus_production`, `Lynx` from `pelt`, `Close` from `gafa_stock`, `Demand` from `vic_elec`.
 - Use `help()` to find out about the data in each series.
 - For the last plot, modify the axis labels and title.
 

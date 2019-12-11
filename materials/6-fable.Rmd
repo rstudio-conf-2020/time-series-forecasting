@@ -667,28 +667,7 @@ ljung_box(augment(fit)$.resid, lag = 10, dof = 0)
 
   * Compute seasonal naïve forecasts for quarterly Australian beer production from 1992.
 
-\fontsize{10}{12}\sf
-
-```{r, results = 'hide', fig.show='hide'}
-recent <- aus_production %>% filter(year(Quarter) >= 1992)
-fit <- recent %>% model(SNAIVE(Beer))
-fit %>% forecast() %>% autoplot(recent)
-```
-
-\fontsize{14}{15}\sf
-
-  * Test if the residuals are white noise.
-
-\fontsize{10}{12}\sf
-
-```{r, results = 'hide', fig.show='hide', warning = FALSE}
-Box.test(augment(fit)$.resid, lag=10, fitdf=0, type="Lj")
-fit %>% gg_tsresiduals()
-```
-
-\fontsize{14}{15}\sf
-
-What do you conclude?
+  * Test if the residuals are white noise. What do you conclude?
 
 # Forecast accuracy measures
 
