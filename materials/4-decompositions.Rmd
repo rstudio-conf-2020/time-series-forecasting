@@ -114,7 +114,7 @@ holidays %>% autoplot(Trips) +
 
 ```{r stlagain2, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
 holidays %>%
-  STL(Trips ~ season(window="periodic"), robust=TRUE) %>%
+  STL(Trips ~ season(window = "periodic"), robust = TRUE) %>%
   autoplot()
 ```
 
