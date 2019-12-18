@@ -311,7 +311,7 @@ $\bY_{t}= \begin{pmatrix}
                 1 & 0 & 0 \\
                 0 & 1 & 0\\
                 0 & 0 & 1
-                \end{pmatrix}}_{\bS}}}\only<3>{\hspace*{0.08cm}}\only<3>{\hspace*{-0.1cm}\begin{pmatrix}Y_{A,t}\\y_{B,t}\\y_{C,t}\end{pmatrix}}\rule{0cm}{1.6cm}
+                \end{pmatrix}}_{\bS}}}\only<3>{\hspace*{0.08cm}}\only<3>{\hspace*{-0.1cm}\begin{pmatrix}y_{A,t}\\y_{B,t}\\y_{C,t}\end{pmatrix}}\rule{0cm}{1.6cm}
                 \only<4->{\hspace*{0.08cm}{\color{red}\underbrace{\begin{pmatrix}y_{A,t}\\y_{B,t}\\y_{C,t}\end{pmatrix}}_{\bm{b}_{t}}}}$}
 
 \vspace*{-0.6cm}

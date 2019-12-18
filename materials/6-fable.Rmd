@@ -659,7 +659,8 @@ augment(fit) %>% ACF(.resid, lag_max=10) %>%
 
 ```{r dj9, echo=TRUE}
 # lag=h and dof=K
-ljung_box(augment(fit)$.resid, lag = 10, dof = 0)
+augment(fit) %>% 
+  features(.resid, ljung_box, dof = 0, lag = 10)
 ```
 
 # Lab Session 12
