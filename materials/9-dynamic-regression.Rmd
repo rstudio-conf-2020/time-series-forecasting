@@ -157,7 +157,7 @@ variables with the same differencing operator as in the ARIMA model.\pause
 
 ```{r usconsump, fig.height=6, fig.width=8.5}
 us_change %>%
-  gather(key='variable', value='value') %>%
+  pivot_longer(-Quarter, names_to = "variable", values_to = "value") %>% 
   ggplot(aes(y=value, x=Quarter, group=variable)) +
   geom_line() + facet_grid(variable ~ ., scales='free_y') +
   xlab("Year") + ylab("") +
@@ -255,9 +255,9 @@ vic_elec_daily %>%
 
 ```{r, echo=TRUE, fig.height=3.6}
 vic_elec_daily %>%
-  gather("var", "value", Demand, Temperature) %>%
+  pivot_longer(c(Demand, Temperature)) %>%
   ggplot(aes(x = Date, y = value)) + geom_line() +
-  facet_grid(vars(var), scales = "free_y")
+  facet_grid(vars(name), scales = "free_y")
 ```
 
 ## Daily electricity demand
@@ -582,9 +582,9 @@ forecast(fit, h = "3 years") %>%
 
 ```{r calls, echo=TRUE, fig.height=4}
 (calls <- readr::read_tsv("http://robjhyndman.com/data/callcenter.txt") %>%
-  gather("date", "volume", -X1) %>% transmute(
-    time = X1, date = as.Date(date, format = "%d/%m/%Y"),
-    datetime = as_datetime(date) + time, volume) %>%
+  pivot_longer(-X1, names_to = "date", values_to = "volume") %>%
+  transmute(time = X1, date = as.Date(date, format = "%d/%m/%Y"),
+            datetime = as_datetime(date) + time, volume) %>%
   as_tsibble(index = datetime))
 ```
 
@@ -691,9 +691,9 @@ change in $x_t$ is transferred to $y_t$.
 ```{r tvadvert}
 insurance <- as_tsibble(fpp2::insurance, pivot_longer = FALSE)
 
-insurance %>% gather("key", "value", Quotes, TV.advert) %>%
+insurance %>% pivot_longer(c(Quotes, TV.advert)) %>%
   ggplot(aes(x = index, y = value)) + geom_line() +
-  facet_grid(vars(key), scales = "free_y") +
+  facet_grid(vars(name), scales = "free_y") +
   labs(x = "Year", y = NULL, title = "Insurance advertising and quotations")
 ```
 

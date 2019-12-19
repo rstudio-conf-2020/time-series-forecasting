@@ -471,9 +471,10 @@ wn %>% ACF(y)
 
 
 ```{r, echo=FALSE}
-wn %>% ACF(y, lag_max = 10) %>%
+wn %>% 
+  ACF(y, lag_max = 10) %>%
   as_tibble() %>%
-  tidyr::spread(lag, acf) %>%
+  pivot_wider(names_from = lag, values_from = acf) %>%
   rename_all(function(x){paste("$r_{",x,"}$",sep="")}) %>%
   knitr::kable(booktabs=TRUE,
                escape=FALSE, align="c", digits=3,

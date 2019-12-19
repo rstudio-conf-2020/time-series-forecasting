@@ -28,11 +28,13 @@ library(purrr)
 ## Calendar adjustments
 \fontsize{9}{9}\sf
 
+<!-- MOW: pivot_longer doesn't support factor_key, is the plot order worth another line of code? -->
+
 ```{r, fig.height=3}
 as_tsibble(fma::milk) %>%
   rename(total = value) %>%
   mutate(daily_ave = total / days_in_month(as_date(index))) %>%
-  gather(key="Series", value="Milk", factor_key=TRUE) %>%
+  pivot_longer(-index, names_to = "Series", values_to = "Milk") %>%
   ggplot(aes(x=index, y=Milk)) + geom_line() +
     facet_grid(Series ~ ., scales='free') + xlab("Year") +
     ylab("Pounds") +  ggtitle("Milk production per cow")
@@ -79,8 +81,8 @@ aus_economy <- filter(global_economy, Code == "AUS")
 print_retail %>%
   left_join(aus_economy, by = "Year") %>%
   mutate(Adj_turnover = Turnover / CPI) %>%
-  gather("Type", "Turnover", Turnover, Adj_turnover,
-         factor_key = TRUE) %>%
+  pivot_longer(c(Turnover, Adj_turnover), 
+               names_to = "Type", values_to = "Turnover") %>% 
   ggplot(aes(x = Year, y = Turnover)) +
     geom_line() +
     facet_grid(vars(Type), scales = "free_y") +
@@ -102,8 +104,8 @@ aus_economy <- filter(global_economy, Code == "AUS")
 print_retail %>%
   left_join(aus_economy, by = "Year") %>%
   mutate(Adj_turnover = Turnover / CPI) %>%
-  gather("Type", "Turnover", Turnover, Adj_turnover,
-         factor_key = TRUE) %>%
+  pivot_longer(c(Turnover, Adj_turnover), 
+               names_to = "Type", values_to = "Turnover") %>% 
   ggplot(aes(x = Year, y = Turnover)) +
     geom_line() +
     facet_grid(vars(Type), scales = "free_y") +
@@ -201,6 +203,8 @@ library(latex2exp)
 food %>%
   mutate(!!!set_names(map(seq(0,1,0.01), ~ expr(fabletools::box_cox(Turnover, !!.x))), seq(0,1,0.01))) %>%
   gather(lambda, Turnover) %>%
+  pivot_longer(c(Turnover, Adj_turnover), 
+               names_to = "Type", values_to = "Turnover") %>% 
   mutate(lambda = as.numeric(lambda)) %>%
   ggplot(aes(x = Month, y = Turnover)) +
   geom_line() +
