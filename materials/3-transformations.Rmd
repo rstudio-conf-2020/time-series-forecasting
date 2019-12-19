@@ -237,12 +237,13 @@ food %>%
 * A low value of $\lambda$ can give extremely large prediction intervals.
 
 ## Transformations
-\fontsize{14}{15}\sf
+\fontsize{13}{15}\sf
 
 * Often no transformation needed.
 * Simple transformations are easier to explain and work well enough.
 * Transformations can have very large effect on PI.
 * If the data contains zeros, then don't take logs.
+* `logp1()` can be useful for data with zeros.
 * If some data are negative, no power transformation is possible unless a constant is added to all values.
 * Choosing logs is a simple way to force forecasts to be positive
 * Transformations must be reversed to obtain forecasts on the original scale. (Handled automatically by `fable`.)
