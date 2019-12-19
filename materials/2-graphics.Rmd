@@ -56,21 +56,21 @@ vic_elec
 ## Multiple seasonal periods
 \fontsize{12}{13}\sf
 
-```{r}
+```{r, dev = "png", dpi = 180}
 vic_elec %>% gg_season(Demand)
 ```
 
 ## Multiple seasonal periods
 \fontsize{12}{13}\sf
 
-```{r}
+```{r, dev = "png", dpi = 180}
 vic_elec %>% gg_season(Demand, period="week")
 ```
 
 ## Multiple seasonal periods
 \fontsize{12}{13}\sf
 
-```{r}
+```{r, dev = "png", dpi = 180}
 vic_elec %>% gg_season(Demand, period="day")
 ```
 

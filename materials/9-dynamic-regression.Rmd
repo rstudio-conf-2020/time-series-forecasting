@@ -576,7 +576,7 @@ report(fit)
 ## 5-minute call centre volume
 \fontsize{10}{13}\sf
 
-```{r callsres, echo=TRUE}
+```{r callsres, echo=TRUE, dev = "png", dpi = 180}
 augment(fit) %>%
   gg_tsdisplay(.resid, plot_type = "histogram", lag_max = 338)
 ```

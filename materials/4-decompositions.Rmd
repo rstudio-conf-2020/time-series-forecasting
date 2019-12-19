@@ -193,7 +193,7 @@ autoplot(dcmp, trend, scale_bars=FALSE) +
 
 ## Multiple seasonality
 
-```{r vic_elec, fig.height=5}
+```{r vic_elec, fig.height=5, dev="png", dpi=180}
 vic_elec %>% STL(Demand) %>% autoplot()
 ```
 
