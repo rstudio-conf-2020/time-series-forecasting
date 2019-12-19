@@ -202,9 +202,8 @@ library(gganimate)
 library(latex2exp)
 food %>%
   mutate(!!!set_names(map(seq(0,1,0.01), ~ expr(fabletools::box_cox(Turnover, !!.x))), seq(0,1,0.01))) %>%
-  gather(lambda, Turnover) %>%
-  pivot_longer(c(Turnover, Adj_turnover), 
-               names_to = "Type", values_to = "Turnover") %>% 
+  select(-Turnover) %>%
+  pivot_longer(-Month, names_to='lambda', values_to='Turnover') %>%
   mutate(lambda = as.numeric(lambda)) %>%
   ggplot(aes(x = Month, y = Turnover)) +
   geom_line() +
