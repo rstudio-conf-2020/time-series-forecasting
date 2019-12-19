@@ -70,6 +70,7 @@ $x_{1,t},\dots,x_{k,t}$.
   * Be careful in distinguishing $\eta_t$ from $\varepsilon_t$.
   * Only the errors $\varepsilon_t$ are assumed to be white noise.
   * In ordinary regression, $\eta_t$ is assumed to be white noise and so $\eta_t = \varepsilon_t$.
+  * If $\eta_t$ is non-stationary, the model is equivalent to regressing differenced $y_t$ on differenced $x_{1,t},\dots,x_{k,t}$.
 
 ## Estimation
 \fontsize{14}{14}\sf
@@ -86,69 +87,13 @@ If we minimize $\sum \eta_t^2$ (by using ordinary regression):
  * Minimizing $\sum \varepsilon_t^2$ avoids these problems.
  * Maximizing likelihood similar to minimizing $\sum \varepsilon_t^2$.
 
-## Stationarity
+## Selecting predictors
 
-\begin{block}{Regression with ARMA errors}
-\[
-  y_t = \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t,
-\]
-where $\eta_t$ is an ARMA process.
-\end{block}
-
-  * All variables in the model must be stationary.
-  * If we estimate the model while any of these are non-stationary, the estimated coefficients can be incorrect.
-  * Difference variables until all stationary.
-  * If necessary, apply same differencing to all variables.
-
-## Stationarity
-
-\begin{block}{Model with ARIMA(1,1,1) errors}\vspace*{-0.2cm}
+\begin{alertblock}{}\vspace*{-0.2cm}
 \begin{align*}
   y_t &= \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t,\\
-      & (1-\phi_1B)(1-B)\eta_t = (1+\theta_1B)\varepsilon_t,
-\end{align*}
-\end{block}\pause
-
-\begin{block}{Equivalent to model with ARIMA(1,0,1) errors}\vspace*{-0.2cm}
-\begin{align*}
-  y'_t &= \beta_1 x'_{1,t} + \dots + \beta_k x'_{k,t} + \eta'_t,\\
-       & (1-\phi_1B)\eta'_t = (1+\theta_1B)\varepsilon_t,
-\end{align*}
-\end{block}
-where $y'_t=y_t-y_{t-1}$, $x'_{t,i}=x_{t,i}-x_{t-1,i}$ and  $\eta'_t=\eta_t-\eta_{t-1}$.
-
-## Regression with ARIMA errors
-\fontsize{13}{15}\sf
-
-Any regression with an ARIMA
-error can be rewritten as a regression with an ARMA error by differencing all
-variables with the same differencing operator as in the ARIMA model.\pause
-
-\begin{block}{Original data}\vspace*{-0.2cm}
-\begin{align*}
-  y_t & = \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t\\
-  \mbox{where}\quad
-      & \phi(B)(1-B)^d\eta_t = \theta(B)\varepsilon_t
-\end{align*}
-\end{block}\pause\vspace*{-0.1cm}
-\begin{block}{After differencing all variables}\vspace*{-0.2cm}
-\begin{align*}
-  y'_t & = \beta_1 x'_{1,t} + \dots + \beta_k x'_{k,t} + \eta'_t.\\
-  \mbox{where}\quad
-       & \phi(B)\eta_t = \theta(B)\varepsilon_t \\
-\text{and}\quad & y_t' = (1-B)^dy_t
-\end{align*}
-\end{block}
-
-## Model selection
-\fontsize{13}{15}\sf
-
-  * Fit regression model with automatically selected ARIMA errors. (R will take care of differencing before estimation.)
-  * Check that $\varepsilon_t$ series looks like white noise.
-
-\pause\vspace*{0.5cm}
-
-### Selecting predictors
+     \eta_t &\sim \text{ARIMA}(p,d,q)
+\end{align*}\end{alertblock}
 
   * AICc can be calculated for final model.
   * Repeat procedure for all subsets of predictors to be considered, and select model with lowest AICc value.
@@ -208,7 +153,7 @@ residuals(fit, type='response') %>%
 
 ## US personal consumption and income
 
-\fontsize{9}{12}\sf
+\fontsize{12}{15}\sf
 
 ```{r , echo=TRUE, fig.height=3.7}
 augment(fit) %>%
@@ -263,9 +208,9 @@ vic_elec_daily %>%
 ## Daily electricity demand
 \fontsize{9}{10}\sf
 
-```{r, echo=TRUE}
+```{r dailymodel, echo=TRUE}
 fit <- vic_elec_daily %>%
-  model(ARIMA(Demand ~ Temperature + I(Temperature^2) +
+  model(fit = ARIMA(Demand ~ Temperature + I(Temperature^2) +
                 (Day_Type=="Weekday")))
 report(fit)
 ```
@@ -273,23 +218,23 @@ report(fit)
 ## Daily electricity demand
 \fontsize{9}{10}\sf
 
-```{r, echo=TRUE}
+```{r, echo=TRUE, dependson='dailymodel'}
 augment(fit) %>%
   gg_tsdisplay(.resid, plot_type = "histogram")
 ```
 
 ## Daily electricity demand
-\fontsize{9}{10}\sf
+\fontsize{12}{15}\sf
 
-```{r, echo=TRUE}
+```{r, echo=TRUE, dependson='dailymodel'}
 augment(fit) %>%
-  features(.resid, ljung_box, dof = 8, lag = 14)
+  features(.resid, ljung_box, dof = 9, lag = 14)
 ```
 
 ## Daily electricity demand
 \fontsize{10}{13}\sf
 
-```{r, echo=TRUE}
+```{r, echo=TRUE, dependson='dailymodel'}
 # Forecast one day ahead
 vic_next_day <- new_data(vic_elec_daily, 1) %>%
   mutate(Temperature = 26, Day_Type = "Holiday")
@@ -313,20 +258,20 @@ vic_elec_future <- new_data(vic_elec_daily, 14) %>%
 
 ## Daily electricity demand
 \fontsize{10}{13}\sf
-```{r, echo = TRUE}
+```{r, echo = TRUE, dependson='dailymodel'}
 forecast(fit, vic_elec_future) %>%
   autoplot(vic_elec_daily) + ylab("Electricity demand (GW)")
 ```
 
 # Lab Session 18
 ## Lab Session 18
-\fontsize{12}{14}\sf
+\fontsize{11}{12}\sf
 
-Repeat the daily electricity example, but instead of a using a linear function of temperature, use a piecewise linear function with the "knot" around 20 degrees Celsius. How can you optimize the choice of knot?
+Repeat the daily electricity example, but instead of using a quadratic function of temperature, use a piecewise linear function with the "knot" around 20 degrees Celsius (use predictors `Temperature` & `Temp2`). How can you optimize the choice of knot?
 
 The data can be created as follows.
 
-\fontsize{9}{10}\sf
+\vspace*{-0.2cm}\fontsize{9}{9.5}\sf
 
 ```{r echo=TRUE, eval=FALSE}
 vic_elec_daily <- vic_elec %>%
@@ -336,7 +281,9 @@ vic_elec_daily <- vic_elec %>%
     Demand = sum(Demand)/1e3,
     Temperature = max(Temperature),
     Holiday = any(Holiday)) %>%
-  mutate(Day_Type = case_when(
+  mutate(
+    Temp2 = I(pmax(Temperature-20,0)),
+    Day_Type = case_when(
       Holiday ~ "Holiday",
       wday(Date) %in% 2:6 ~ "Weekday",
       TRUE ~ "Weekend"))
