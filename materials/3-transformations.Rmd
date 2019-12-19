@@ -222,17 +222,6 @@ food %>% autoplot(box_cox(Turnover, 1/3)) +
 
 ## Box-Cox transformations
 
-* $y_t^\lambda$ for $\lambda$ close to zero behaves like logs.
-* If some $y_t=0$, then must have $\lambda>0$
-* if some $y_t<0$, no power transformation is possible unless all $y_t$ adjusted by \textbf{adding a constant to all values}.
-* Simple values of $\lambda$ are easier to explain.
-* Results are  relatively insensitive to  $\lambda$.
-* Often no transformation ($\lambda=1$) needed.
-* Transformation can have very large effect on PI.
-* Choosing $\lambda=0$ is a simple way to force forecasts to be positive
-
-## Box-Cox transformations
-
 \fontsize{13}{15}\sf
 
 
@@ -247,15 +236,16 @@ food %>%
 * Always check the results.
 * A low value of $\lambda$ can give extremely large prediction intervals.
 
-## Back-transformation
+## Transformations
+\fontsize{14}{15}\sf
 
-We must reverse the transformation (or \textit{back-transform}) to obtain
-forecasts on the original scale. The reverse Box-Cox transformations are given
-by
-$$ y_t = \left\{\begin{array}{ll}
-        \exp(w_t),      & \quad \lambda = 0; \\
-        (\lambda W_t+1)^{1/\lambda} ,   & \quad \lambda \ne 0.
-\end{array}\right.$$
+* Often no transformation needed.
+* Simple transformations are easier to explain and work well enough.
+* Transformations can have very large effect on PI.
+* If the data contains zeros, then don't take logs.
+* If some data are negative, no power transformation is possible unless a constant is added to all values.
+* Choosing logs is a simple way to force forecasts to be positive
+* Transformations must be reversed to obtain forecasts on the original scale. (Handled automatically by `fable`.)
 
 # Lab Session 7
 
@@ -263,7 +253,7 @@ $$ y_t = \left\{\begin{array}{ll}
 
 \fontsize{13}{14}\sf
 
-1. For the following series, find an appropriate Box-Cox transformation in order to stabilise the variance.
+1. For the following series, find an appropriate transformation in order to stabilise the variance.
 
     * United States GDP from `global_economy`
     * Slaughter of Victorian “Bulls, bullocks and steers” in `aus_livestock`
