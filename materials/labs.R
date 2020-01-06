@@ -189,29 +189,130 @@ tourism %>%
 # Lab Session 10
 
 ## Two series have all zeros, so we will drop these to avoid problems in the later calculations
-PBSnozeros <- PBS %>%
-  filter(!(Concession == "General" & Type == "Co-payments" & (ATC2 %in% c("R", "S"))))
+PBS_no_zeros <- PBS %>%
+  group_by_key() %>% 
+  filter(!all(Cost == 0)) %>% 
+  ungroup()
 
 library(broom)
-pbsfeat <- PBSnozeros %>%
+
+## Compute features
+PBS_feat <- PBS_no_zeros %>%
   features(Cost, feature_set(pkgs = "feasts"))
-pbspc <- pbsfeat %>%
+
+## Compute principal components
+PBS_prcomp <- PBS_feat %>%
+  filter(!is.nan(stat_arch_lm)) %>% 
   select(-Concession, -Type, -ATC1, -ATC2) %>%
   prcomp(scale = TRUE) %>%
-  augment(pbsfeat)
-pbspc %>%
+  augment(PBS_feat %>%
+            filter(!is.nan(stat_arch_lm)))
+
+## Plot the first two components
+PBS_prcomp %>%
   ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
   geom_point()
 
-outliers <- filter(pbspc, .fittedPC1 == max(.fittedPC1))
+## Pull out most unusual series from first principal component
+outliers <- PBS_prcomp %>% 
+  filter(.fittedPC1 == max(.fittedPC1))
 outliers
-outliers %>%
-  left_join(PBS) %>%
-  as_tsibble(index = Month) %>%
+
+## Visualise the unusual series
+PBS %>% 
+  semi_join(outliers, by = c("Concession", "Type", "ATC1", "ATC2")) %>% 
   autoplot(Cost) +
   facet_grid(vars(Concession, Type, ATC1, ATC2)) +
   ggtitle("Outlying time series in PC space")
 
+# Lab Session 11
+
+hh_budget %>% 
+  model(drift = RW(Wealth ~ drift())) %>% 
+  forecast(h = "5 years") %>% 
+  autoplot(hh_budget)
+
+aus_takeaway <- aus_retail %>% 
+  filter(Industry == "Cafes, restaurants and takeaway food services") %>% 
+  summarise(Turnover = sum(Turnover))
+
+aus_takeaway %>% 
+  model(snaive = SNAIVE(Turnover)) %>%  
+  forecast(h = "3 years") %>% 
+  autoplot(aus_takeaway)
+
+# Lab Session 12
+
+beer_model <- aus_production %>% 
+  filter(year(Quarter) >= 1992) %>% 
+  model(snaive = SNAIVE(Beer))
+
+beer_model %>%
+  forecast(h = "3 years") %>% 
+  autoplot(aus_production)
+
+augment(beer_model) %>% 
+  features(.resid, ljung_box, lag = 24, dof = 0)
+
+# Lab Session 13
+
+
+hh_budget_train <- hh_budget %>% 
+  filter(Year <= max(Year) - 4)
+
+hh_budget_forecast <- hh_budget_train %>% 
+  model(
+    mean = MEAN(Wealth),
+    naive = NAIVE(Wealth),
+    drift = RW(Wealth ~ drift())
+  ) %>% 
+  forecast(h = "4 years")
+
+hh_budget_forecast %>% 
+  accuracy(hh_budget) %>% 
+  group_by(.model) %>% 
+  summarise_if(is.numeric, mean)
+
+aus_takeaway_train <- aus_takeaway %>%
+  filter(year(Month) <= max(year(Month)) - 4)
+
+aus_takeaway_forecast <- aus_takeaway_train %>% 
+  model(
+    mean = MEAN(Turnover),
+    naive = NAIVE(Turnover),
+    drift = RW(Turnover ~ drift()),
+    snaive = SNAIVE(Turnover)
+  ) %>% 
+  forecast(h = "4 years")
+  
+aus_takeaway_forecast %>% 
+  accuracy(aus_takeaway) 
+
+# Lab Session 14
+
+eggs <- as_tsibble(fma::eggs) %>% 
+  rename(Year = index, Price = value)
+eggs %>% autoplot(Price)
+
+eggs %>% 
+  model(
+    ets = ETS(Price),
+    ets_damped = ETS(Price ~ trend("Ad")),
+    ets_bc = ETS(box_cox(Price, 0.2)),
+    ets_log = ETS(log(Price))
+  ) %>% 
+  forecast(h = "100 years") %>% 
+  autoplot(eggs, level = NULL)
+
+# Lab Session 15
+
+aus_production %>% 
+  model(
+    auto = ETS(Gas),
+    damped = ETS(Gas ~ trend("Ad"))
+  ) %>% 
+  forecast(h = "3 years") %>% 
+  autoplot(aus_production)
 
 # Lab Session 7
 

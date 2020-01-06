@@ -231,7 +231,7 @@ fit %>%
 # Lab Session 14
 ## Lab Session 14
 
-Consider the data set `fma::eggs`, the price of a dozen eggs in the United States from 1900-1993. Experiment with the various options in the `ETS()`` function to see how much the forecasts change with damped trend, or with a Box-Cox transformation. Try to develop an intuition of what each is doing to the forecasts. How can we stop the forecasts becoming negative?
+Consider the data set `fma::eggs`, the price of a dozen eggs in the United States from 1900-1993. Experiment with the various options in the `ETS()` function to see how much the forecasts change with damped trend, or with a Box-Cox transformation. Try to develop an intuition of what each is doing to the forecasts. How can we stop the forecasts becoming negative?
 
 [Hint: use `h=100` when forecasting, so you can clearly see the differences between the various options when plotting the forecasts.]
 
