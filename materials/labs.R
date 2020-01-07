@@ -306,7 +306,9 @@ eggs %>%
 
 # Lab Session 15
 
+aus_production %>% autoplot(Gas)
 aus_production %>% 
+  filter(Quarter > yearquarter("1990 Q4")) %>%
   model(
     auto = ETS(Gas),
     damped = ETS(Gas ~ trend("Ad"))
@@ -314,57 +316,135 @@ aus_production %>%
   forecast(h = "3 years") %>% 
   autoplot(aus_production)
 
-# Lab Session 7
+# Lab Session 16
 
-aus_production %>% autoplot(Gas)
-fit <- aus_production %>%
-  filter(Quarter > yearquarter("1990 Q4")) %>%
-  model(fit = ETS(Gas))
-report(fit)
-fit %>%
-  forecast(h = "3 years") %>%
-  autoplot(aus_production)
-
-
-# Lab Session 8
-
-usgdp <- global_economy %>%
+us_gdp <- global_economy %>%
   filter(Code == "USA")
-autoplot(usgdp, log(GDP))
-fit <- usgdp %>%
+
+autoplot(us_gdp, log(GDP))
+
+us_gdp_model <- us_gdp %>%
   model(
-    arima = ARIMA(log(GDP)),
-    ets = ETS(GDP),
+    arima = ARIMA(log(GDP))
   )
-fit
-forecast(fit)
-fit %>%
+us_gdp_model
+
+us_gdp_model %>%
   forecast(h = "10 years") %>%
-  autoplot(usgdp)
+  autoplot(us_gdp)
 
 
-# Lab Session 9
+# Lab Session 17
 
-fit <- tourism %>%
+tourism_models <- tourism %>%
   model(arima = ARIMA(Trips))
-fit
-fc <- forecast(fit)
-fc
-fc %>%
+
+tourism_fc <- forecast(tourism_models)
+tourism_fc
+
+tourism_fc %>%
   filter(Region == "Snowy Mountains") %>%
   autoplot(tourism)
-fc %>%
+
+tourism_fc %>%
   filter(Region == "Melbourne") %>%
   autoplot(tourism)
 
+# Lab Session 18
 
-# Lab Session 10
+vic_elec_daily <- vic_elec %>%
+  filter(year(Time) == 2014) %>%
+  index_by(Date = date(Time)) %>%
+  summarise(
+    Demand = sum(Demand)/1e3,
+    Temperature = max(Temperature),
+    Holiday = any(Holiday)) %>%
+  mutate(
+    Day_Type = case_when(
+      Holiday ~ "Holiday",
+      wday(Date) %in% 2:6 ~ "Weekday",
+      TRUE ~ "Weekend")
+  )
 
-mypbs <- PBS %>%
-  aggregate_key(Concession * Type * ATC1,
+elec_model <- vic_elec_daily %>%
+  model(fit = ARIMA(Demand ~ Temperature + I(pmax(Temperature-20,0)) + (Day_Type=="Weekday")))
+report(elec_model)
+
+augment(elec_model) %>%
+  gg_tsdisplay(.resid, plot_type = "histogram")
+
+augment(elec_model) %>%
+  features(.resid, ljung_box, dof = 9, lag = 14)
+
+vic_next_day <- new_data(vic_elec_daily, 1) %>%
+  mutate(Temperature = 26, Day_Type = "Holiday")
+forecast(elec_model, vic_next_day)
+
+vic_elec_future <- new_data(vic_elec_daily, 14) %>%
+  mutate(
+    Temperature = 26,
+    Holiday = c(TRUE, rep(FALSE, 13)),
+    Day_Type = case_when(
+      Holiday ~ "Holiday",
+      wday(Date) %in% 2:6 ~ "Weekday",
+      TRUE ~ "Weekend"
+    )
+  )
+
+forecast(elec_model, vic_elec_future) %>%
+  autoplot(vic_elec_daily) + ylab("Electricity demand (GW)")
+
+# Lab Session 19
+
+vic_elec_daily <- vic_elec %>%
+  index_by(Date = date(Time)) %>%
+  summarise(
+    Demand = sum(Demand)/1e3,
+    Temperature = max(Temperature),
+    Holiday = any(Holiday)) %>%
+  mutate(
+    Day_Type = case_when(
+      Holiday ~ "Holiday",
+      wday(Date) %in% 2:6 ~ "Weekday",
+      TRUE ~ "Weekend")
+  )
+
+elec_model <- vic_elec_daily %>%
+  model(fit = ARIMA(Demand ~ fourier("year", K = 10) + Temperature + I(pmax(Temperature-20,0)) + (Day_Type=="Weekday")))
+report(elec_model)
+
+augment(elec_model) %>%
+  gg_tsdisplay(.resid, plot_type = "histogram")
+
+augment(elec_model) %>%
+  features(.resid, ljung_box, dof = 9, lag = 14)
+
+vic_next_day <- new_data(vic_elec_daily, 1) %>%
+  mutate(Temperature = 26, Day_Type = "Holiday")
+forecast(elec_model, vic_next_day)
+
+vic_elec_future <- new_data(vic_elec_daily, 14) %>%
+  mutate(
+    Temperature = 26,
+    Holiday = c(TRUE, rep(FALSE, 13)),
+    Day_Type = case_when(
+      Holiday ~ "Holiday",
+      wday(Date) %in% 2:6 ~ "Weekday",
+      TRUE ~ "Weekend"
+    )
+  )
+
+forecast(elec_model, vic_elec_future) %>%
+  autoplot(vic_elec_daily) + ylab("Electricity demand (GW)")
+
+# Lab Session 20
+
+PBS_aggregated <- PBS %>%
+  aggregate_key(
+    Concession * Type * ATC1,
     Cost = sum(Cost) / 1e6
   )
-fit <- mypbs %>%
+fit <- PBS_aggregated %>%
   filter(Month <= yearmonth("2005 Jun")) %>%
   model(
     ets = ETS(Cost),
@@ -378,7 +458,7 @@ fc <- fit %>%
     snaive_adj = min_trace(snaive)
   ) %>%
   forecast(h = "3 years")
-accuracy(fc, mypbs) %>%
+accuracy(fc, PBS_aggregated) %>%
   group_by(.model) %>%
-  summarise(mase = mean(MASE)) %>%
-  arrange(mase)
+  summarise(MASE = mean(MASE)) %>%
+  arrange(MASE)
