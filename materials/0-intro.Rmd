@@ -129,3 +129,20 @@ install.packages("fpp3", dependencies=TRUE)
   \bottomrule
 \end{tabular}
 
+## Find me at ...
+\Large\vspace*{2.5cm}
+\begin{flushright}
+
+\href{https://twitter.com/robjhyndman}{\faicon{twitter} @robjhyndman}
+
+\href{https://github.com/robjhyndman}{\faicon{github}  @robjhyndman}
+
+\href{https://robjhyndman.com}{\faicon{home} robjhyndman.com}
+
+\href{mailto:rob.hyndman@monash.edu}{\faicon{envelope}  rob.hyndman@monash.edu}
+
+\end{flushright}
+
+
+
+
