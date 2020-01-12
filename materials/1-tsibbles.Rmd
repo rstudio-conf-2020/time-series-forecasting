@@ -141,7 +141,8 @@ tourism
 
 ```{r tstable, cache=TRUE}
 mydata <- tsibble(year = 2012:2016,
-  y = c(123,39,78,52,110), index = year)
+                  y = c(123,39,78,52,110),
+                  index = year)
 mydata
 ```
 
@@ -198,27 +199,15 @@ tribble(
 
 \full{Beechworth_prison}
 
-## Create a tsibble from a csv
-\fontsize{13}{14}\sf
-
-```{r prison, echo=FALSE, warning=FALSE, message=FALSE}
-prison <- readr::read_csv("data/prison_population.csv")
-prison %>%
-  head(15) %>%
-  knitr::kable(booktabs=TRUE)
-```
-
 ## Read a csv file and convert to a tsibble {-}
 \fontsize{10}{11}\sf
 
-```{r prison2, eval=FALSE}
-prison <- readr::read_csv("prison_population.csv")
+```{r prison}
+prison <- readr::read_csv("data/prison_population.csv")
 ```
-
 ```{r prison2a, dependson="prison", echo=FALSE}
 prison
 ```
-
 ## Read a csv file and convert to a tsibble {-}
 \fontsize{10}{11}\sf
 
