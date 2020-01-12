@@ -80,8 +80,8 @@ aus_economy <- filter(global_economy, Code == "AUS")
 print_retail %>%
   left_join(aus_economy, by = "Year") %>%
   mutate(Adj_turnover = Turnover / CPI) %>%
-  pivot_longer(c(Turnover, Adj_turnover), 
-               names_to = "Type", values_to = "Turnover") %>% 
+  pivot_longer(c(Turnover, Adj_turnover),
+               names_to = "Type", values_to = "Turnover") %>%
   ggplot(aes(x = Year, y = Turnover)) +
     geom_line() +
     facet_grid(vars(Type), scales = "free_y") +
@@ -103,8 +103,8 @@ aus_economy <- filter(global_economy, Code == "AUS")
 print_retail %>%
   left_join(aus_economy, by = "Year") %>%
   mutate(Adj_turnover = Turnover / CPI) %>%
-  pivot_longer(c(Turnover, Adj_turnover), 
-               names_to = "Type", values_to = "Turnover") %>% 
+  pivot_longer(c(Turnover, Adj_turnover),
+               names_to = "Type", values_to = "Turnover") %>%
   ggplot(aes(x = Year, y = Turnover)) +
     geom_line() +
     facet_grid(vars(Type), scales = "free_y") +
@@ -212,14 +212,6 @@ food %>%
 ```
 
 ## Box-Cox transformations
-\fontsize{13}{14}\sf
-
-```{r food-bc, echo=TRUE,fig.height=4}
-food %>% autoplot(box_cox(Turnover, 1/3)) +
-  labs(y = "Box-Cox transformed turnover")
-```
-
-## Box-Cox transformations
 
 \fontsize{13}{15}\sf
 
@@ -234,6 +226,15 @@ food %>%
 * This attempts to balance the seasonal fluctuations and random variation across the series.
 * Always check the results.
 * A low value of $\lambda$ can give extremely large prediction intervals.
+
+
+## Box-Cox transformations
+\fontsize{13}{14}\sf
+
+```{r food-bc, echo=TRUE,fig.height=4}
+food %>% autoplot(box_cox(Turnover, 0.0524)) +
+  labs(y = "Box-Cox transformed turnover")
+```
 
 ## Transformations
 \fontsize{13}{15}\sf
@@ -257,11 +258,8 @@ food %>%
 
     * United States GDP from `global_economy`
     * Slaughter of Victorian “Bulls, bullocks and steers” in `aus_livestock`
-    * Gas production from `aus_production`
-    * Tobacco from `aus_production`
-    * Economy class passengers between Melbourne and Sydney from `ansett`
     * Victorian Electricity Demand from `vic_elec`.
-
+    * Gas production from `aus_production`
 
 2. Why is a Box-Cox transformation unhelpful for the `canadian_gas` data?
 

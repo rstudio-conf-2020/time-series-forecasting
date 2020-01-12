@@ -132,23 +132,12 @@ aus_livestock %>%
     Animal == "Bulls, bullocks and steers"
   ) %>% 
   autoplot(log(Count))
-  
-aus_production %>% 
-  autoplot(box_cox(Gas, 0.1))
 
-aus_production %>% 
-  autoplot(Tobacco)
-
-ansett %>% 
-  filter(
-    Class == "Economy",
-    Airports == "MEL-SYD"
-  ) %>% 
-  autoplot(Passengers)
-
-vic_elec %>% 
+vic_elec %>%
   autoplot(Demand)
 
+aus_production %>%
+  autoplot(box_cox(Gas, 0.1))
 # Lab Session 8
 as_tsibble(expsmooth::cangas) %>%
   STL(value ~ season(window=7) + trend(window=11)) %>%
