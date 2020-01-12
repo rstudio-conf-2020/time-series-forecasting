@@ -282,19 +282,20 @@ aus_takeaway_forecast %>%
 
 # Lab Session 14
 
-eggs <- as_tsibble(fma::eggs) %>%
-  rename(Year = index, Price = value)
-eggs %>% autoplot(Price)
+global_economy %>%
+  filter(Country == "China") %>% 
+  autoplot(GDP)
 
-eggs %>%
+global_economy %>%
+  filter(Country == "China") %>% 
   model(
-    ets = ETS(Price),
-    ets_damped = ETS(Price ~ trend("Ad")),
-    ets_bc = ETS(box_cox(Price, 0.2)),
-    ets_log = ETS(log(Price))
+    ets = ETS(GDP),
+    ets_damped = ETS(GDP ~ trend("Ad")),
+    ets_bc = ETS(box_cox(GDP, 0.2)),
+    ets_log = ETS(log(GDP))
   ) %>%
-  forecast(h = "100 years") %>%
-  autoplot(eggs, level = NULL)
+  forecast(h = "20 years") %>%
+  autoplot(global_economy, level = NULL)
 
 # Lab Session 15
 
