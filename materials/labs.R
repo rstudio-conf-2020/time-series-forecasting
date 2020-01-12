@@ -105,6 +105,9 @@ max_gdp_pc <- global_economy %>%
     by = "Country"
   )
 
+# install.packages("ggrepel")
+# Using goem_label_repel() gives nicer label positions than geom_label()
+# If the ggrepel package is not available, you can use geom_label() instead
 library(ggrepel)
 global_economy %>%
   ggplot(aes(x = Year, y = GDP / Population, group = Country)) +
@@ -161,7 +164,6 @@ canadian_gas %>%
 # Lab Session 9
 
 library(GGally)
-
 tourism %>%
   features(Trips, feat_stl) %>%
   select(-Region, -State, -Purpose) %>%

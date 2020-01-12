@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
   cache=TRUE,
   warning=FALSE,
   message=FALSE)
-library(fpp2)
+library(fpp3)
 options(digits=4, width=55)
 ```
 

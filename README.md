@@ -53,7 +53,7 @@ This course will be appropriate for you if you answer yes to these questions:
 Attendees are expected to have R and RStudio installed on their own computers, along with the [`tidyverse`](http://tidyverse.org) and [`fpp3`](http://pkg.robjhyndman.com/fpp3-package) packages and their dependencies.
 
 ```r
-install.packages(c("tidyverse","fpp3"))
+install.packages(c("tidyverse","fpp3","readxl","GGally","sugrrants"))
 ```
 
 ## Schedule
