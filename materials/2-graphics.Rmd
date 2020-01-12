@@ -157,7 +157,7 @@ prettify(p1, size = 3,
 1. Look at the quarterly tourism data for the Snowy Mountains
 
     ```r
-    snowy <- tourism %>% 
+    snowy <- tourism %>%
       filter(Region == "Snowy Mountains")
     ```
 
@@ -189,17 +189,17 @@ Cyclic
 * magnitude of cycle more variable than magnitude of seasonal pattern
 
 ## Time series patterns
-\fontsize{13}{15}\sf
+\fontsize{10}{10}\sf
 
 ```{r, fig.height=3}
-as_tsibble(fma::elec) %>%
-  filter(index >= 1980) %>%
-  autoplot(value) + xlab("Year") + ylab("GWh") +
+aus_production %>%
+  filter(year(Quarter) >= 1980) %>%
+  autoplot(Electricity) + ylab("GWh") +
   ggtitle("Australian electricity production")
 ```
 
 ## Time series patterns
-\fontsize{13}{15}\sf
+\fontsize{10}{10}\sf
 
 ```{r, warning=FALSE, fig.height=3}
 aus_production %>%
@@ -209,27 +209,28 @@ aus_production %>%
 ```
 
 ## Time series patterns
-\fontsize{13}{15}\sf
+\fontsize{10}{10}\sf
 
 ```{r, fig.height=3}
-as_tsibble(fma::hsales) %>%
-  autoplot(value) +
-  ggtitle("Sales of new one-family houses, USA") +
-  xlab("Year") + ylab("Total sales")
+us_employment %>%
+  filter(Title == "Retail Trade", year(Month) >= 1980) %>%
+  autoplot(Employed/1e3) +
+  ggtitle("Retail employment, USA") + ylab("Million people")
 ```
 
 ## Time series patterns
-\fontsize{13}{15}\sf
+\fontsize{10}{10}\sf
 
 ```{r, fig.height=3}
-as_tsibble(fma::ustreas) %>%
-  autoplot(value) +
-  ggtitle("US Treasury Bill Contracts") +
-  xlab("Day") + ylab("price")
+gafa_stock %>%
+  filter(Symbol=="AMZN", year(Date) >= 2018) %>%
+  autoplot(Close) +
+  ggtitle("Amazon closing stock price") +
+  xlab("Day") + ylab("$")
 ```
 
 ## Time series patterns
-\fontsize{13}{15}\sf
+\fontsize{10}{10}\sf
 
 ```{r, fig.height=3}
 pelt %>%
@@ -340,18 +341,20 @@ holidays %>% ACF(Trips) %>% autoplot()
 - When data are seasonal, the autocorrelations will be larger at the seasonal lags (i.e., at multiples of the seasonal frequency)
 - When data are trended and seasonal, you see a combination of these effects.
 
-## Aus monthly electricity production
+## US retail trade employment
+\fontsize{11}{12}\sf
 
 ```{r}
-elec2 <- as_tsibble(fma::elec) %>%
-  filter(year(index) >= 1980)
-elec2 %>% autoplot(value)
+retail <- us_employment %>%
+  filter(Title == "Retail Trade", year(Month) >= 1980)
+retail %>% autoplot(Employed)
 ```
 
-## Aus monthly electricity production
+## US retail trade employment
+\fontsize{11}{12}\sf
 
 ```{r}
-elec2 %>% ACF(value, lag_max=48) %>%
+retail %>% ACF(Employed, lag_max=48) %>%
   autoplot()
 ```
 
@@ -465,7 +468,7 @@ wn %>% ACF(y)
 
 
 ```{r, echo=FALSE}
-wn %>% 
+wn %>%
   ACF(y, lag_max = 10) %>%
   as_tibble() %>%
   pivot_wider(names_from = lag, values_from = acf) %>%
