@@ -264,5 +264,5 @@ food %>%
     * Victorian Electricity Demand from `vic_elec`.
 
 
-2. Why is a Box-Cox transformation unhelpful for the `expsmooth::cangas` data?
+2. Why is a Box-Cox transformation unhelpful for the `canadian_gas` data?
 

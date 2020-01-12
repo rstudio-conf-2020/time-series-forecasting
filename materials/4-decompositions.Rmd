@@ -177,9 +177,8 @@ autoplot(dcmp, trend, scale_bars=FALSE) +
     \fontsize{10}{12}\sf
 
     ```r
-    expsmooth::cangas %>%
-      as_tsibble() %>%
-      STL(value ~ season(window=7) + trend(window=11)) %>%
+    canadian_gas %>%
+      STL(Volume ~ season(window=7) + trend(window=11)) %>%
       autoplot()
     ```
 
