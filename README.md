@@ -85,6 +85,10 @@ install.packages(c("tidyverse","fpp3","GGally","sugrrants"))
 
 He has coauthored about 40 R packages, many of which are on CRAN. He is best known for the [**forecast**](https://cran.r-project.org/package=forecast) package. This workshop will be based around a suite of new packages he has been developing to do time series analysis and forecasting using tidy principles.
 
+## Textbook
+
+[![](http://otexts.com/fpp3/fpp2_cover.jpg)](http://OTexts.com/fpp3)
+
 -----
 
 ![](https://i.creativecommons.org/l/by/4.0/88x31.png) This work is
