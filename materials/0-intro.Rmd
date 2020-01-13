@@ -1,6 +1,6 @@
 ---
 title: "Tidy Time Series & Forecasting in R"
-author: ""
+author: "Rob J Hyndman"
 toc: false
 output:
   binb::monash:
@@ -14,24 +14,13 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE,
-  cache=TRUE,
-  warning=FALSE,
-  message=FALSE)
+  cache = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
 library(fpp3)
-options(digits=4, width=55)
+options(digits = 4, width = 55)
 ```
-
-## Resources
-
-\large
-
- * Slides
- * Exercises
- * Textbook
- * Useful links
-
-\vspace*{2cm}\begin{alertblock}{}{\centerline{\Large\textbf{\url{bit.ly/fable2020}}}}
-\end{alertblock}
 
 ## Brief bio
 
@@ -51,15 +40,13 @@ options(digits=4, width=55)
 \end{itemize}
 \end{block}
 
-\only<3>{\begin{textblock}{5.5}(6.9,8.1)\begin{alertblock}{}\Large robjhyndman.com\end{alertblock}\end{textblock}}
-
 \vspace*{10cm}
 
 ## Assumptions
 
-  * This is not an introduction to R. I assume you are broadly comfortable with R code and the RStudio environment.
+  * This is not an introduction to R. I assume you are broadly comfortable with R code, the RStudio environment and the tidyverse.
   * This is not a statistics course. I assume you are familiar with concepts such as the mean, standard deviation, quantiles, regression, normal distribution, likelihood, etc.
-  * This is not a theory course. I am not going to derive anything. I will teach you forecasting tools, when to use them and how to use them most effectively.
+  * This is not a theory course. I am not going to derive anything. I will teach you time series and forecasting tools, when to use them, and how to use them most effectively.
 
 ## Key reference
 
@@ -132,6 +119,10 @@ install.packages(c(
   2      & 10. Hierarchical forecasting    & 11 \\
   \bottomrule
 \end{tabular}
+
+\vspace*{.6cm}\begin{alertblock}{}{\centerline{\Large\textbf{\url{bit.ly/fable2020}}}}
+\end{alertblock}
+
 
 ## Find me at ...
 \Large\vspace*{2.5cm}
