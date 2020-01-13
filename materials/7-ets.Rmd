@@ -25,9 +25,6 @@ us_change <- readr::read_csv("https://otexts.com/fpp3/extrafiles/us_change.csv")
   mutate(Time = yearquarter(Time)) %>%
   as_tsibble(index = Time)
 eu_retail <- as_tsibble(fpp2::euretail)
-h02 <- tsibbledata::PBS %>%
-  filter(ATC2 == "H02") %>%
-  summarise(Cost = sum(Cost))
 melsyd <- tsibbledata::ansett %>%
   filter(Airports == "MEL-SYD")
 austa <- as_tsibble(fpp2::austa) %>%
@@ -37,6 +34,31 @@ austa <- as_tsibble(fpp2::austa) %>%
 
 # Exponential smoothing
 
+## Pharmaceutical Benefits Scheme
+
+\full{pills}
+
+## Pharmaceutical Benefits Scheme
+
+### The Pharmaceutical Benefits Scheme (PBS) is the Australian government drugs subsidy scheme.
+
+  * Many drugs bought from pharmacies are subsidised to allow more equitable access to modern drugs.
+  * The cost to government is determined by the number and types of drugs purchased. Currently nearly 1\% of GDP.
+  * The total cost is budgeted based on forecasts of drug usage.
+
+## Pharmaceutical Benefits Scheme
+
+\full{pbs2}
+
+## Pharmaceutical Benefits Scheme
+
+  * In 2001: \$4.5 billion budget, under-forecasted by \$800 million.
+  * Thousands of products. Seasonal demand.
+  * Subject to covert marketing, volatile products, uncontrollable expenditure.
+  * Although monthly data available for 10 years, data are aggregated to annual values, and only the first three years are used in estimating the forecasts.
+  * All forecasts being done with the \texttt{FORECAST} function in MS-Excel!
+
+
 ## Historical perspective
 
  * Developed in the 1950s and 1960s as methods (algorithms) to produce point forecasts.
@@ -44,6 +66,8 @@ austa <- as_tsibble(fpp2::austa) %>%
  * The rate of change of the components are controlled by "smoothing parameters":\newline $\alpha$, $\beta$ and $\gamma$ respectively.
   * Need to choose best values for the smoothing parameters (and initial states).
   * Equivalent ETS state space models developed in the 1990s and 2000s.
+
+
 
 ## A model for levels, trends, and seasonalities
 \fontsize{13}{14}\sf

@@ -47,57 +47,26 @@ vic_elec_daily <- vic_elec %>%
 \end{block}
 
   * $y_t$ modeled as function of $k$ explanatory variables
-$x_{1,t},\dots,x_{k,t}$.
-  * In regression, we assume that $\varepsilon_t$ was  WN.
-  * Now we want to allow $\varepsilon_t$ to be autocorrelated.
+  * In regression, we assume that $\varepsilon_t$ is white noise.
 \vspace*{0.3cm}
 \pause
-\begin{alertblock}{Example: ARIMA(1,1,1) errors}\vspace*{-0.2cm}
+\begin{alertblock}{RegARIMA model}\vspace*{-0.2cm}
 \begin{align*}
   y_t &= \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t,\\
-      & (1-\phi_1B)(1-B)\eta_t = (1+\theta_1B)\varepsilon_t,
+      \eta_t &\sim \text{ARIMA}
 \end{align*}
 \end{alertblock}
-\rightline{where $\varepsilon_t$ is white noise.}
 
-## Residuals and errors
+  * Residuals are from ARIMA model.
+  * Estimate model in one step using MLE
+  * Select model with lowest AICc value.
 
-\begin{alertblock}{Example: $\eta_t$ = ARIMA(1,1,1)}\vspace*{-0.2cm}
-\begin{align*}
-  y_t &= \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t,\\
-      & (1-\phi_1B)(1-B)\eta_t = (1+\theta_1B)\varepsilon_t,
-\end{align*}\end{alertblock}\pause
+## US personal consumption and income
+\fontsize{9}{10}\sf
 
-  * Be careful in distinguishing $\eta_t$ from $\varepsilon_t$.
-  * Only the errors $\varepsilon_t$ are assumed to be white noise.
-  * In ordinary regression, $\eta_t$ is assumed to be white noise and so $\eta_t = \varepsilon_t$.
-  * If $\eta_t$ is non-stationary, the model is equivalent to regressing differenced $y_t$ on differenced $x_{1,t},\dots,x_{k,t}$.
-
-## Estimation
-\fontsize{14}{14}\sf
-
-If we minimize $\sum \eta_t^2$ (by using ordinary regression):
-
-  1. Estimated coefficients $\hat{\beta}_0,\dots,\hat{\beta}_k$ are no longer optimal as some information ignored;
-  2. Statistical tests associated with the model (e.g., t-tests on the coefficients) are incorrect.
-  3. $p$-values for coefficients usually too small (``spurious regression'').
-  4. AIC of fitted models misleading.
-
-\pause
-
- * Minimizing $\sum \varepsilon_t^2$ avoids these problems.
- * Maximizing likelihood similar to minimizing $\sum \varepsilon_t^2$.
-
-## Selecting predictors
-
-\begin{alertblock}{}\vspace*{-0.2cm}
-\begin{align*}
-  y_t &= \beta_0 + \beta_1 x_{1,t} + \dots + \beta_k x_{k,t} + \eta_t,\\
-     \eta_t &\sim \text{ARIMA}(p,d,q)
-\end{align*}\end{alertblock}
-
-  * AICc can be calculated for final model.
-  * Repeat procedure for all subsets of predictors to be considered, and select model with lowest AICc value.
+```{r usconsumpdata, echo=TRUE}
+us_change
+```
 
 ## US personal consumption and income
 
@@ -111,12 +80,10 @@ us_change %>%
 ```
 
 ## US personal consumption and income
+\fontsize{9}{10}\sf
 
-```{r, fig.height=6, fig.width=8.5}
-us_change %>%
-  ggplot(aes(x = Income, y = Consumption)) +
-  geom_point() +
-  ggtitle("Quarterly changes in US consumption and personal income")
+```{r usconsump_pairs, fig.height=6, fig.width=8.5, echo=TRUE}
+us_change %>% as_tibble() %>% select(-Quarter) %>% GGally::ggpairs()
 ```
 
 ## US personal consumption and income
@@ -128,7 +95,8 @@ us_change %>%
 \fontsize{8}{9}\sf
 
 ```{r usconsump2, echo=TRUE, fig.height=3}
-fit <- us_change %>% model(ARIMA(Consumption ~ Income))
+fit <- us_change %>%
+  model(regarima = ARIMA(Consumption ~ Income + Production + Savings + Unemployment))
 report(fit)
 ```
 
@@ -139,39 +107,31 @@ Write down the equations for the fitted model.
 ## US personal consumption and income
 \fontsize{8}{9}\sf
 
-```{r , echo=TRUE, fig.height=3.7}
-residuals(fit, type = "regression") %>%
-  gg_tsdisplay(.resid) + ggtitle("Regression errors")
+```{r , echo=TRUE, fig.height=3.7, dependson='usconsump2'}
+gg_tsresiduals(fit)
 ```
 
 ## US personal consumption and income
 \fontsize{8}{9}\sf
 
-```{r , echo=TRUE, fig.height=3.7}
-residuals(fit, type = "response") %>%
-  gg_tsdisplay(.resid) + ggtitle("ARIMA errors")
-```
-
-## US personal consumption and income
-\fontsize{8}{9}\sf
-
-```{r , echo=TRUE, fig.height=3.7}
+```{r , echo=TRUE, fig.height=3.7, dependson='usconsump2'}
 augment(fit) %>%
-  features(.resid, ljung_box, dof = 5, lag = 12)
+  features(.resid, ljung_box, dof = 6, lag = 12)
 ```
 
 ## US personal consumption and income
-\fontsize{8}{9}\sf
+\fontsize{8}{8}\sf
 
-```{r usconsump3, echo=TRUE, fig.height=3}
+```{r usconsump3, echo=TRUE, fig.height=3, dependson='usconsump2'}
 us_change_future <- new_data(us_change, 8) %>%
-  mutate(Income = mean(us_change$Income))
+  mutate(Income = tail(us_change$Income,1),
+         Production =tail(us_change$Production,1),
+         Savings = tail(us_change$Savings,1),
+         Unemployment = tail(us_change$Unemployment,1))
 forecast(fit, new_data = us_change_future) %>%
   autoplot(us_change) +
-  labs(
-    x = "Year", y = "Percentage change",
-    title = "Forecasts from regression with ARIMA(1,0,2) errors"
-  )
+  labs(x = "Year", y = "Percentage change",
+       title = "Forecasts from regression with ARIMA errors")
 ```
 
 ## Forecasting
@@ -293,126 +253,6 @@ vic_elec_daily <- vic_elec %>%
       wday(Date) %in% 2:6 ~ "Weekday",
       TRUE ~ "Weekend"))
 ```
-
-# Stochastic and deterministic trends
-
-## Stochastic \& deterministic trends
-
-\begin{block}{Deterministic trend}
-\[ y_t = \beta_0 + \beta_1 t + \eta_t \]
-where $\eta_t$ is ARMA process.\pause
-\end{block}
-
-\begin{block}{Stochastic trend}
-\[ y_t = \beta_0 + \beta_1 t + \eta_t \]
-where $\eta_t$ is ARIMA process with $d\ge1$.\pause
-
-Difference both sides until $\eta_t$ is stationary:
-\[ y'_t = \beta_1 + \eta'_t \]
-where $\eta'_t$ is ARMA process.
-\end{block}
-
-## International visitors
-
-```{r}
-aus_visitors <- as_tsibble(fpp2::austa)
-aus_visitors %>%
-  autoplot(value) +
-  labs(
-    x = "Year", y = "millions of people",
-    title = "Total annual international visitors to Australia"
-  )
-```
-
-## International visitors
-\fontsize{9}{9}\sf
-
-**Deterministic trend**
-
-```{r, echo=TRUE}
-fit_deterministic <- aus_visitors %>%
-  model(Deterministic = ARIMA(value ~ trend() + pdq(d = 0)))
-report(fit_deterministic)
-```
-\pause\vspace*{-0.3cm}
-
-```{r austaparams, echo=FALSE}
-coef <- rlang::set_names(tidy(fit_deterministic)$estimate, tidy(fit_deterministic)$term)
-phi1 <- coef["ar1"]
-phi2 <- coef["ar2"]
-intercept <- coef["intercept"]
-slope <- coef["trend()"]
-sigma2 <- glance(fit_deterministic)$sigma2
-```
-
-###
-\vspace*{-.2cm}
-\begin{align*}
-  y_t &= `r format(intercept,digits=2)` + `r format(slope, digits=2)` t + \eta_t \\
-  \eta_t &= `r format(phi1, digits=3)` \eta_{t-1} `r format(phi2, digits=2)` \eta_{t-2} + \varepsilon_t\\
-  \varepsilon_t &\sim \text{NID}(0,`r format(sigma2, digits=3)`).
-\end{align*}
-
-## International visitors
-\fontsize{9}{9}\sf
-
-**Stochastic trend**
-
-```{r, echo=TRUE}
-fit_stochastic <- aus_visitors %>%
-  model(Stochastic = ARIMA(value ~ pdq(d = 1)))
-report(fit_stochastic)
-```
-\pause\vspace*{-0.3cm}
-
-```{r austaparams2, cache=TRUE, echo=FALSE}
-coef <- rlang::set_names(tidy(fit_stochastic)$estimate, tidy(fit_stochastic)$term)
-drift <- coef["constant"]
-theta1 <- coef["ma1"]
-sigma2 <- glance(fit_stochastic)$sigma2
-```
-
-###
-\vspace*{-.2cm}
-\begin{align*}
-y_t-y_{t-1} &= `r format(drift, digits=2)` + 0.30\varepsilon_{t-1} + \varepsilon_t \\
-  y_t &= y_0 + `r format(drift, digits=2)` t + \eta_t \\
-  \eta_t &= \eta_{t-1} + `r format(theta1,digits=2, nsmall=2)` \varepsilon_{t-1} + \varepsilon_{t}\\
-  \varepsilon_t &\sim \text{NID}(0,`r format(sigma2, digits=3)`).
-\end{align*}
-
-## International visitors
-
-```{r}
-fc_deterministic <- forecast(fit_deterministic, h = 10)
-fc_stochastic <- forecast(fit_stochastic, h = 10)
-rbind(fc_deterministic, fc_stochastic) %>%
-  autoplot(aus_visitors) +
-  facet_grid(vars(.model)) +
-  labs(
-    x = "Year", y = "Visitors to Australia (millions)",
-    title = "Forecasts from trend models"
-  ) +
-  guides(colour = FALSE)
-```
-
-## International visitors
-
-```{r echo=FALSE, fig.height=5.5, fig.width=8.5}
-rbind(fc_deterministic, fc_stochastic) %>%
-  autoplot(aus_visitors, alpha = 0.5) +
-  guides(colour = guide_legend(title = "Forecast")) +
-  labs(
-    x = "Year", y = "Visitors to Australia (millions)",
-    title = "Forecasts from trend models"
-  )
-```
-
-## Forecasting with trend
-
-  * Point forecasts are almost identical, but prediction intervals differ.
-  * Stochastic trends have much wider prediction intervals because the errors are non-stationary.
-  * Be careful of forecasting with deterministic trends too far ahead.
 
 # Dynamic harmonic regression
 
@@ -537,82 +377,6 @@ forecast(fit, h = "3 years") %>%
   autoplot(gasoline)
 ```
 
-## 5-minute call centre volume
-
-\fontsize{8}{9}\sf
-
-```{r calls, echo=TRUE, fig.height=4}
-calls <- readr::read_tsv("http://robjhyndman.com/data/callcenter.txt") %>%
-  pivot_longer(-X1, names_to = "date", values_to = "volume") %>%
-  transmute(
-    time = X1, date = as.Date(date, format = "%d/%m/%Y"),
-    datetime = as_datetime(date) + time, volume
-  ) %>%
-  as_tsibble(index = datetime)
-```
-
-```{r calls2, echo=FALSE}
-calls
-```
-
-## 5-minute call centre volume
-\fontsize{8}{9}\sf
-
-```{r calls-plot, echo=TRUE, fig.height=4}
-calls %>%
-  fill_gaps() %>%
-  autoplot(volume)
-```
-
-## 5-minute call centre volume
-\fontsize{8}{9}\sf
-
-```{r calls-season, echo=TRUE, fig.height=4}
-calls %>%
-  fill_gaps() %>%
-  gg_season(volume, period = "day", alpha = 0.1) +
-  guides(colour = FALSE)
-```
-
-## 5-minute call centre volume
-\fontsize{8}{8}\sf
-
-```{r calls-cal, echo=TRUE, fig.height=4}
-library(sugrrants)
-calls %>%
-  filter(month(date, label = TRUE) == "Apr") %>%
-  ggplot(aes(x = time, y = volume)) +
-  geom_line() + facet_calendar(date)
-```
-
-## 5-minute call centre volume
-\fontsize{8}{8}\sf
-
-```{r callsmodel, echo=TRUE}
-calls_mdl <- calls %>%
-  mutate(idx = row_number()) %>%
-  update_tsibble(index = idx)
-fit <- calls_mdl %>%
-  model(ARIMA(volume ~ fourier(169, K = 10) + pdq(d = 0) + PDQ(0, 0, 0)))
-report(fit)
-```
-
-## 5-minute call centre volume
-\fontsize{10}{13}\sf
-
-```{r callsres, echo=TRUE, dev = "png", dpi = 180}
-augment(fit) %>%
-  gg_tsdisplay(.resid, plot_type = "histogram", lag_max = 338)
-```
-
-## 5-minute call centre volume
-\fontsize{11}{12}\sf
-
-```{r callsf, echo=TRUE, fig.height=4}
-fit %>%
-  forecast(h = 1690) %>%
-  autoplot(calls_mdl)
-```
 
 # Lab Session 19
 ## Lab Session 19
@@ -651,15 +415,42 @@ where $\eta_t$ is an ARIMA process.\pause
 
 ## Example: Insurance quotes and TV adverts
 
-```{r tvadvert}
-insurance <- as_tsibble(fpp2::insurance, pivot_longer = FALSE)
+```{r tvadvertdata}
+insurance <- as_tsibble(fpp2::insurance, pivot_longer = FALSE) %>%
+  rename(Month = index)
+```
 
+```{r tvadvertdata2}
+insurance
+```
+
+## Example: Insurance quotes and TV adverts
+
+```{r tvadvert, dependson='tvadvertdata'}
 insurance %>%
   pivot_longer(c(Quotes, TV.advert)) %>%
-  ggplot(aes(x = index, y = value)) + geom_line() +
+  ggplot(aes(x = Month, y = value)) + geom_line() +
   facet_grid(vars(name), scales = "free_y") +
   labs(x = "Year", y = NULL, title = "Insurance advertising and quotations")
 ```
+
+## Example: Insurance quotes and TV adverts
+
+```{r tvadvertpairs, dependson='tvadvertdata'}
+insurance %>%
+  mutate(
+    lag1 = lag(TV.advert),
+    lag2 = lag(lag1)
+  ) %>%
+  as_tibble() %>%
+  select(-Month) %>%
+  rename(lag0 = TV.advert) %>%
+  pivot_longer(-Quotes, names_to="Lag", values_to="TV_advert") %>%
+  ggplot(aes(x = TV_advert, y = Quotes)) + geom_point() +
+  facet_grid(. ~ Lag) +
+  labs(title = "Insurance advertising and quotations")
+```
+
 
 ## Example: Insurance quotes and TV adverts
 \fontsize{10}{10}\sf
@@ -668,14 +459,17 @@ insurance %>%
 fit <- insurance %>%
   # Restrict data so models use same fitting period
   mutate(Quotes = c(NA, NA, NA, Quotes[4:40])) %>%
-  # Estimate models
   model(
     ARIMA(Quotes ~ pdq(d = 0) + TV.advert),
-    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + lag(TV.advert)),
-    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + lag(TV.advert) +
-      lag(TV.advert, 2)),
-    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + lag(TV.advert) +
-      lag(TV.advert, 2) + lag(TV.advert, 3))
+    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + 
+                                lag(TV.advert)),
+    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + 
+                                lag(TV.advert) +
+                                lag(TV.advert, 2)),
+    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + 
+                                lag(TV.advert) +
+                                lag(TV.advert, 2) + 
+                                lag(TV.advert, 3))
   )
 ```
 
@@ -696,20 +490,21 @@ glance(fit) %>%
 \fontsize{8}{9}\sf
 
 ```{r tvadvertagain, echo=TRUE}
+# Re-fit to all data
 fit <- insurance %>%
-  model(ARIMA(Quotes ~ pdq(3, 0, 0) + TV.advert + lag(TV.advert)))
+  model(ARIMA(Quotes ~ TV.advert + lag(TV.advert) + pdq(d = 0)))
 report(fit)
 ```
 
 \pause
 \vspace{-1em}
 
-```{r tvadvertparam, echo=FALSE}
+```{r tvadvertparam, echo=FALSE, dependson='tvadvertagain'}
 # Store coefficients
 coef <- rlang::set_names(tidy(fit)$estimate, tidy(fit)$term)
 phi1 <- coef["ar1"]
-phi2 <- coef["ar2"]
-phi3 <- coef["ar3"]
+theta1 <- coef["ma1"]
+theta2 <- coef["ma2"]
 intercept <- coef["intercept"]
 gamma0 <- coef["TV.advert"]
 gamma1 <- coef["lag(TV.advert)"]
@@ -720,9 +515,10 @@ gamma1 <- coef["lag(TV.advert)"]
   y_t &= `r format(intercept, digits=3)` +
          `r format(gamma0, digits=3)` x_t +
          `r format(gamma1, digits=2)` x_{t-1} + \eta_t,\\
-  \eta_t &= `r format(phi1, digits=3)` \eta_{t-1}
-        `r format(phi2, digits=2)` \eta_{t-2} +
-        `r format(phi3, digits=2)` \eta_{t-3} + \varepsilon_t,
+  \eta_t &= `r format(phi1, digits=3)` \eta_{t-1} +
+        \varepsilon_t +
+        `r format(theta1, digits=2)` \varepsilon_{t-1} +
+        `r format(theta2, digits=2)` \varepsilon_{t-2}.
 \end{align*}
 
 ## Example: Insurance quotes and TV adverts
