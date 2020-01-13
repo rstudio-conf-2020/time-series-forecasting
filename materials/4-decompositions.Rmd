@@ -65,7 +65,9 @@ where & $y_t=$ & data at period $t$ \\
 \fontsize{10}{11}\sf
 
 ```{r dable}
-dcmp <- elecequip %>% STL(value ~ season(window = 7))
+dcmp <- elecequip %>%
+  model(STL(value ~ season(window = 7))) %>%
+  components()
 dcmp
 ```
 
@@ -109,30 +111,32 @@ holidays %>% autoplot(Trips) +
 ```
 
 ## Holidays decomposition
-\fontsize{9}{10}\sf
+\fontsize{8}{9}\sf
 
 ```{r stlagain2, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
 holidays %>%
-  STL(Trips ~ season(window = "periodic"), robust = TRUE) %>%
+  model(stl = STL(Trips ~ season(window = "periodic"), robust = TRUE)) %>%
+  components() %>%
   autoplot()
 ```
 
 ## Holidays decomposition
-\fontsize{9}{10}\sf
+\fontsize{8}{9}\sf
 
 ```{r stlagain, echo=TRUE, warning=FALSE, fig.width=8, fig.height=4.3}
 holidays %>%
-  STL(Trips ~ season(window = 5), robust = TRUE) %>%
+  model(stl = STL(Trips ~ season(window = 5), robust = TRUE)) %>%
+  components() %>%
   autoplot()
 ```
 
 ## STL decomposition
-\fontsize{11}{13}\sf
+\fontsize{8}{9}\sf
 
 ```r
 holidays %>%
-  STL(Trips ~ trend(window=15) + season(window=13),
-      robust = TRUE)
+  model(stl = STL(Trips ~ trend(window=15) + season(window=13),
+      robust = TRUE))
 ```
 
 \fontsize{14}{16}\sf
@@ -147,7 +151,7 @@ holidays %>%
 \fontsize{9}{10}\sf
 
 ```{r dable2}
-dcmp <- holidays %>% STL(Trips)
+dcmp <- holidays %>% model(stl = STL(Trips)) %>% components()
 dcmp
 ```
 
@@ -173,11 +177,12 @@ autoplot(dcmp, trend, scale_bars = FALSE) +
 
 1. Produce the following decomposition
 
-    \fontsize{10}{12}\sf
+    \fontsize{9}{11}\sf
 
     ```r
     canadian_gas %>%
-      STL(Volume ~ season(window=7) + trend(window=11)) %>%
+      model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
+      components() %>%
       autoplot()
     ```
 
@@ -190,9 +195,13 @@ autoplot(dcmp, trend, scale_bars = FALSE) +
 4. Can you produce a plausible seasonally adjusted series? [Hint: `season_adjust` is one of the variables returned by `STL`.]
 
 ## Multiple seasonality
+\fontsize{9}{9}\sf
 
-```{r vic_elec, fig.height=5, dev="png", dpi=180}
-vic_elec %>% STL(Demand) %>% autoplot()
+```{r vic_elec, fig.height=6, fig.width=6, dev="png", dpi=180, out.height="70%"}
+vic_elec %>%
+  model(STL(Demand)) %>%
+  components() %>%
+  autoplot()
 ```
 
 # Seasonal adjustment
@@ -206,15 +215,16 @@ $$y_t - S_t = T_t + R_t$$
 $$y_t / S_t = T_t \times R_t$$
 
 ## Euro electrical equipment
+\fontsize{8}{10}\sf
 
-\fontsize{11}{12}\sf
-
-```{r elecequip-sa, echo=TRUE}
-dcmp <- elecequip %>% STL(value ~ season(window=7))
-elecequip %>% autoplot(value, col='gray') +
-    autolayer(dcmp, season_adjust, col='blue') +
-    xlab("Year") + ylab("New orders index") +
-    ggtitle("Electrical equipment manufacturing (Euro area)")
+```{r elecequip-sa, echo=TRUE, fig.height=3.1}
+dcmp <- elecequip %>%
+  model(STL(value ~ season(window = 7))) %>%
+  components()
+elecequip %>% autoplot(value, col = "gray") +
+  autolayer(dcmp, season_adjust, col = "blue") +
+  xlab("Year") + ylab("New orders index") +
+  ggtitle("Electrical equipment manufacturing (Euro area)")
 ```
 
 ## Seasonal adjustment
