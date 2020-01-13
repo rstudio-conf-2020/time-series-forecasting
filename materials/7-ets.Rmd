@@ -21,7 +21,7 @@ library(tidyverse)
 library(fpp3)
 usmelec <- as_tsibble(fpp2::usmelec) %>%
   rename(Month = index, Generation = value)
-us_change <- readr::read_csv("https://otexts.com/fpp3/extrafiles/us_change.csv")  %>%
+us_change <- readr::read_csv("https://otexts.com/fpp3/extrafiles/us_change.csv") %>%
   mutate(Time = yearquarter(Time)) %>%
   as_tsibble(index = Time)
 eu_retail <- as_tsibble(fpp2::euretail)
@@ -147,8 +147,9 @@ where $\varepsilon_t\sim\text{NID}(0,\sigma^2)$.
 \fontsize{9}{9}\sf
 
 ```{r holt-fit, echo=TRUE}
-aus_economy <- global_economy %>% filter(Code == "AUS") %>%
-  mutate(Pop = Population/1e6)
+aus_economy <- global_economy %>%
+  filter(Code == "AUS") %>%
+  mutate(Pop = Population / 1e6)
 fit <- aus_economy %>% model(AAN = ETS(Pop))
 report(fit)
 ```
@@ -214,7 +215,7 @@ aus_economy %>%
 
 ```{r popfit, echo=TRUE, cache=TRUE}
 fit <- global_economy %>%
-  mutate(Pop = Population/1e6) %>%
+  mutate(Pop = Population / 1e6) %>%
   model(ets = ETS(Pop))
 fit
 ```
@@ -287,7 +288,9 @@ fit
 \fontsize{9}{10}\sf
 
 ```{r ausholidays-report}
-fit %>% filter(Region=="Snowy Mountains") %>% report()
+fit %>%
+  filter(Region == "Snowy Mountains") %>%
+  report()
 ```
 
 ## Example: Australian holiday tourism
@@ -295,7 +298,9 @@ fit %>% filter(Region=="Snowy Mountains") %>% report()
 \fontsize{9}{10}\sf
 
 ```{r ausholidays-components}
-fit %>% filter(Region=="Snowy Mountains") %>% components(fit)
+fit %>%
+  filter(Region == "Snowy Mountains") %>%
+  components(fit)
 ```
 
 ## Example: Australian holiday tourism
@@ -303,8 +308,10 @@ fit %>% filter(Region=="Snowy Mountains") %>% components(fit)
 \fontsize{9}{10}\sf
 
 ```{r ausholidays-components-plot, fig.height=4.3}
-fit %>% filter(Region=="Snowy Mountains") %>%
-  components(fit) %>% autoplot()
+fit %>%
+  filter(Region == "Snowy Mountains") %>%
+  components(fit) %>%
+  autoplot()
 ```
 
 ## Example: Australian holiday tourism
@@ -320,10 +327,11 @@ fit %>% forecast()
 \fontsize{9}{10}\sf
 
 ```{r ausholidays-forecast-plot}
-fit %>% forecast() %>%
-  filter(Region=="Snowy Mountains") %>%
+fit %>%
+  forecast() %>%
+  filter(Region == "Snowy Mountains") %>%
   autoplot(holidays) +
-    xlab("Year") + ylab("Overnight trips (thousands)")
+  xlab("Year") + ylab("Overnight trips (thousands)")
 ```
 
 # ETS taxonomy

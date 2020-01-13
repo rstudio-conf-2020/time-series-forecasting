@@ -1,6 +1,5 @@
 ---
 title: "Tidy Time Series & Forecasting in R"
-date: "robjhyndman.com/workshop2020"
 author: "6. Introduction to forecasting"
 toc: true
 output:
@@ -17,7 +16,7 @@ knitr::opts_chunk$set(
   echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
   dev.args = list(pointsize = 11)
 )
-options(digits = 3, width = 66)
+options(digits = 3, width = 67)
 library(tidyverse)
 library(fpp3)
 usmelec <- as_tsibble(fpp2::usmelec) %>%
@@ -225,7 +224,8 @@ fit <- austa %>% model(ETS())
 ```
 
 ```{r austa1a, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.width=9, fig.height=6}
-sim <- fit %>% generate(h = 10, times = 10) %>%
+sim <- fit %>%
+  generate(h = 10, times = 10) %>%
   mutate(
     replicate = factor(.rep, levels = 1:10, labels = paste("Future", 1:10))
   )
@@ -234,9 +234,11 @@ ggplot(austa, aes(x = Year)) +
   geom_line(aes(y = .sim, colour = replicate), data = sim) +
   ylab("Millions of visitors") + xlab("Year") +
   ggtitle("Total international visitors to Australia") +
-  scale_colour_manual(values = c("#000000", rainbow(10)),
-                      breaks = c("Data", paste("Future", 1:10)),
-                      name = " ")
+  scale_colour_manual(
+    values = c("#000000", rainbow(10)),
+    breaks = c("Data", paste("Future", 1:10)),
+    name = " "
+  )
 ```
 
 ## Forecast intervals
@@ -270,7 +272,7 @@ new_production <- aus_production %>%
   filter(year(Quarter) >= 1992)
 new_production %>% autoplot(Beer) +
   xlab("Year") + ylab("megalitres") +
-    ggtitle("Australian quarterly beer production")
+  ggtitle("Australian quarterly beer production")
 ```
 
 \begin{textblock}{7}(0.2,8.7)
@@ -282,8 +284,11 @@ new_production %>% autoplot(Beer) +
 ## Some simple forecasting methods
 
 ```{r pigs, fig.height=4.6, echo=FALSE}
-aus_livestock %>% filter(between(year(Month), 1992, 1996),
-  Animal == "Pigs", State == "Victoria") %>%
+aus_livestock %>%
+  filter(
+    between(year(Month), 1992, 1996),
+    Animal == "Pigs", State == "Victoria"
+  ) %>%
   autoplot(Count) +
   xlab("Year") + ylab("thousands") +
   ggtitle("Number of pigs slaughtered in Victoria, 1990-1995")
@@ -301,8 +306,10 @@ aus_livestock %>% filter(between(year(Month), 1992, 1996),
 gafa_stock %>%
   filter(Symbol == "FB", Date >= ymd("2018-01-01")) %>%
   autoplot(Close) +
-  labs(title = "Facebook closing stock price in 2018",
-       x = NULL, y = "Closing price ($USD)")
+  labs(
+    title = "Facebook closing stock price in 2018",
+    x = NULL, y = "Closing price ($USD)"
+  )
 ```
 
 \begin{textblock}{7}(0.2,8.7)
@@ -324,7 +331,9 @@ bricks <- aus_production %>%
   filter(!is.na(Bricks)) %>%
   mutate(average = mean(Bricks))
 
-fc <- bricks %>% model(MEAN(Bricks)) %>% forecast(h = "5 years")
+fc <- bricks %>%
+  model(MEAN(Bricks)) %>%
+  forecast(h = "5 years")
 
 bricks %>%
   ggplot(aes(x = Quarter, y = Bricks)) +
@@ -366,7 +375,7 @@ bricks %>%
   model(SNAIVE(Bricks ~ lag("year"))) %>%
   forecast(h = "5 years") %>%
   autoplot(filter(bricks, year(Quarter) > 1990), level = NULL) +
-  geom_point(data = slice(bricks, (n()-3):n()), colour = "blue") +
+  geom_point(data = slice(bricks, (n() - 3):n()), colour = "blue") +
   ggtitle("Clay brick production in Australia")
 ```
 
@@ -395,8 +404,10 @@ aus_production %>%
   model(RW(Bricks ~ drift())) %>%
   forecast(h = "5 years") %>%
   autoplot(aus_production, level = NULL) +
-  geom_line(data = slice(aus_production, range(cumsum(!is.na(Bricks)))),
-            linetype = "dashed", colour = "blue") +
+  geom_line(
+    data = slice(aus_production, range(cumsum(!is.na(Bricks)))),
+    linetype = "dashed", colour = "blue"
+  ) +
   ggtitle("Clay brick production in Australia")
 ```
 
@@ -460,7 +471,7 @@ beer_fc %>%
 fb_stock <- gafa_stock %>%
   filter(Symbol == "FB") %>%
   mutate(trading_day = row_number()) %>%
-  update_tsibble(index=trading_day, regular=TRUE)
+  update_tsibble(index = trading_day, regular = TRUE)
 # Specify, estimate and forecast
 fb_stock %>%
   model(
@@ -468,11 +479,11 @@ fb_stock %>%
     `Naïve` = NAIVE(Close),
     Drift = RW(Close ~ drift())
   ) %>%
-  forecast(h=42) %>%
+  forecast(h = 100) %>%
   autoplot(fb_stock, level = NULL) +
   ggtitle("Facebook closing stock price") +
-    xlab("Day") + ylab("") +
-    guides(colour=guide_legend(title="Forecast"))
+  xlab("Day") + ylab("") +
+  guides(colour = guide_legend(title = "Forecast"))
 ```
 
 ## Facebook closing stock price
@@ -482,7 +493,7 @@ fb_stock %>%
 fb_stock <- gafa_stock %>%
   filter(Symbol == "FB") %>%
   mutate(trading_day = row_number()) %>%
-  update_tsibble(index=trading_day, regular=TRUE)
+  update_tsibble(index = trading_day, regular = TRUE)
 # Specify, estimate and forecast
 fb_stock %>%
   model(
@@ -490,11 +501,11 @@ fb_stock %>%
     `Naïve` = NAIVE(Close),
     Drift = RW(Close ~ drift())
   ) %>%
-  forecast(h=42) %>%
+  forecast(h = 100) %>%
   autoplot(fb_stock, level = NULL) +
   ggtitle("Facebook closing stock price") +
-    xlab("Day") + ylab("") +
-    guides(colour=guide_legend(title="Forecast"))
+  xlab("Day") + ylab("") +
+  guides(colour = guide_legend(title = "Forecast"))
 ```
 
 # Lab Session 11
@@ -568,8 +579,8 @@ augment(fit)
 ```{r dj4, echo=TRUE, warning=FALSE, fig.height=3.7}
 augment(fit) %>%
   ggplot(aes(x = trading_day)) +
-    geom_line(aes(y = Close, colour = "Data")) +
-    geom_line(aes(y = .fitted, colour = "Fitted"))
+  geom_line(aes(y = Close, colour = "Data")) +
+  geom_line(aes(y = .fitted, colour = "Fitted"))
 ```
 
 ## Facebook closing stock price
@@ -579,8 +590,8 @@ augment(fit) %>%
 augment(fit) %>%
   filter(trading_day > 1100) %>%
   ggplot(aes(x = trading_day)) +
-    geom_line(aes(y = Close, colour = "Data")) +
-    geom_line(aes(y = .fitted, colour = "Fitted"))
+  geom_line(aes(y = Close, colour = "Data")) +
+  geom_line(aes(y = .fitted, colour = "Fitted"))
 ```
 
 ## Facebook closing stock price
@@ -589,7 +600,7 @@ augment(fit) %>%
 ```{r dj5, echo=TRUE, warning = FALSE}
 augment(fit) %>%
   autoplot(.resid) + xlab("Day") + ylab("") +
-    ggtitle("Residuals from naïve method")
+  ggtitle("Residuals from naïve method")
 ```
 
 ## Facebook closing stock price
@@ -598,15 +609,16 @@ augment(fit) %>%
 ```{r dj6, warning=FALSE}
 augment(fit) %>%
   ggplot(aes(x = .resid)) +
-    geom_histogram(bins = 150) +
-    ggtitle("Histogram of residuals")
+  geom_histogram(bins = 150) +
+  ggtitle("Histogram of residuals")
 ```
 
 ## Facebook closing stock price
 \fontsize{11}{11}\sf
 
 ```{r dj7}
-augment(fit) %>% ACF(.resid) %>%
+augment(fit) %>%
+  ACF(.resid) %>%
   autoplot() + ggtitle("ACF of residuals")
 ```
 
@@ -643,6 +655,7 @@ where $h=$ max lag and $T=$ \# observations.
   * When applied to raw data, set $K=0$.
 
 ## Ljung-Box test
+\fontsize{12}{13}\sf
 
 \begin{block}{}
 \centerline{$\displaystyle
@@ -652,14 +665,18 @@ where $h=$ max lag and $T=$ \# observations.
 
 \fontsize{11}{11}\sf
 
-```{r dj9extra, echo=FALSE, fig.height=2.}
-augment(fit) %>% ACF(.resid, lag_max=10) %>%
+```{r dj9extra, echo=FALSE, fig.height=1.5}
+augment(fit) %>%
+  ACF(.resid, lag_max = 10) %>%
   autoplot() + ggtitle("ACF of residuals")
 ```
 
+\vspace*{-0.3cm}
+
+
 ```{r dj9, echo=TRUE}
 # lag=h and dof=K
-augment(fit) %>% 
+augment(fit) %>%
   features(.resid, ljung_box, dof = 0, lag = 10)
 ```
 
@@ -675,16 +692,16 @@ augment(fit) %>%
 ## Training and test sets
 
 ```{r traintest, fig.height=1, echo=FALSE, cache=TRUE}
-train = 1:18
-test = 19:24
-par(mar=c(0,0,0,0))
-plot(0,0,xlim=c(0,26),ylim=c(0,2),xaxt="n",yaxt="n",bty="n",xlab="",ylab="",type="n")
-arrows(0,0.5,25,0.5,0.05)
-points(train, train*0+0.5, pch=19, col="blue")
-points(test,  test*0+0.5,  pch=19, col="red")
-text(26,0.5,"time")
-text(10,1,"Training data",col="blue")
-text(21,1,"Test data",col="red")
+train <- 1:18
+test <- 19:24
+par(mar = c(0, 0, 0, 0))
+plot(0, 0, xlim = c(0, 26), ylim = c(0, 2), xaxt = "n", yaxt = "n", bty = "n", xlab = "", ylab = "", type = "n")
+arrows(0, 0.5, 25, 0.5, 0.05)
+points(train, train * 0 + 0.5, pch = 19, col = "blue")
+points(test, test * 0 + 0.5, pch = 19, col = "red")
+text(26, 0.5, "time")
+text(10, 1, "Training data", col = "blue")
+text(21, 1, "Test data", col = "red")
 ```
 
   * A model which fits the training data well will not necessarily forecast well.

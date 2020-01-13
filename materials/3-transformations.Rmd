@@ -80,12 +80,13 @@ print_retail %>%
   left_join(aus_economy, by = "Year") %>%
   mutate(Adj_turnover = Turnover / CPI) %>%
   pivot_longer(c(Turnover, Adj_turnover),
-               names_to = "Type", values_to = "Turnover") %>%
+    names_to = "Type", values_to = "Turnover"
+  ) %>%
   ggplot(aes(x = Year, y = Turnover)) +
-    geom_line() +
-    facet_grid(vars(Type), scales = "free_y") +
-    xlab("Years") + ylab(NULL) +
-    ggtitle("Turnover: Australian print media industry")
+  geom_line() +
+  facet_grid(vars(Type), scales = "free_y") +
+  xlab("Years") + ylab(NULL) +
+  ggtitle("Turnover: Australian print media industry")
 ```
 
 
@@ -103,12 +104,13 @@ print_retail %>%
   left_join(aus_economy, by = "Year") %>%
   mutate(Adj_turnover = Turnover / CPI) %>%
   pivot_longer(c(Turnover, Adj_turnover),
-               names_to = "Type", values_to = "Turnover") %>%
+    names_to = "Type", values_to = "Turnover"
+  ) %>%
   ggplot(aes(x = Year, y = Turnover)) +
-    geom_line() +
-    facet_grid(vars(Type), scales = "free_y") +
-    xlab("Years") + ylab(NULL) +
-    ggtitle("Turnover: Australian print media industry")
+  geom_line() +
+  facet_grid(vars(Type), scales = "free_y") +
+  xlab("Years") + ylab(NULL) +
+  ggtitle("Turnover: Australian print media industry")
 ```
 
 # Mathematical transformations
@@ -137,6 +139,7 @@ Logarithm & $w_t = \log(y_t)$  & strength
 Logarithms, in particular, are useful because they are more interpretable: changes in a log value are **relative (percent) changes on the original scale**.
 
 ## Variance stabilization
+\fontsize{12}{14}\sf
 
 ```{r food, echo=TRUE}
 food <- aus_retail %>%
@@ -144,36 +147,40 @@ food <- aus_retail %>%
   summarise(Turnover = sum(Turnover))
 ```
 
-```{r food-plot, echo = FALSE, fig.height=3.4}
+```{r food-plot, echo = FALSE, fig.height=3.8}
 food %>% autoplot(Turnover) +
   labs(y = "Turnover ($AUD)")
 ```
 
 ## Variance stabilization
+\fontsize{12}{14}\sf
 
-```{r food-sqrt1, echo=TRUE, fig.height=4}
+```{r food-sqrt1, echo=TRUE, fig.height=3.8}
 food %>% autoplot(sqrt(Turnover)) +
   labs(y = "Square root turnover")
 ```
 
 ## Variance stabilization
+\fontsize{12}{14}\sf
 
-```{r food-cbrt, echo=TRUE, fig.height=4}
-food %>% autoplot(Turnover^(1/3)) +
+```{r food-cbrt, echo=TRUE, fig.height=3.8}
+food %>% autoplot(Turnover^(1 / 3)) +
   labs(y = "Cube root turnover")
 ```
 
 ## Variance stabilization
+\fontsize{12}{14}\sf
 
-```{r food-log, echo=TRUE, fig.height=4}
+```{r food-log, echo=TRUE, fig.height=3.8}
 food %>% autoplot(log(Turnover)) +
   labs(y = "Log turnover")
 ```
 
 ## Variance stabilization
+\fontsize{12}{14}\sf
 
-```{r food-inverse, echo=TRUE, fig.height=4}
-food %>% autoplot(-1/Turnover) +
+```{r food-inverse, echo=TRUE, fig.height=3.8}
+food %>% autoplot(-1 / Turnover) +
   labs(y = "Inverse turnover")
 ```
 
@@ -199,9 +206,9 @@ library(rlang)
 library(gganimate)
 library(latex2exp)
 food %>%
-  mutate(!!!set_names(map(seq(0,1,0.01), ~ expr(fabletools::box_cox(Turnover, !!.x))), seq(0,1,0.01))) %>%
+  mutate(!!!set_names(map(seq(0, 1, 0.01), ~ expr(fabletools::box_cox(Turnover, !!.x))), seq(0, 1, 0.01))) %>%
   select(-Turnover) %>%
-  pivot_longer(-Month, names_to='lambda', values_to='Turnover') %>%
+  pivot_longer(-Month, names_to = "lambda", values_to = "Turnover") %>%
   mutate(lambda = as.numeric(lambda)) %>%
   ggplot(aes(x = Month, y = Turnover)) +
   geom_line() +

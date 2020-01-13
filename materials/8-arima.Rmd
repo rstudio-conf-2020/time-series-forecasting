@@ -21,7 +21,7 @@ library(tidyverse)
 library(fpp3)
 usmelec <- as_tsibble(fpp2::usmelec) %>%
   rename(Month = index, Generation = value)
-us_change <- readr::read_csv("https://otexts.com/fpp3/extrafiles/us_change.csv")  %>%
+us_change <- readr::read_csv("https://otexts.com/fpp3/extrafiles/us_change.csv") %>%
   mutate(Time = yearquarter(Time)) %>%
   as_tsibble(index = Time)
 eu_retail <- as_tsibble(fpp2::euretail)
@@ -69,7 +69,7 @@ A **stationary series** is:
 gafa_stock %>%
   filter(Symbol == "GOOG", year(Date) == 2018) %>%
   autoplot(Close) +
-    ylab("Google closing stock price ($US)")
+  ylab("Google closing stock price ($US)")
 ```
 
 ## Stationary?
@@ -79,7 +79,7 @@ gafa_stock %>%
 gafa_stock %>%
   filter(Symbol == "GOOG", year(Date) == 2018) %>%
   autoplot(difference(Close)) +
-    ylab("Daily change in Google closing stock price")
+  ylab("Daily change in Google closing stock price")
 ```
 
 ## Differencing
@@ -105,7 +105,7 @@ p1 <- tsibble(idx = seq_len(100), sim = 10 + arima.sim(list(ar = -0.8), n = 100)
   autoplot(sim) + xlab("time") + ylab("") + ggtitle("AR(1)")
 p2 <- tsibble(idx = seq_len(100), sim = 20 + arima.sim(list(ar = c(1.3, -0.7)), n = 100), index = idx) %>%
   autoplot(sim) + xlab("time") + ylab("") + ggtitle("AR(2)")
-gridExtra::grid.arrange(p1,p2,nrow=1)
+gridExtra::grid.arrange(p1, p2, nrow = 1)
 ```
 
 * Cyclic behaviour is possible when $p\ge 2$.
@@ -127,7 +127,7 @@ p1 <- tsibble(idx = seq_len(100), sim = 20 + arima.sim(list(ma = 0.8), n = 100),
 p2 <- tsibble(idx = seq_len(100), sim = arima.sim(list(ma = c(-1, +0.8)), n = 100), index = idx) %>%
   autoplot(sim) + xlab("time") + ylab("") + ggtitle("MA(2)")
 
-gridExtra::grid.arrange(p1,p2,nrow=1)
+gridExtra::grid.arrange(p1, p2, nrow = 1)
 ```
 
 
@@ -177,7 +177,9 @@ fit
 \fontsize{11}{12}\sf
 
 ```{r popfit3, echo=TRUE, cache=TRUE}
-fit %>% filter(Country=="Australia") %>% report()
+fit %>%
+  filter(Country == "Australia") %>%
+  report()
 ```
 
 \only<2>{\begin{textblock}{6.4}(6,4.6)
@@ -212,8 +214,9 @@ fit %>% filter(Country=="Australia") %>% report()
 \fontsize{9}{9}\sf
 
 ```{r popfc2, echo=TRUE, cache=TRUE}
-fit %>% forecast(h=10) %>%
-  filter(Country=="Australia") %>%
+fit %>%
+  forecast(h = 10) %>%
+  filter(Country == "Australia") %>%
   autoplot(global_economy)
 ```
 
@@ -318,7 +321,7 @@ usmelec %>%
 ```{r usmelec3, echo=TRUE, fig.height=3.2}
 usmelec %>%
   model(arima = ARIMA(log(Generation))) %>%
-  forecast(h="3 years") %>%
+  forecast(h = "3 years") %>%
   autoplot(usmelec)
 ```
 
@@ -328,7 +331,7 @@ usmelec %>%
 ```{r usmelec4, echo=TRUE, fig.height=3.2}
 usmelec %>%
   model(arima = ARIMA(log(Generation))) %>%
-  forecast(h="3 years") %>%
+  forecast(h = "3 years") %>%
   autoplot(filter_index(usmelec, 2005 ~ .))
 ```
 
@@ -368,7 +371,8 @@ ARIMA(2,1,2)(0,1,1)$_m$& with no transformation\\
 \fontsize{11}{12}\sf
 
 ```{r h02, fig.height=3.3}
-h02 <- PBS %>% filter(ATC2 == "H02") %>%
+h02 <- PBS %>%
+  filter(ATC2 == "H02") %>%
   summarise(Cost = sum(Cost))
 h02 %>% autoplot(Cost) +
   xlab("Year") + ylab("") +
@@ -379,7 +383,8 @@ h02 %>% autoplot(Cost) +
 \fontsize{11}{12}\sf
 
 ```{r h02a, fig.height=3.3}
-h02 <- PBS %>% filter(ATC2 == "H02") %>%
+h02 <- PBS %>%
+  filter(ATC2 == "H02") %>%
   summarise(Cost = sum(Cost))
 h02 %>% autoplot(log(Cost)) +
   xlab("Year") + ylab("") +
@@ -402,9 +407,11 @@ report(fit)
 
 ```{r h02tryharder, echo=TRUE, fig.height=3.6}
 fit <- h02 %>%
-  model(best = ARIMA(log(Cost), stepwise = FALSE,
-                 approximation = FALSE,
-                 order_constraint = p + q + P + Q <= 9))
+  model(best = ARIMA(log(Cost),
+    stepwise = FALSE,
+    approximation = FALSE,
+    order_constraint = p + q + P + Q <= 9
+  ))
 report(fit)
 ```
 
@@ -412,7 +419,9 @@ report(fit)
 \fontsize{11}{14}\sf
 
 ```{r h02f, echo=TRUE, fig.height=3}
-fit %>% forecast %>% autoplot(h02) +
+fit %>%
+  forecast() %>%
+  autoplot(h02) +
   ylab("H02 Expenditure ($AUD)") + xlab("Year")
 ```
 

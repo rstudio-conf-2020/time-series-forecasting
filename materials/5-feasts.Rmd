@@ -23,7 +23,7 @@ library(glue)
 library(stringr)
 # Remove "Australia's" from region
 tourism <- tsibble::tourism %>%
-  mutate(Region = str_replace(Region,"Australia's ",""))
+  mutate(Region = str_replace(Region, "Australia's ", ""))
 ```
 
 # STL Features
@@ -52,12 +52,13 @@ tourism %>% features(Trips, feat_stl)
 \fontsize{8}{9}\sf
 
 ```{r features-plot, fig.height=4.1}
-tourism %>% features(Trips, feat_stl) %>%
-  ggplot(aes(x=trend_strength, y=seasonal_strength_year, col=Purpose)) +
-    geom_point() + facet_wrap(vars(State))
+tourism %>%
+  features(Trips, feat_stl) %>%
+  ggplot(aes(x = trend_strength, y = seasonal_strength_year, col = Purpose)) +
+  geom_point() + facet_wrap(vars(State))
 ```
 
-\only<2->{\begin{textblock}{4.7}(7.8,7.3)
+\only<2->{\begin{textblock}{4.7}(7.8,7.6)
 \begin{alertblock}{}\fontsize{10}{10}\sf
 \begin{itemize}\tightlist
 \item Holidays more seasonal than other travel.
@@ -80,9 +81,9 @@ most_seasonal <- tourism %>%
 
 ```{r extreme2, fig.height=2.8}
 tourism %>%
-  right_join(most_seasonal, by = c("State","Region","Purpose")) %>%
+  right_join(most_seasonal, by = c("State", "Region", "Purpose")) %>%
   ggplot(aes(x = Quarter, y = Trips)) + geom_line() +
-  facet_grid(vars(State,Region,Purpose))
+  facet_grid(vars(State, Region, Purpose))
 ```
 
 
@@ -101,9 +102,9 @@ most_trended <- tourism %>%
 
 ```{r extreme4, fig.height=2.8}
 tourism %>%
-  right_join(most_trended, by = c("State","Region","Purpose")) %>%
+  right_join(most_trended, by = c("State", "Region", "Purpose")) %>%
   ggplot(aes(x = Quarter, y = Trips)) + geom_line() +
-  facet_grid(vars(State,Region,Purpose))
+  facet_grid(vars(State, Region, Purpose))
 ```
 
 # Lab Session 9
@@ -126,40 +127,42 @@ tourism %>% features(Trips, feat_acf)
 
 ```{r pca, echo=FALSE}
 # Save pdf figures
-savepdf <- function(file, width=16, height=10) {
-  fname <<- paste("figs/",file,".pdf",sep="")
-  pdf(fname, width=width/2.54, height=height/2.54, pointsize=10)
-  par(mgp=c(2.2,0.45,0), tcl=-0.4, mar=c(3.3,3.6,1.1,1.1))
+savepdf <- function(file, width = 16, height = 10) {
+  fname <<- paste("figs/", file, ".pdf", sep = "")
+  pdf(fname, width = width / 2.54, height = height / 2.54, pointsize = 10)
+  par(mgp = c(2.2, 0.45, 0), tcl = -0.4, mar = c(3.3, 3.6, 1.1, 1.1))
 }
 endpdf <- function() {
   crop::dev.off.crop(fname)
 }
 # Compute features
 tourism_features <- tourism %>%
-  features(Trips, feature_set(pkgs="feasts"))
+  features(Trips, feature_set(pkgs = "feasts"))
 # Compute PCs
-pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
-  prcomp(scale=TRUE) %>% augment(tourism_features)
+pcs <- tourism_features %>%
+  select(-State, -Region, -Purpose) %>%
+  prcomp(scale = TRUE) %>%
+  augment(tourism_features)
 # Save some PC plots
 savepdf("pca1", 18, 10)
-pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) +
-  geom_point() + theme(aspect.ratio=1)
+pcs %>% ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
+  geom_point() + theme(aspect.ratio = 1)
 endpdf()
 savepdf("pca2", 18, 10)
-pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=State)) +
-  geom_point() + theme(aspect.ratio=1)
+pcs %>% ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = State)) +
+  geom_point() + theme(aspect.ratio = 1)
 endpdf()
 savepdf("pca3", 18, 10)
-pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
-  geom_point() + theme(aspect.ratio=1)
+pcs %>% ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = Purpose)) +
+  geom_point() + theme(aspect.ratio = 1)
 endpdf()
 # Find outliers
 outliers <- pcs %>%
   filter(.fittedPC1 > 12 | (.fittedPC1 > 10 & .fittedPC2 > 0))
 savepdf("pca4", 18, 10)
-pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
-  geom_point() + theme(aspect.ratio=1) +
-  geom_point(data=outliers, aes(x=.fittedPC1, y=.fittedPC2), col="black", shape=1, size=3)
+pcs %>% ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = Purpose)) +
+  geom_point() + theme(aspect.ratio = 1) +
+  geom_point(data = outliers, aes(x = .fittedPC1, y = .fittedPC2), col = "black", shape = 1, size = 3)
 endpdf()
 ```
 
@@ -168,7 +171,7 @@ endpdf()
 
 ```{r tourismfeatures, eval=FALSE}
 tourism_features <- tourism %>%
-  features(Trips, feature_set(pkgs="feasts"))
+  features(Trips, feature_set(pkgs = "feasts"))
 ```
 
 ```{r echo=FALSE}
@@ -186,8 +189,10 @@ All features from the feasts package
 \fontsize{9}{9}\sf
 
 ```{r pcatable}
-pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
-  prcomp(scale=TRUE) %>% augment(tourism_features)
+pcs <- tourism_features %>%
+  select(-State, -Region, -Purpose) %>%
+  prcomp(scale = TRUE) %>%
+  augment(tourism_features)
 ```
 
 ```{r echo=FALSE}
@@ -263,9 +268,9 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
 ```{r outliers2, fig.height=4.03}
 outliers %>%
   left_join(tourism, by = c("State", "Region", "Purpose")) %>%
-  mutate(Series = glue("{State}","{Region}","{Purpose}", .sep="\n\n")) %>%
+  mutate(Series = glue("{State}", "{Region}", "{Purpose}", .sep = "\n\n")) %>%
   ggplot(aes(x = Quarter, y = Trips)) + geom_line() +
-    facet_grid(Series ~ .) + ggtitle("Outlying time series in PC space")
+  facet_grid(Series ~ .) + ggtitle("Outlying time series in PC space")
 ```
 
 # Lab Session 10

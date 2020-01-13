@@ -42,7 +42,7 @@ beer %>% autoplot(Beer)
 ## Quarterly Australian Beer Production
 
 ```{r}
-beer %>% gg_season(Beer, labels="right")
+beer %>% gg_season(Beer, labels = "right")
 ```
 
 ## Multiple seasonal periods
@@ -63,14 +63,14 @@ vic_elec %>% gg_season(Demand)
 \fontsize{12}{13}\sf
 
 ```{r, dev = "png", dpi = 180}
-vic_elec %>% gg_season(Demand, period="week")
+vic_elec %>% gg_season(Demand, period = "week")
 ```
 
 ## Multiple seasonal periods
 \fontsize{12}{13}\sf
 
 ```{r, dev = "png", dpi = 180}
-vic_elec %>% gg_season(Demand, period="day")
+vic_elec %>% gg_season(Demand, period = "day")
 ```
 
 ## Seasonal subseries plots
@@ -90,7 +90,7 @@ beer %>% gg_subseries(Beer)
 
 ```{r holidays}
 holidays <- tourism %>%
-  filter(Purpose=="Holiday") %>%
+  filter(Purpose == "Holiday") %>%
   group_by(State) %>%
   summarise(Trips = sum(Trips))
 ```
@@ -127,20 +127,26 @@ holidays %>%
 ```
 
 ## Calendar plots
-\fontsize{11}{12}\sf
+\fontsize{9}{10}\sf
 
 ```{r sugrrants, eval=FALSE}
 library(sugrrants)
 vic_elec %>%
   filter(year(Date) == 2014) %>%
   mutate(Hour = hour(Time)) %>%
-  frame_calendar(x = Hour, y = Demand, date = Date,
-    nrow = 4) %>%
+  frame_calendar(
+    x = Hour, y = Demand, date = Date,
+    nrow = 4
+  ) %>%
   ggplot(aes(x = .Hour, y = .Demand, group = Date)) +
   geom_line() -> p1
-prettify(p1, size = 3,
-  label.padding = unit(0.15, "lines"))
+prettify(p1,
+  size = 3,
+  label.padding = unit(0.15, "lines")
+)
 ```
+
+\fontsize{12}{14}\sf
 
 `frame_calendar()` makes a compact calendar plot, `facet_calendar()` provides an easier ggplot2 integration.
 
@@ -148,6 +154,7 @@ prettify(p1, size = 3,
 \fontsize{10}{11}\sf
 
 ```{r sugrrants2, ref.label="sugrrants", echo=FALSE, fig.height=4.8, fig.width=7.5}
+
 ```
 
 # Lab Session 3
@@ -213,7 +220,7 @@ aus_production %>%
 ```{r, fig.height=3}
 us_employment %>%
   filter(Title == "Retail Trade", year(Month) >= 1980) %>%
-  autoplot(Employed/1e3) +
+  autoplot(Employed / 1e3) +
   ggtitle("Retail employment, USA") + ylab("Million people")
 ```
 
@@ -222,7 +229,7 @@ us_employment %>%
 
 ```{r, fig.height=3}
 gafa_stock %>%
-  filter(Symbol=="AMZN", year(Date) >= 2018) %>%
+  filter(Symbol == "AMZN", year(Date) >= 2018) %>%
   autoplot(Close) +
   ggtitle("Amazon closing stock price") +
   xlab("Day") + ylab("$")
@@ -274,7 +281,7 @@ new_production %>% gg_lag(Beer)
 \fontsize{13}{15}\sf
 
 ```{r, fig.height=6.5, fig.width=6.5, out.width="8cm"}
-new_production %>% gg_lag(Beer, geom='point')
+new_production %>% gg_lag(Beer, geom = "point")
 ```
 
 ## Lagged scatterplots
@@ -307,7 +314,9 @@ Results for first 9 lags for beer data:
 \fontsize{11}{13}\sf
 
 ```{r beeracf, fig.height=2.5}
-new_production %>% ACF(Beer, lag_max = 9) %>% autoplot()
+new_production %>%
+  ACF(Beer, lag_max = 9) %>%
+  autoplot()
 ```
 
 \vspace*{10cm}
@@ -316,7 +325,9 @@ new_production %>% ACF(Beer, lag_max = 9) %>% autoplot()
 ## ACF
 
 ```{r, fig.height=4, echo=TRUE}
-new_production %>% ACF(Beer) %>% autoplot()
+new_production %>%
+  ACF(Beer) %>%
+  autoplot()
 ```
 
 ## Australian holidays
@@ -330,7 +341,9 @@ holidays %>% ACF(Trips)
 \fontsize{9}{10}\sf
 
 ```{r tourismacf2, fig.height=6}
-holidays %>% ACF(Trips) %>% autoplot()
+holidays %>%
+  ACF(Trips) %>%
+  autoplot()
 ```
 
 
@@ -353,7 +366,8 @@ retail %>% autoplot(Employed)
 \fontsize{11}{12}\sf
 
 ```{r}
-retail %>% ACF(Employed, lag_max=48) %>%
+retail %>%
+  ACF(Employed, lag_max = 48) %>%
   autoplot()
 ```
 
@@ -389,12 +403,12 @@ google_2015
 ```
 
 ## Google stock price
-\fontsize{12}{14}\sf
+\fontsize{11}{13}\sf
 
 ```{r}
 google_2015 <- google_2015 %>%
   mutate(trading_day = row_number()) %>%
-  update_tsibble(index=trading_day, regular=TRUE)
+  update_tsibble(index = trading_day, regular = TRUE)
 google_2015
 ```
 
@@ -402,7 +416,7 @@ google_2015
 
 ```{r}
 google_2015 %>%
-  ACF(Close, lag_max=100) %>%
+  ACF(Close, lag_max = 100) %>%
   autoplot()
 ```
 
@@ -427,21 +441,23 @@ tp3 <- autoplot(AirPassengers, value) + xlab("") + ylab("thousands") +
   ggtitle("3. Monthly air passengers")
 tp4 <- autoplot(mink, value) + xlab("") + ylab("thousands") +
   ggtitle("4. Annual mink trappings")
-acfb <- ACF(cowtemp, value) %>% autoplot() + xlab("") + ggtitle("B") + ylim(-0.4,1)
-acfa <- ACF(USAccDeaths, value) %>% autoplot() + xlab("") + ggtitle("A") + ylim(-0.4,1)
-acfd <- ACF(AirPassengers, value) %>% autoplot() + xlab("") + ggtitle("D") + ylim(-0.4,1)
-acfc <- ACF(mink, value) %>% autoplot() + xlab("") + ggtitle("C") + ylim(-0.4,1)
-gridExtra::grid.arrange(tp1,tp2,tp3,tp4,
-                        acfa,acfb,acfc,acfd,nrow=2)
+acfb <- ACF(cowtemp, value) %>% autoplot() + xlab("") + ggtitle("B") + ylim(-0.4, 1)
+acfa <- ACF(USAccDeaths, value) %>% autoplot() + xlab("") + ggtitle("A") + ylim(-0.4, 1)
+acfd <- ACF(AirPassengers, value) %>% autoplot() + xlab("") + ggtitle("D") + ylim(-0.4, 1)
+acfc <- ACF(mink, value) %>% autoplot() + xlab("") + ggtitle("C") + ylim(-0.4, 1)
+gridExtra::grid.arrange(tp1, tp2, tp3, tp4,
+  acfa, acfb, acfc, acfd,
+  nrow = 2
+)
 ```
 
 # White noise
 
 ## Example: White noise
-\fontsize{12}{14}\sf
+\fontsize{11}{13}\sf
 
 ```{r, fig.height=3.3}
-wn <- tsibble(t=seq(36), y=rnorm(36), index=t)
+wn <- tsibble(t = seq(36), y = rnorm(36), index = t)
 wn %>% autoplot(y)
 ```
 
@@ -471,14 +487,20 @@ wn %>%
   ACF(y, lag_max = 10) %>%
   as_tibble() %>%
   pivot_wider(names_from = lag, values_from = acf) %>%
-  rename_all(function(x){paste("$r_{",x,"}$",sep="")}) %>%
-  knitr::kable(booktabs=TRUE,
-               escape=FALSE, align="c", digits=3,
-               format.args=list(nsmall=3))
+  rename_all(function(x) {
+    paste("$r_{", x, "}$", sep = "")
+  }) %>%
+  knitr::kable(
+    booktabs = TRUE,
+    escape = FALSE, align = "c", digits = 3,
+    format.args = list(nsmall = 3)
+  )
 ```
 
 ```{r, echo=FALSE, fig.height=2}
-wn %>% ACF(y) %>% autoplot()
+wn %>%
+  ACF(y) %>%
+  autoplot()
 ```
 
 \pause\fontsize{11}{12}\sf
@@ -491,13 +513,13 @@ wn %>% ACF(y) %>% autoplot()
 
 ## Example: Pigs slaughtered
 
-\fontsize{12}{13}\sf
+\fontsize{11}{12}\sf
 
 ```{r, fig.height=3}
 pigs <- aus_livestock %>%
   filter(State == "Victoria", Animal == "Pigs",
          year(Month) >= 2014)
-pigs %>% autoplot(Count/1e3) +
+pigs %>% autoplot(Count / 1e3) +
   xlab("Year") + ylab("Thousands") +
   ggtitle("Number of pigs slaughtered in Victoria")
 ```
@@ -505,7 +527,9 @@ pigs %>% autoplot(Count/1e3) +
 ## Example: Pigs slaughtered
 
 ```{r}
-pigs %>% ACF(Count) %>% autoplot()
+pigs %>%
+  ACF(Count) %>%
+  autoplot()
 ```
 
 ## Example: Pigs slaughtered
@@ -528,14 +552,14 @@ These show the series is **not a white noise series**.
 
 You can compute the daily changes in the Google stock price in 2018 using
 
-\fontsize{11.5}{15}\sf
+\fontsize{10.5}{13}\sf
 
 
 ```{r, eval = FALSE}
 dgoog <- gafa_stock %>%
   filter(Symbol == "GOOG", year(Date) >= 2018) %>%
   mutate(trading_day = row_number()) %>%
-  update_tsibble(index=trading_day, regular=TRUE) %>%
+  update_tsibble(index = trading_day, regular = TRUE) %>%
   mutate(diff = difference(Close))
 ```
 

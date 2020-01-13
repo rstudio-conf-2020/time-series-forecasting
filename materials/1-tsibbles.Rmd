@@ -23,14 +23,14 @@ global_economy <- global_economy %>%
 tourism <- tourism %>%
   mutate(
     State = recode(State,
-                   "Australian Capital Territory" = "ACT",
-                   "New South Wales"="NSW",
-                   "Northern Territory" = "NT",
-                   "Queensland" = "QLD",
-                   "South Australia" = "SA",
-                   "Tasmania" = "TAS",
-                   "Victoria"="VIC",
-                   "Western Australia" = "WA"
+      "Australian Capital Territory" = "ACT",
+      "New South Wales" = "NSW",
+      "Northern Territory" = "NT",
+      "Queensland" = "QLD",
+      "South Australia" = "SA",
+      "Tasmania" = "TAS",
+      "Victoria" = "VIC",
+      "Western Australia" = "WA"
     )
   )
 ```
@@ -136,12 +136,14 @@ tourism
 ## The `tsibble` index
 
 ### Example
-\fontsize{12}{13}\sf
+\fontsize{11}{12}\sf
 
 ```{r tstable, cache=TRUE}
-mydata <- tsibble(year = 2012:2016,
-                  y = c(123,39,78,52,110),
-                  index = year)
+mydata <- tsibble(
+  year = 2012:2016,
+  y = c(123, 39, 78, 52, 110),
+  index = year
+)
 mydata
 ```
 
@@ -154,7 +156,7 @@ For observations more frequent than once per year, we need to use a time class f
 
 ```{r tstablemonth, echo=FALSE}
 z <- tibble(Month = paste(2019, month.abb[1:5]), Observation = c(50, 23, 34, 30, 25))
-#knitr::kable(z, booktabs=TRUE)
+# knitr::kable(z, booktabs=TRUE)
 ```
 
 ```{r tstablemonth2}
@@ -181,7 +183,7 @@ Common time index variables can be created with these functions:
 ###
 ```{r tstable2, echo=FALSE}
 tribble(
-  ~ `Frequency`, ~ Function,
+  ~`Frequency`, ~Function,
   "Annual", "`start:end`",
   "Quarterly", "`yearquarter()`",
   "Monthly", "`yearmonth()`",
@@ -189,7 +191,7 @@ tribble(
   "Daily", "`as_date()`, `ymd()`",
   "Sub-daily", "`as_datetime()`"
 ) %>%
-  knitr::kable(booktabs=TRUE)
+  knitr::kable(booktabs = TRUE)
 ```
 
 # Example: Australian prison population
@@ -239,8 +241,10 @@ prison
 prison <- readr::read_csv("data/prison_population.csv") %>%
   mutate(Quarter = yearquarter(date)) %>%
   select(-date) %>%
-  as_tsibble(index=Quarter,
-    key=c(state, gender, legal, indigenous))
+  as_tsibble(
+    index = Quarter,
+    key = c(state, gender, legal, indigenous)
+  )
 ```
 
 ```{r prison5a, dependson="prison5", echo=FALSE}
@@ -268,7 +272,7 @@ The \alert{Pharmaceutical Benefits Scheme} (PBS) is the Australian government dr
 \fontsize{8}{10}\sf
 
 ```{r wide, include=FALSE}
-options(width=78)
+options(width = 78)
 ```
 
 ```{r pbs1, dependson='wide'}
@@ -284,7 +288,7 @@ We can use the `filter()` function to select rows.
 
 ```{r pbs2}
 PBS %>%
-  filter(ATC2=="A10")
+  filter(ATC2 == "A10")
 ```
 
 ## Working with `tsibble` objects {-}
@@ -317,7 +321,7 @@ We can use the `select()` function to select columns.
 
 ```{r pbs3}
 PBS %>%
-  filter(ATC2=="A10") %>%
+  filter(ATC2 == "A10") %>%
   select(Month, Concession, Type, Cost)
 ```
 
@@ -330,7 +334,7 @@ We can use the `summarise()` function to summarise over keys.
 
 ```{r pbs4}
 PBS %>%
-  filter(ATC2=="A10") %>%
+  filter(ATC2 == "A10") %>%
   select(Month, Concession, Type, Cost) %>%
   summarise(total_cost = sum(Cost))
 ```
@@ -344,10 +348,10 @@ We can use the `mutate()` function to create new variables.
 
 ```{r pbs5}
 PBS %>%
-  filter(ATC2=="A10") %>%
+  filter(ATC2 == "A10") %>%
   select(Month, Concession, Type, Cost) %>%
   summarise(total_cost = sum(Cost)) %>%
-  mutate(total_cost = total_cost/1e6)
+  mutate(total_cost = total_cost / 1e6)
 ```
 
 ## Working with `tsibble` objects {-}
@@ -359,10 +363,10 @@ We can use the `mutate()` function to create new variables.
 
 ```{r pbs6}
 PBS %>%
-  filter(ATC2=="A10") %>%
+  filter(ATC2 == "A10") %>%
   select(Month, Concession, Type, Cost) %>%
   summarise(total_cost = sum(Cost)) %>%
-  mutate(total_cost = total_cost/1e6) -> a10
+  mutate(total_cost = total_cost / 1e6) -> a10
 ```
 
 ```{r a10, echo=FALSE}
@@ -370,7 +374,7 @@ a10
 ```
 
 ```{r narrow, include=FALSE}
-options(width=60)
+options(width = 60)
 ```
 
 # Lab Session 1
@@ -413,9 +417,11 @@ maxtemp %>%
 maxtemp %>%
   ggplot(aes(x = Day, y = 1)) +
   geom_tile(aes(fill = Temperature)) +
-  scale_fill_gradient2(low = "navy", mid = "yellow",
-                       high = "red", midpoint=28) +
-  ylab("") + scale_y_discrete(expand=c(0,0))
+  scale_fill_gradient2(
+    low = "navy", mid = "yellow",
+    high = "red", midpoint = 28
+  ) +
+  ylab("") + scale_y_discrete(expand = c(0, 0))
 ```
 
 ## Are line plots best?
@@ -439,7 +445,7 @@ ansett %>%
 
 ```{r, echo=TRUE, fig.height=3.8}
 ansett %>%
-  filter(Class=="Economy") %>%
+  filter(Class == "Economy") %>%
   autoplot(Passengers)
 ```
 
@@ -448,7 +454,7 @@ ansett %>%
 
 ```{r, echo=TRUE, fig.height=3.8}
 ansett %>%
-  filter(Airports=="MEL-SYD") %>%
+  filter(Airports == "MEL-SYD") %>%
   autoplot(Passengers)
 ```
 
@@ -457,7 +463,7 @@ ansett %>%
 
 ```{r, echo=TRUE, fig.height=3.8}
 ansett %>%
-  filter(Airports=="MEL-SYD") %>%
+  filter(Airports == "MEL-SYD") %>%
   autoplot(Passengers)
 ```
 

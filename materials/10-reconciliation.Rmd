@@ -30,7 +30,7 @@ library(fpp3)
 \fontsize{9}{10}\sf
 
 ```{r setwidth, include=FALSE}
-fred <- options(width=71)
+fred <- options(width = 71)
 ```
 
 ```{r pbs, dependson='setwidth'}
@@ -38,7 +38,7 @@ PBS
 ```
 
 ```{r setwidthback, include=FALSE}
-options(width=fred$width)
+options(width = fred$width)
 ```
 
 ## ATC drug classification
@@ -193,8 +193,9 @@ A \alert{\textbf{grouped time series}} is a collection of time series that can b
 
 ```{r pbs_aggregate}
 PBS %>%
-  aggregate_key(ATC1/ATC2, Scripts = sum(Scripts)) %>%
-  filter(Month == yearmonth("1991 Jul")) %>% print(n=18)
+  aggregate_key(ATC1 / ATC2, Scripts = sum(Scripts)) %>%
+  filter(Month == yearmonth("1991 Jul")) %>%
+  print(n = 18)
 ```
 
 ## Creating aggregates
@@ -203,7 +204,8 @@ PBS %>%
 ```{r tourism_aggregate}
 tourism %>%
   aggregate_key(Purpose * (State / Region), Trips = sum(Trips)) %>%
-  filter(Quarter == yearquarter("1998 Q1")) %>% print(n=15)
+  filter(Quarter == yearquarter("1998 Q1")) %>%
+  print(n = 15)
 ```
 
 ## Creating aggregates
@@ -240,11 +242,11 @@ tourism %>%
 3. This is available using `reconcile()`.
 
 ## Forecast reconciliation
-\fontsize{10}{11}\sf
+\fontsize{9}{10}\sf
 
 ```{r tourismets_reconciled, message=FALSE}
 tourism %>%
-  aggregate_key(Purpose*(State/Region), Trips=sum(Trips)) %>%
+  aggregate_key(Purpose * (State / Region), Trips = sum(Trips)) %>%
   model(ets = ETS(Trips)) %>%
   reconcile(ets_adjusted = min_trace(ets)) %>%
   forecast(h = 2)
@@ -372,7 +374,8 @@ where $\bW_h$ is the $h$-step base forecast error covariance matrix.
 ```{r fctourism}
 tourism_agg <- tourism %>%
   aggregate_key(Purpose * (State / Region),
-                Trips = sum(Trips))
+    Trips = sum(Trips)
+  )
 fc <- tourism_agg %>%
   filter_index(. ~ yearquarter("2015 Q4")) %>%
   model(ets = ETS(Trips)) %>%
@@ -386,7 +389,7 @@ fc <- tourism_agg %>%
 ```{r fctourism2, dependson='fctourism'}
 fc %>%
   filter(is_aggregated(Purpose) & is_aggregated(State)) %>%
-  autoplot(tourism_agg, level=95)
+  autoplot(tourism_agg, level = 95)
 ```
 
 ## Example: Australian tourism
@@ -394,9 +397,9 @@ fc %>%
 
 ```{r fctourism3, dependson='fctourism'}
 fc %>%
-  filter(is_aggregated(Purpose) & State=="Victoria" &
-         is_aggregated(Region)) %>%
-  autoplot(tourism_agg, level=95)
+  filter(is_aggregated(Purpose) & State == "Victoria" &
+    is_aggregated(Region)) %>%
+  autoplot(tourism_agg, level = 95)
 ```
 
 ## Example: Australian tourism
@@ -404,8 +407,8 @@ fc %>%
 
 ```{r fctourism4, dependson='fctourism'}
 fc %>%
-  filter(is_aggregated(Purpose) & Region=="Melbourne") %>%
-  autoplot(tourism_agg, level=95)
+  filter(is_aggregated(Purpose) & Region == "Melbourne") %>%
+  autoplot(tourism_agg, level = 95)
 ```
 
 ## Example: Australian tourism
@@ -413,8 +416,8 @@ fc %>%
 
 ```{r fctourism5, dependson='fctourism'}
 fc %>%
-  filter(is_aggregated(Purpose) & Region=="Snowy Mountains") %>%
-  autoplot(tourism_agg, level=95)
+  filter(is_aggregated(Purpose) & Region == "Snowy Mountains") %>%
+  autoplot(tourism_agg, level = 95)
 ```
 
 ## Example: Australian tourism
@@ -422,8 +425,8 @@ fc %>%
 
 ```{r fctourism6, dependson='fctourism'}
 fc %>%
-  filter(Purpose=="Holiday" & Region=="Barossa") %>%
-  autoplot(tourism_agg, level=95)
+  filter(Purpose == "Holiday" & Region == "Barossa") %>%
+  autoplot(tourism_agg, level = 95)
 ```
 
 ## Example: Australian tourism
@@ -431,8 +434,8 @@ fc %>%
 
 ```{r fctourism7, dependson='fctourism'}
 fc %>%
-  filter(is_aggregated(Purpose) & Region=="MacDonnell") %>%
-  autoplot(tourism_agg, level=95)
+  filter(is_aggregated(Purpose) & Region == "MacDonnell") %>%
+  autoplot(tourism_agg, level = 95)
 ```
 
 
@@ -447,13 +450,13 @@ fc <- tourism_agg %>%
     arima = ARIMA(Trips)
   ) %>%
   mutate(
-    comb = (ets+arima)/2
+    comb = (ets + arima) / 2
   ) %>%
   reconcile(
     ets_adj = min_trace(ets),
     arima_adj = min_trace(arima),
     comb_adj = min_trace(comb)
-    ) %>%
+  ) %>%
   forecast(h = "2 years")
 ```
 
@@ -468,7 +471,8 @@ fc %>% accuracy(tourism_agg)
 \fontsize{12}{13}\sf
 
 ```{r fcaccuracy2, dependson='fctourismcomb'}
-fc %>% accuracy(tourism_agg) %>%
+fc %>%
+  accuracy(tourism_agg) %>%
   group_by(.model) %>%
   summarise(MASE = mean(MASE)) %>%
   arrange(MASE)
