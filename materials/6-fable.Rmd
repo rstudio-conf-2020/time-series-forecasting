@@ -707,22 +707,38 @@ $$
 where the training data is given by $\{y_1,\dots,y_T\}$
 
 ## Measures of forecast accuracy
+\fontsize{11}{12}\sf
+
+```r
+beer_fit <- aus_production %>%
+  filter(between(year(Quarter), 1992, 2007)) %>%
+  model(
+    snaive = SNAIVE(Beer),
+    mean = MEAN(Beer)
+  )
+beer_fit %>%
+  forecast(h = "3 years") %>%
+  autoplot(aus_production, level = NULL) +
+  ggtitle("Forecasts for quarterly beer production") +
+  xlab("Year") + ylab("Megalitres") +
+  guides(colour = guide_legend(title = "Forecast"))
+```
+
+## Measures of forecast accuracy
 
 ```{r beer-fc-1, echo=FALSE, fig.height=4}
-train <- aus_production %>%
-  filter(between(year(Quarter), 1992, 2007))
-beer <- aus_production %>%
-  filter(year(Quarter) >= 1992)
-train %>%
+beer_fit <- aus_production %>%
+  filter(between(year(Quarter), 1992, 2007)) %>%
   model(
-    ets = ETS(Beer),
-    arima = ARIMA(Beer)
-  ) %>%
-  forecast(h=11) %>%
-  autoplot(beer, level = NULL) +
-    ggtitle("Forecasts for quarterly beer production") +
-    xlab("Year") + ylab("Megalitres") +
-    guides(colour=guide_legend(title="Forecast"))
+    snaive = SNAIVE(Beer),
+    mean = MEAN(Beer)
+  )
+beer_fit %>%
+  forecast(h = "3 years") %>%
+  autoplot(aus_production, level = NULL) +
+  ggtitle("Forecasts for quarterly beer production") +
+  xlab("Year") + ylab("Megalitres") +
+  guides(colour = guide_legend(title = "Forecast"))
 ```
 
 ## Measures of forecast accuracy
@@ -781,18 +797,10 @@ works well. Then MASE is equivalent to MAE relative to a seasonal naïve method.
 
 ## Measures of forecast accuracy
 
-\fontsize{10}{10}\sf
+\fontsize{9.8}{10}\sf
 
-```{r beer-test-accuracy}
-recent_production <- aus_production %>%
-  filter(year(Quarter) >= 1992)
-train <- recent_production %>% filter(year(Quarter) <= 2007)
-beer_fit <- train %>%
-  model(
-    ets = ETS(Beer),
-    arima = ARIMA(Beer)
-  )
-beer_fc <- forecast(beer_fit, h="4 years")
+```{r beer-test-accuracy, dependson='beer-fc-1'}
+beer_fc <- forecast(beer_fit, h = "3 years")
 accuracy(beer_fc, aus_production)
 ```
 
