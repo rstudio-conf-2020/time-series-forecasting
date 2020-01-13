@@ -57,11 +57,6 @@ install.packages(c("tidyverse","fpp3","readxl","GGally","sugrrants"))
 | 15:00 - 15:30 | *Coffee break*   |
 | 15:30 - 17:00 | Session 4        |
 
-## Instructor
-
-**Rob J Hyndman** is Professor of Statistics and Head of the [Department of Econometrics and Business Statistics](http://business.monash.edu/econometrics-and-business-statistics) at [Monash University](https://www.monash.edu). From 2005 to 2018 he was Editor-in-Chief of the *[International Journal of Forecasting](http://ijf.forecasters.org/)* and a Director of the [International Institute of Forecasters](http://forecasters.org/). Rob is the author of over 150 research papers and 5 books in statistical science. In 2007, he received the Moran medal from the Australian Academy of Science for his contributions to statistical research, especially in the area of statistical forecasting. For over 30 years, Rob has maintained an active consulting practice, assisting hundreds of companies and organizations around the world. He has won awards for his research, teaching, consulting and graduate supervision.
-
-He has coauthored about 40 R packages, many of which are on CRAN. He is best known for the [**forecast**](https://cran.r-project.org/package=forecast) package. This workshop will be based around a suite of new packages he has been developing to do time series analysis and forecasting using tidy principles.
 
 ## Slides
 
@@ -82,7 +77,13 @@ He has coauthored about 40 R packages, many of which are on CRAN. He is best kno
   9. [Dynamic regression](https://github.com/rstudio-conf-2020/time-series-forecasting/raw/master/materials/9-dynamic-regression.pdf)
   10. [Hierarchical forecasting](https://github.com/rstudio-conf-2020/time-series-forecasting/raw/master/materials/10-reconciliation.pdf)
 
-### [Lab Sessions](https://github.com/rstudio-conf-2020/time-series-forecasting/blob/master/Labs.md)
+## [Lab Sessions](https://github.com/rstudio-conf-2020/time-series-forecasting/blob/master/Labs.md)
+
+## Instructor
+
+**Rob J Hyndman** is Professor of Statistics and Head of the [Department of Econometrics and Business Statistics](http://business.monash.edu/econometrics-and-business-statistics) at [Monash University](https://www.monash.edu). From 2005 to 2018 he was Editor-in-Chief of the *[International Journal of Forecasting](http://ijf.forecasters.org/)* and a Director of the [International Institute of Forecasters](http://forecasters.org/). Rob is the author of over 150 research papers and 5 books in statistical science. In 2007, he received the Moran medal from the Australian Academy of Science for his contributions to statistical research, especially in the area of statistical forecasting. For over 30 years, Rob has maintained an active consulting practice, assisting hundreds of companies and organizations around the world. He has won awards for his research, teaching, consulting and graduate supervision.
+
+He has coauthored about 40 R packages, many of which are on CRAN. He is best known for the [**forecast**](https://cran.r-project.org/package=forecast) package. This workshop will be based around a suite of new packages he has been developing to do time series analysis and forecasting using tidy principles.
 
 -----
 
