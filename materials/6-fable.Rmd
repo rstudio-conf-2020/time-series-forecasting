@@ -404,16 +404,20 @@ The `model()` function trains models to data.
 
 \fontsize{10}{11}\sf
 
-```{r beer-model}
+```{r brick-model}
 # Fit the models
-beer_fit <- aus_production %>%
+brick_fit <-  aus_production %>%
+  filter(!is.na(Bricks)) %>%
   model(
-    Mean = MEAN(Beer),
-    `Naïve` = NAIVE(Beer),
-    `Seasonal naïve` = SNAIVE(Beer),
-    Drift = RW(Beer ~ drift())
+    Mean = MEAN(Bricks),
+    `Naïve` = NAIVE(Bricks),
+    `Seasonal naïve` = SNAIVE(Bricks),
+    Drift = RW(Bricks ~ drift())
   )
-beer_fit
+```
+
+```{r brick-model2, echo=FALSE, dependson='brick-model'}
+brick_fit
 ```
 
 \vspace*{-0.2cm}\begin{alertblock}{}
@@ -424,13 +428,13 @@ A \texttt{mable} is a model table, each cell corresponds to a fitted model.
 
 \fontsize{10}{13}\sf
 
-```{r beer-fc, echo = TRUE, dependson='beer-model'}
-beer_fc <- beer_fit %>%
-  forecast(h = 11)
+```{r brick-fc, echo = TRUE, dependson='brick-model'}
+brick_fc <- brick_fit %>%
+  forecast(h = "5 years")
 ```
 
-```{r beer-fbl, echo = FALSE, dependson='beer-fc'}
-print(beer_fc, n = 4)
+```{r brick-fbl, echo = FALSE, dependson='brick-fc'}
+print(brick_fc, n = 4)
 ```
 
 \begin{alertblock}{}
@@ -441,12 +445,12 @@ A \texttt{fable} is a forecast table with point forecasts and distributions.
 
 \footnotesize
 
-```{r beer-fc-plot, warning=FALSE, message=FALSE, fig.height=3}
-beer_fc %>%
+```{r brick-fc-plot, warning=FALSE, message=FALSE, fig.height=3, dependson='brick-fc'}
+brick_fc %>%
   autoplot(aus_production, level = NULL) +
-  ggtitle("Forecasts for quarterly beer production") +
-  xlab("Year") + ylab("Megalitres") +
-  guides(colour=guide_legend(title="Forecast"))
+  ggtitle("Forecasts for quarterly clay brick production") +
+  xlab("Year") + ylab("Millions of bricks") +
+  guides(colour = guide_legend(title = "Forecast"))
 ```
 
 ## Facebook closing stock price
