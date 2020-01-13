@@ -375,7 +375,7 @@ sigma2 <- glance(fit_stochastic)$sigma2
 ###
 \vspace*{-.2cm}
 \begin{align*}
-y_t-y_{t-1} &= `r format(drift, digits=2)` + \varepsilon_t \\
+y_t-y_{t-1} &= `r format(drift, digits=2)` + 0.30\varepsilon_{t-1} + \varepsilon_t \\
   y_t &= y_0 + `r format(drift, digits=2)` t + \eta_t \\
   \eta_t &= \eta_{t-1} + `r format(theta1,digits=2, nsmall=2)` \varepsilon_{t-1} + \varepsilon_{t}\\
   \varepsilon_t &\sim \text{NID}(0,`r format(sigma2, digits=3)`).
