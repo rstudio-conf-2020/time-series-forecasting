@@ -172,24 +172,11 @@ K
   * Although monthly data available for 10 years, data are aggregated to annual values, and only the first three years are used in estimating the forecasts.
   * All forecasts being done with the \texttt{FORECAST} function in MS-Excel!
 
-## CASE STUDY 3: Car fleet company
-
-**Client:** One of Australia's largest car fleet companies
-
-**Problem:** how to forecast resale value of vehicles? How
-should this affect leasing and sales policies?
-
-\pause
-
-### Additional information
- - They can provide a large amount of data on previous vehicles and their eventual resale values.
- - The resale values are currently estimated by a group of specialists. They see me as a threat and do not cooperate.
-
-## CASE STUDY 4: Airline
+## CASE STUDY 3: Airline
 
 \full{ansettlogo}
 
-## CASE STUDY 4: Airline
+## CASE STUDY 3: Airline
 
 ```{r, echo=FALSE, fig.height=5}
 melsyd %>%
@@ -203,7 +190,7 @@ melsyd %>%
   ylab("Thousands")
 ```
 
-## CASE STUDY 4: Airline
+## CASE STUDY 3: Airline
 
 **Problem:** how to forecast passenger traffic on major routes?
 
