@@ -22,22 +22,6 @@ library(fpp3)
 library(purrr)
 ```
 
-# Calendar adjustments
-
-## Calendar adjustments
-\fontsize{9}{9}\sf
-
-```{r, fig.height=3}
-as_tsibble(fma::milk) %>%
-  rename(total = value) %>%
-  mutate(daily_ave = total / days_in_month(as_date(index))) %>%
-  pivot_longer(-index, names_to = "Series", values_to = "Milk") %>%
-  mutate(Series = factor(Series, levels=c("total","daily_ave"))) %>%
-  ggplot(aes(x=index, y=Milk)) + geom_line() +
-    facet_grid(Series ~ ., scales='free') + xlab("Year") +
-    ylab("Pounds") +  ggtitle("Milk production per cow")
-```
-
 # Per capita adjustments
 
 ## Per capita adjustments
