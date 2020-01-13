@@ -119,7 +119,8 @@ global_economy %>%
   )
 
 holidays %>%
-  STL(Trips ~ season(window = 13) + trend(window = 21)) %>%
+  model(STL(Trips ~ season(window = 13) + trend(window = 21))) %>%
+  components() %>% 
   autoplot()
 
 
@@ -145,7 +146,8 @@ aus_production %>%
 # Lab Session 8
 
 canadian_gas %>%
-  STL(Volume ~ season(window=7) + trend(window=11)) %>%
+  model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
+  components() %>% 
   autoplot()
 
 ## Changing the size of the windows changes the trend and seasonal components
@@ -153,11 +155,13 @@ canadian_gas %>%
 ## A longer window gives a smoother (slow changing) component
 
 canadian_gas %>%
-  STL(Volume ~ season(window=7) + trend(window=11)) %>%
+  model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
+  components() %>% 
   gg_season(season_year)
 
 canadian_gas %>%
-  STL(Volume ~ season(window=7) + trend(window=11)) %>%
+  model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
+  components() %>% 
   select(index, season_adjust) %>%
   autoplot(season_adjust)
 
