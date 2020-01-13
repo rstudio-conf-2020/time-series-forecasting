@@ -106,7 +106,12 @@ options(digits=4, width=55)
 ## Install required packages
 
 ```r
-install.packages(c("tidyverse","fpp3"))
+install.packages(c(
+  "tidyverse",
+  "fpp3",
+  "GGally",
+  "sugrrants"
+))
 ```
 
 ## Approximate outline
