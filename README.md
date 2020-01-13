@@ -7,7 +7,7 @@ by [Rob J Hyndman](https://robjhyndman.com)
 
 :spiral_calendar: 27-28 January 2020
 :alarm_clock:     09:00 - 17:00
-:hotel:           \[ADD ROOM\]
+:hotel:           Imperial B (Ballroom Level)
 :writing_hand:    [rstd.io/conf](http://rstd.io/conf)
 
 -----
