@@ -238,7 +238,6 @@ aus_takeaway %>%
 # Lab Session 12
 
 beer_model <- aus_production %>%
-  filter(year(Quarter) >= 1992) %>%
   model(snaive = SNAIVE(Beer))
 
 beer_model %>%

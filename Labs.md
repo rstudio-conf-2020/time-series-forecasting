@@ -106,7 +106,7 @@ Consider the GDP information in `global_economy`. Plot the GDP per capita for ea
 
 ### Lab Session 12
 
-  * Compute seasonal naïve forecasts for quarterly Australian beer production from 1992.
+  * Compute seasonal naïve forecasts for quarterly Australian beer production.
   * Test if the residuals are white noise. What do you conclude?
 
 ### Lab Session 13
