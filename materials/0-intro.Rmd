@@ -1,6 +1,5 @@
 ---
 title: "Tidy Time Series & Forecasting in R"
-date: "robjhyndman.com/workshop2020"
 author: ""
 toc: false
 output:
@@ -31,7 +30,7 @@ options(digits=4, width=55)
  * Textbook
  * Useful links
 
-\vspace*{2cm}\begin{alertblock}{}{\centerline{\Large\textbf{\url{robjhyndman.com/workshop2020}}}}
+\vspace*{2cm}\begin{alertblock}{}{\centerline{\Large\textbf{\url{bit.ly/fable2020}}}}
 \end{alertblock}
 
 ## Brief bio

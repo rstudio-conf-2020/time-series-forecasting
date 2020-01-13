@@ -1,6 +1,5 @@
 ---
 title: "Tidy Time Series & Forecasting in R"
-date: "robjhyndman.com/workshop2020"
 author: "9. Dynamic regression"
 toc: true
 output:
