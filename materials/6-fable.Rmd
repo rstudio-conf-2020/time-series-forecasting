@@ -294,10 +294,10 @@ The `model()` function trains models to data.
 brick_fit <-  aus_production %>%
   filter(!is.na(Bricks)) %>%
   model(
-    Mean = MEAN(Bricks),
-    `Naïve` = NAIVE(Bricks),
     `Seasonal naïve` = SNAIVE(Bricks),
-    Drift = RW(Bricks ~ drift())
+    `Naïve` = NAIVE(Bricks),
+    Drift = RW(Bricks ~ drift()),
+    Mean = MEAN(Bricks)
   )
 ```
 
@@ -338,6 +338,19 @@ brick_fc %>%
   guides(colour = guide_legend(title = "Forecast"))
 ```
 
+## Prediction intervals
+\fontsize{10}{12}\sf
+
+```{r brick-fc-interval, dependson='brick-fc'}
+brick_fc %>% hilo(level=c(50,75))
+```
+
+## Prediction intervals
+\fontsize{10}{12}\sf
+
+```{r brick-fc-interval2, dependson='brick-fc'}
+brick_fc %>% hilo(level=c(50,75)) %>% unnest()
+```
 
 # Lab Session 11
 ## Lab Session 11
