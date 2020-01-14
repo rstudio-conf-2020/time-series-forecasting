@@ -450,3 +450,95 @@ Find an ETS model for the Gas data from `aus_production`.
   * Why is multiplicative seasonality necessary here?
   * Experiment with making the trend damped. Does it improve the forecasts?
 
+
+# Non-Gaussian forecast distributions
+
+## Non-Gaussian forecast distributions
+\fontsize{8.8}{9}\sf
+
+```{r cafe, fig.height=3.3}
+vic_cafe <- tsibbledata::aus_retail %>%
+  filter(State == "Victoria",
+         Industry == "Cafes, restaurants and catering services") %>%
+  select(Month, Turnover)
+vic_cafe %>%
+  autoplot(Turnover) + ggtitle("Monthly turnover of Victorian cafes")
+```
+
+## Forecasting with transformations
+\fontsize{8.8}{9}\sf
+
+```{r}
+vic_cafe %>% autoplot(box_cox(Turnover, lambda = 0.2))
+```
+
+## Forecasting with transformations
+\fontsize{8.8}{9}\sf
+
+```{r}
+fit <- vic_cafe %>%
+  model(ets = ETS(box_cox(Turnover, 0.2)))
+fit
+```
+
+```{r include=FALSE}
+if(!identical(fabletools:::model_sum(fit$ets[[1]]), "ETS(A,A,A)"))
+  stop("Model not ETS(A,A,A)")
+```
+
+```{r}
+fit %>% forecast(h = "3 years")
+```
+
+\only<2>{\begin{textblock}{5.5}(6.8,2.8)\fontsize{13}{14}\sf
+\begin{alertblock}{}
+\begin{itemize}
+\item \texttt{t(N)} denotes a transformed normal distribution.
+\item back-transformation and bias adjustment is done automatically.
+\end{itemize}
+\end{alertblock}
+\end{textblock}}
+
+## Forecasting with transformations
+\fontsize{8.8}{9}\sf
+
+```{r}
+fc %>% autoplot(vic_cafe)
+```
+
+## Bootstrapped forecast distributions
+\fontsize{8.8}{9}\sf
+
+```{r}
+sim <- fit %>% generate(h = "3 years", times = 5, bootstrap = TRUE)
+sim
+```
+
+## Bootstrapped forecast distributions
+\fontsize{8.8}{9}\sf
+
+```{r, fig.height=3.4}
+vic_cafe %>%
+  filter(year(Month) >= 2008) %>%
+  ggplot(aes(x = Month)) +
+  geom_line(aes(y = Turnover)) +
+  geom_line(aes(y = .sim, colour = as.factor(.rep)), data = sim) +
+  ggtitle("Monthly turnover of Victorian cafes") +
+  guides(col = FALSE)
+```
+
+## Bootstrapped forecast distributions
+\fontsize{8.8}{9}\sf
+
+```{r}
+fc <- fit %>% forecast(h = "3 years", bootstrap = TRUE)
+fc
+```
+
+## Bootstrapped forecast distributions
+\fontsize{8.8}{9}\sf
+
+```{r}
+fc %>% autoplot(vic_cafe) +
+  ggtitle("Monthly turnover of Victorian cafes")
+```
