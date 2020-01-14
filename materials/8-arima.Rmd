@@ -478,3 +478,25 @@ accuracy(fc, tourism) %>%
   ) %>%
   arrange(RMSE)
 ```
+
+## Forecast ensembles
+\fontsize{13}{15}\sf
+
+\begin{alertblock}{}\bfseries Can we do better than equal weights?\end{alertblock}\pause\vspace*{-0.3cm}
+
+ * Hard to find weights that improve forecast accuracy.
+ * Known as the "forecast combination puzzle".
+ * Solution:  FFORMA
+
+\pause
+
+\begin{block}{\fontsize{13}{14}\sf\textbf{FFORMA (Feature-based FORecast Model Averaging)}}
+\begin{itemize}
+\item Vector of time series features used to predict best weights.
+\item A modification of xgboost is used.
+\item Method came 2nd in the 2018 M4 international forecasting competition.
+\item Main author: Pablo Montero-Manso (Monash U)
+\item Not (yet) available for fable.
+\end{itemize}
+\end{block}
+
