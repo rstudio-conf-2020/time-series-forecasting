@@ -123,7 +123,6 @@ install.packages(c(
 \vspace*{.6cm}\begin{alertblock}{}{\centerline{\Large\textbf{\url{bit.ly/fable2020}}}}
 \end{alertblock}
 
-
 ## Find me at ...
 \Large\vspace*{2.5cm}
 \begin{flushright}
@@ -137,7 +136,4 @@ install.packages(c(
 \href{mailto:rob.hyndman@monash.edu}{\faicon{envelope}  rob.hyndman@monash.edu}
 
 \end{flushright}
-
-
-
 

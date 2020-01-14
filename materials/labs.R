@@ -22,7 +22,6 @@ state_tourism <- mytourism %>%
   summarise(Trips = sum(Trips)) %>%
   ungroup()
 
-
 # Lab Session 2
 
 aus_production %>% autoplot(Bricks)
@@ -46,7 +45,6 @@ snowy <- tourism %>%
 snowy %>% autoplot(Trips)
 snowy %>% gg_season(Trips)
 snowy %>% gg_subseries(Trips)
-
 
 # Lab Session 4
 
@@ -120,9 +118,8 @@ global_economy %>%
 
 holidays %>%
   model(STL(Trips ~ season(window = 13) + trend(window = 21))) %>%
-  components() %>% 
+  components() %>%
   autoplot()
-
 
 # Lab Session 7
 
@@ -147,7 +144,7 @@ aus_production %>%
 
 canadian_gas %>%
   model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
-  components() %>% 
+  components() %>%
   autoplot()
 
 ## Changing the size of the windows changes the trend and seasonal components
@@ -156,12 +153,12 @@ canadian_gas %>%
 
 canadian_gas %>%
   model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
-  components() %>% 
+  components() %>%
   gg_season(season_year)
 
 canadian_gas %>%
   model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
-  components() %>% 
+  components() %>%
   select(index, season_adjust) %>%
   autoplot(season_adjust)
 
@@ -182,7 +179,6 @@ tourism %>%
   summarise(Trips = sum(Trips)) %>%
   features(Trips, feat_stl) %>%
   select(State, seasonal_peak_year)
-
 
 # Lab Session 10
 
@@ -253,7 +249,6 @@ augment(beer_model) %>%
 
 # Lab Session 13
 
-
 hh_budget_train <- hh_budget %>%
   filter(Year <= max(Year) - 4)
 
@@ -288,11 +283,11 @@ aus_takeaway_forecast %>%
 # Lab Session 14
 
 global_economy %>%
-  filter(Country == "China") %>% 
+  filter(Country == "China") %>%
   autoplot(GDP)
 
 global_economy %>%
-  filter(Country == "China") %>% 
+  filter(Country == "China") %>%
   model(
     ets = ETS(GDP),
     ets_damped = ETS(GDP ~ trend("Ad")),
@@ -330,7 +325,6 @@ us_gdp_model
 us_gdp_model %>%
   forecast(h = "10 years") %>%
   autoplot(us_gdp)
-
 
 # Lab Session 17
 

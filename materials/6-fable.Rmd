@@ -510,7 +510,6 @@ augment(fit) %>%
 
 \vspace*{-0.3cm}
 
-
 ```{r dj9, echo=TRUE}
 # lag=h and dof=K
 augment(fit) %>%

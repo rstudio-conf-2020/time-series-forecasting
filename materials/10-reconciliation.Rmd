@@ -264,9 +264,6 @@ where
  * $\bm{b}_t$ is a vector of the most disaggregated series at time $t$
  * $\bS$ is a ``summing matrix'' containing the aggregation constraints.
 
-
-
-
 ## Hierarchical time series
 
 \begin{minipage}{4cm}\vspace*{0.2cm}
@@ -437,7 +434,6 @@ fc %>%
   filter(is_aggregated(Purpose) & Region == "MacDonnell") %>%
   autoplot(tourism_agg, level = 95)
 ```
-
 
 ## Example: Australian tourism
 \fontsize{12}{12.5}\sf

@@ -34,7 +34,6 @@ austa <- as_tsibble(fpp2::austa) %>%
   rename(Year = index, Visitors = value)
 ```
 
-
 # ARIMA models
 
 ## ARIMA models
@@ -130,7 +129,6 @@ p2 <- tsibble(idx = seq_len(100), sim = arima.sim(list(ma = c(-1, +0.8)), n = 10
 gridExtra::grid.arrange(p1, p2, nrow = 1)
 ```
 
-
 ## ARIMA models
 
 \begin{block}{Autoregressive Moving Average models:}\vspace*{-0.4cm}
@@ -190,7 +188,6 @@ fit %>%
 \end{textblock}}
 \vspace*{3cm}
 
-
 ## Understanding ARIMA models
 \fontsize{14}{16}\sf
 
@@ -208,7 +205,6 @@ fit %>%
 ### Forecast variance and $d$
   * The higher the value of $d$, the more rapidly the prediction intervals increase in size.
   * For $d=0$, the long-term forecast standard deviation will go to the standard deviation of the historical data.
-
 
 ## Example: National populations
 \fontsize{9}{9}\sf

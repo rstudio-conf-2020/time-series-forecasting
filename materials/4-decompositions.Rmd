@@ -23,7 +23,6 @@ library(purrr)
 elecequip <- as_tsibble(fpp2::elecequip)
 ```
 
-
 # Time series decompositions
 
 ## Time series decomposition
@@ -44,7 +43,6 @@ where & $y_t=$ & data at period $t$ \\
       & $R_t=$ & remainder component at period $t$
 \end{tabular}
 
-
 ## STL decomposition
 
 \fontsize{13}{14}\sf
@@ -58,7 +56,6 @@ where & $y_t=$ & data at period $t$ \\
   *  Only additive.
   *  Take logs to get multiplicative decomposition.
   *  Use Box-Cox transformations to get other decompositions.
-
 
 ## Decomposition dable
 

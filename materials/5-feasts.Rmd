@@ -86,7 +86,6 @@ tourism %>%
   facet_grid(vars(State, Region, Purpose))
 ```
 
-
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
@@ -113,7 +112,6 @@ tourism %>%
 
  * Use ``GGally::ggpairs()`` to look at the relationships between the STL-based features. You might wish to change `seasonal_peak_year` and `seasonal_trough_year` to factors.
  * Which is the peak quarter for holidays in each state?
-
 
 ## Feature extraction and statistics
 
@@ -184,7 +182,6 @@ All features from the feasts package
 \end{alertblock}
 \end{textblock}
 
-
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
@@ -222,10 +219,8 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) +
 \placefig{4}{2.6}{height=6.4cm, width=12cm}{pca1}
 \vspace*{10cm}
 
-
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
-
 
 \begin{textblock}{3.3}(.4,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
@@ -241,10 +236,8 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=State)) +
 \placefig{4}{2.6}{height=6.4cm, width=12cm}{pca2}
 \vspace*{10cm}
 
-
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
-
 
 \begin{textblock}{3.3}(.4,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
@@ -260,7 +253,6 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
 \only<1>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca3}}
 \only<2>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca4}}
 \vspace*{10cm}
-
 
 ## Feature extraction and statistics
 \fontsize{8}{8}\sf

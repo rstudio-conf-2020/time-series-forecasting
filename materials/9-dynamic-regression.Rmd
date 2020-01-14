@@ -377,7 +377,6 @@ forecast(fit, h = "3 years") %>%
   autoplot(gasoline)
 ```
 
-
 # Lab Session 19
 ## Lab Session 19
 
@@ -451,7 +450,6 @@ insurance %>%
   labs(title = "Insurance advertising and quotations")
 ```
 
-
 ## Example: Insurance quotes and TV adverts
 \fontsize{10}{10}\sf
 
@@ -461,14 +459,14 @@ fit <- insurance %>%
   mutate(Quotes = c(NA, NA, NA, Quotes[4:40])) %>%
   model(
     ARIMA(Quotes ~ pdq(d = 0) + TV.advert),
-    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + 
+    ARIMA(Quotes ~ pdq(d = 0) + TV.advert +
                                 lag(TV.advert)),
-    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + 
+    ARIMA(Quotes ~ pdq(d = 0) + TV.advert +
                                 lag(TV.advert) +
                                 lag(TV.advert, 2)),
-    ARIMA(Quotes ~ pdq(d = 0) + TV.advert + 
+    ARIMA(Quotes ~ pdq(d = 0) + TV.advert +
                                 lag(TV.advert) +
-                                lag(TV.advert, 2) + 
+                                lag(TV.advert, 2) +
                                 lag(TV.advert, 3))
   )
 ```

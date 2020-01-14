@@ -47,7 +47,6 @@ global_economy %>%
 
 Consider the GDP information in `global_economy`. Plot the GDP per capita for each country over time. Which country has the highest GDP per capita? How has this changed over time?
 
-
 # Inflation adjustments
 
 ## Inflation adjustments
@@ -72,7 +71,6 @@ print_retail %>%
   xlab("Years") + ylab(NULL) +
   ggtitle("Turnover: Australian print media industry")
 ```
-
 
 ## Inflation adjustments
 \fontsize{10}{10}\sf
@@ -205,7 +203,6 @@ food %>%
 
 \fontsize{13}{15}\sf
 
-
 ```{r food-lambda, echo=TRUE}
 food %>%
   features(Turnover, features = guerrero)
@@ -216,7 +213,6 @@ food %>%
 * This attempts to balance the seasonal fluctuations and random variation across the series.
 * Always check the results.
 * A low value of $\lambda$ can give extremely large prediction intervals.
-
 
 ## Box-Cox transformations
 \fontsize{13}{14}\sf

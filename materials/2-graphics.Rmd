@@ -172,7 +172,6 @@ prettify(p1,
 
 2. Produce a calendar plot for the `pedestrian` data from one location and one year.
 
-
 # Seasonal or cyclic?
 
 ## Time series patterns
@@ -321,7 +320,6 @@ new_production %>%
 
 \vspace*{10cm}
 
-
 ## ACF
 
 ```{r, fig.height=4, echo=TRUE}
@@ -345,7 +343,6 @@ holidays %>%
   ACF(Trips) %>%
   autoplot()
 ```
-
 
 ## Trend and seasonality in ACF plots
 
@@ -481,7 +478,6 @@ wn %>% ACF(y)
 
 \fontsize{10}{11}\sf\tabcolsep=0.1cm
 
-
 ```{r, echo=FALSE}
 wn %>%
   ACF(y, lag_max = 10) %>%
@@ -549,11 +545,9 @@ These show the series is **not a white noise series**.
 # Lab Session 5
 ## Lab Session 5
 
-
 You can compute the daily changes in the Google stock price in 2018 using
 
 \fontsize{10.5}{13}\sf
-
 
 ```{r, eval = FALSE}
 dgoog <- gafa_stock %>%
