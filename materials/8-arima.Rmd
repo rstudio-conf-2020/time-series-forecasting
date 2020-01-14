@@ -434,3 +434,47 @@ For the Australian tourism data (from `tourism`):
  * Produce forecasts of your fitted models.
  * Check the forecasts for the "Snowy Mountains" and "Melbourne" regions. Do they look reasonable?
 
+# Forecast ensembles
+
+## Forecast ensembles
+\fontsize{10}{11}\sf
+
+```{r trainall, echo=TRUE, dependson='tourism'}
+train <- tourism %>%
+  filter(year(Quarter) <= 2014)
+fit <- train %>%
+  model(
+    ets = ETS(Trips),
+    arima = ARIMA(Trips),
+    snaive = SNAIVE(Trips)
+  ) %>%
+  mutate(mixed = (ets + arima + snaive) / 3)
+```
+
+\fontsize{13}{14}\sf
+
+ * Ensemble forecast `mixed` is a simple average of the three fitted models.
+ *  `forecast()` will produce distributional forecasts taking into account the correlations between the forecast errors of the component models.
+
+## Forecast ensembles
+\fontsize{10}{11}\sf
+
+```{r trainfc, dependson='trainall', fig.height=3.9}
+fc <- fit %>% forecast(h = "3 years")
+fc %>% filter(Region == "Snowy Mountains") %>%
+  autoplot(tourism, level = NULL)
+```
+
+## Forecast ensembles
+\fontsize{10}{11}\sf
+
+```{r snowy-test-accuracy, dependson='trainfc'}
+accuracy(fc, tourism) %>%
+  group_by(.model) %>%
+  summarise(
+    RMSE = mean(RMSE),
+    MAE = mean(MAE),
+    MASE = mean(MASE)
+  ) %>%
+  arrange(RMSE)
+```
