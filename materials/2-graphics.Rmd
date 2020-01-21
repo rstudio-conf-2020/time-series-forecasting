@@ -322,7 +322,7 @@ new_production %>%
 
 ## ACF
 
-```{r, fig.height=4, echo=TRUE}
+```{r, fig.height=3, echo=TRUE}
 new_production %>%
   ACF(Beer) %>%
   autoplot()
