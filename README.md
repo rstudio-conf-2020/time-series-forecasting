@@ -11,6 +11,7 @@ by [Rob J Hyndman](https://robjhyndman.com)
 :writing_hand:    [rstd.io/conf](http://rstd.io/conf)
 
 :family:          [Community space](https://community.rstudio.com/t/tidy-time-series-analysis-and-forecasting-workshop-rstudio-conf-2020/49108)
+
 -----
 
 ## Overview
