@@ -163,3 +163,7 @@ install.packages(c(
 
 \vspace*{.6cm}\begin{alertblock}{}{\centerline{\Large\textbf{\url{bit.ly/fable2020}}}}
 \end{alertblock}
+
+## Sticky notes
+
+\full{sticky-notes}
