@@ -356,8 +356,8 @@ employed %>%
 ```{r abs7, fig.height=3.85}
 dcmp <- employed %>%
   filter(Year >= 2005) %>%
-  STL(Employed ~ season(window = 11), robust = TRUE)
-autoplot(dcmp)
+  model(stl = STL(Employed ~ season(window = 11), robust = TRUE))
+components(dcmp) %>% autoplot()
 ```
 
 ## The ABS stuff-up
@@ -365,7 +365,7 @@ autoplot(dcmp)
 \fontsize{9}{10}\sf
 
 ```{r abs8, fig.height=3.5}
-dcmp %>%
+components(dcmp) %>%
   filter(year(Time) == 2013) %>%
   gg_season(season_year) +
   ggtitle("Seasonal component") +
@@ -377,7 +377,7 @@ dcmp %>%
 \fontsize{9}{10}\sf
 
 ```{r abs9}
-dcmp %>%
+components(dcmp) %>%
   as_tsibble() %>%
   autoplot(season_adjust)
 ```
