@@ -46,6 +46,20 @@ tourism <- tourism %>%
 \placefig{3}{4.85}{width=4cm}{feasts.png}
 \placefig{7}{4.85}{width=4cm}{fable.png}
 
+## Tidyverts developers
+
+\begin{textblock}{5.7}(0.4,1.4)
+\begin{block}{Earo Wang}
+\includegraphics[height=5.8cm]{earowang}
+\end{block}
+\end{textblock}
+
+\begin{textblock}{5.7}(6.75,1.4)
+\begin{block}{Mitchell O'Hara-Wild}
+\includegraphics[height=5.8cm]{mitch2}
+\end{block}
+\end{textblock}
+
 ## Time series data
 
   - Four-yearly Olympic winning times
