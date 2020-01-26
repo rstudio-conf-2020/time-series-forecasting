@@ -481,7 +481,7 @@ if(!identical(fabletools:::model_sum(fit$ets[[1]]), "ETS(A,A,A)"))
 ```
 
 ```{r}
-fit %>% forecast(h = "3 years")
+(fc <- fit %>% forecast(h = "3 years"))
 ```
 
 \only<2>{\begin{textblock}{5.5}(6.8,2.8)\fontsize{13}{14}\sf
