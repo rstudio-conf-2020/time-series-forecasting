@@ -17,7 +17,7 @@ my_tourism %>%
   ungroup() %>%
   filter(Trips == max(Trips))
 
-state_tourism <- mytourism %>%
+state_tourism <- my_tourism %>%
   group_by(State) %>%
   summarise(Trips = sum(Trips)) %>%
   ungroup()
@@ -83,7 +83,8 @@ holidays <- tourism %>%
 # Lab Session 6
 
 global_economy %>%
-  autoplot(GDP/Population, alpha = 0.3)
+  autoplot(GDP/Population, alpha = 0.3) + 
+  guides(colour = FALSE)
 
 avg_gdp_pc <- global_economy %>%
   as_tibble() %>%
@@ -117,7 +118,7 @@ global_economy %>%
   )
 
 holidays %>%
-  model(STL(Trips ~ season(window = 13) + trend(window = 21))) %>%
+  model(stl = STL(Trips ~ season(window = 13) + trend(window = 21))) %>%
   components() %>%
   autoplot()
 
@@ -159,7 +160,7 @@ canadian_gas %>%
 canadian_gas %>%
   model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
   components() %>%
-  select(index, season_adjust) %>%
+  select(Month, season_adjust) %>%
   autoplot(season_adjust)
 
 # Lab Session 9
