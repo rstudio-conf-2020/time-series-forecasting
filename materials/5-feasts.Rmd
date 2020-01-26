@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
 )
 options(digits = 3, width = 60)
 library(fpp3)
-library(broom)
 library(glue)
 library(stringr)
 # Remove "Australia's" from region
@@ -140,7 +139,7 @@ tourism_features <- tourism %>%
 pcs <- tourism_features %>%
   select(-State, -Region, -Purpose) %>%
   prcomp(scale = TRUE) %>%
-  augment(tourism_features)
+  broom::augment(tourism_features)
 # Save some PC plots
 savepdf("pca1", 18, 10)
 pcs %>% ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
@@ -189,7 +188,7 @@ All features from the feasts package
 pcs <- tourism_features %>%
   select(-State, -Region, -Purpose) %>%
   prcomp(scale = TRUE) %>%
-  augment(tourism_features)
+  broom::augment(tourism_features)
 ```
 
 ```{r echo=FALSE}
