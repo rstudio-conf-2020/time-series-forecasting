@@ -22,25 +22,66 @@ library(fpp3)
 options(digits = 4, width = 55)
 ```
 
-## Brief bio
+## Workshop policies
+\fontsize{14}{15}\sf
+
+  * Identify the exits closest to you in case of emergency
+  * Please review the rstudio::conf code of conduct that applies to all workshops. Issues can be addressed three ways:
+
+    * In person: contact any rstudio::conf staff member or the conference registration desk
+    * By email: send a message to conf@rstudio.com
+    * By phone: call 844-448-1212
+
+  * Please do not photograph people wearing red lanyards
+  * A chill-out room is available for neurologically diverse attendees on the 4th floor of tower 1
+
+## Instructor: Rob J Hyndman
 
   - Professor of Statistics, Monash University
   - Head of Department of Econometrics & Business Statistics, Monash University
-  - Editor-in-Chief, \textit{International Journal of Forecasting}, 2005--2018
+  - Editor-in-Chief, *International Journal of Forecasting*, 2005--2018
 
-\pause\vspace*{0.15cm}
+\placefig{0.6}{5.3}{width=4cm}{Rob}
 
-\begin{block}{How my forecasting methodology is used:}
-\begin{itemize}\tightlist
- \item Pharmaceutical Benefits \rlap{Scheme}
- \item Cancer incidence and mortality
- \item Electricity demand
- \item Ageing population
- \item Fertilizer sales
-\end{itemize}
-\end{block}
+\begin{textblock}{6.5}(5.6,5.5)
+\begin{alertblock}{Find me at ...}
+\href{https://twitter.com/robjhyndman}{\faicon{twitter} @robjhyndman}
 
+\href{https://github.com/robjhyndman}{\faicon{github}  @robjhyndman}
+
+\href{https://robjhyndman.com}{\faicon{home} robjhyndman.com}
+
+\href{mailto:rob.hyndman@monash.edu}{\faicon{envelope}  rob.hyndman@monash.edu}
+\end{alertblock}
+\end{textblock}
 \vspace*{10cm}
+
+## Teaching assistants
+
+\begin{textblock}{5.7}(0.4,1.2)
+\begin{alertblock}{Mitchell O'Hara-Wild}
+\includegraphics[height=3.1cm]{mitch}
+\end{alertblock}
+\end{textblock}
+
+\begin{textblock}{5.7}(6.75,1.2)
+\begin{block}{Rhian Davies}
+\includegraphics[height=3.1cm]{rhian}
+\end{block}
+\end{textblock}
+
+\begin{textblock}{5.7}(0.4,5.3)
+\begin{block}{Phillip Lear}
+\includegraphics[height=3.1cm]{phillip}
+\end{block}
+\end{textblock}
+
+\begin{textblock}{5.7}(6.75,5.3)
+\begin{block}{Steven Lawrence}
+\includegraphics[height=3.1cm]{Steven}
+\end{block}
+\end{textblock}
+
 
 ## Assumptions
 
@@ -123,17 +164,6 @@ install.packages(c(
 \vspace*{.6cm}\begin{alertblock}{}{\centerline{\Large\textbf{\url{bit.ly/fable2020}}}}
 \end{alertblock}
 
-## Find me at ...
-\Large\vspace*{2.5cm}
-\begin{flushright}
+## Sticky notes
 
-\href{https://twitter.com/robjhyndman}{\faicon{twitter} @robjhyndman}
-
-\href{https://github.com/robjhyndman}{\faicon{github}  @robjhyndman}
-
-\href{https://robjhyndman.com}{\faicon{home} robjhyndman.com}
-
-\href{mailto:rob.hyndman@monash.edu}{\faicon{envelope}  rob.hyndman@monash.edu}
-
-\end{flushright}
-
+\full{sticky-notes}
