@@ -87,8 +87,9 @@ dcmp %>% gg_subseries(season_year)
 \fontsize{10}{13}\sf
 
 ```{r elecequip-trend, message=FALSE, warning=FALSE}
-autoplot(elecequip, series = "Data") +
-  autolayer(dcmp, trend, series = "Trend-cycle")
+elecequip %>%
+  autoplot(value) +
+  autolayer(dcmp, trend, col='blue')
 ```
 
 ## Australian holidays
