@@ -483,3 +483,9 @@ fc %>%
 * Which type of model works best?
 * Does the reconciliation improve the forecast accuracy?
 * Why doesn't the reconcililation make any difference to the SNAIVE forecasts?
+
+## Survey
+\fontsize{30}{30}\sf\centering\bfseries
+
+rstd.io/ws-survey
+
