@@ -8,7 +8,9 @@ output:
     fig_width: 7
     fig_height: 3.5
     includes:
-      in_header: header.tex
+      in_header:
+        - header.tex
+        - header0.tex
 ---
 
 ```{r setup, include=FALSE}
@@ -132,6 +134,8 @@ options(digits = 4, width = 55)
 
 ## Install required packages
 
+
+
 ```r
 install.packages(c(
   "tidyverse",
@@ -142,6 +146,7 @@ install.packages(c(
 install.packages("fabletools",
   repos = "https://tidyverts.org")
 ```
+
 
 ## Approximate outline
 \vspace*{-0.1cm}\centering\fontsize{12}{12}\sf
