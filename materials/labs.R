@@ -46,17 +46,14 @@ snowy %>% autoplot(Trips)
 snowy %>% gg_season(Trips)
 snowy %>% gg_subseries(Trips)
 
-calendar_df <- tsibble::pedestrian %>%
-  filter(Sensor == "Southern Cross Station", 
-         year(Date) == 2015) %>%
-  frame_calendar(x = Time, y = Count, date = Date, nrow = 4)
-p1 <- calendar_df %>%
-  ggplot(aes(x = .Time, y = .Count, 
-             group = Date)) +
-  geom_line()
-prettify(p1, size = 3, 
-         label.padding = unit(0.15, "lines"))
-
+# Produce a calendar plot for the `pedestrian` data from one location and one year.
+library(sugrrants)
+(tsibble::pedestrian %>%
+  filter(year(Date) == 2016, Sensor == "Southern Cross Station") %>%
+  frame_calendar(x = Time, y = Count, date = Date) %>%
+  ggplot(aes(x = .Time, y = .Count, group = Date)) +
+  geom_line()) %>%
+  prettify()
 
 # Lab Session 4
 
@@ -92,7 +89,7 @@ dgoog %>% ACF(diff) %>% autoplot()
 # Lab Session 6
 
 global_economy %>%
-  autoplot(GDP/Population, alpha = 0.3) + 
+  autoplot(GDP/Population, alpha = 0.3) +
   guides(colour = FALSE)
 
 avg_gdp_pc <- global_economy %>%
