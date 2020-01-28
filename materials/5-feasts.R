@@ -54,6 +54,7 @@ pcs %>% ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = Purpose)) +
 
 tourism_features
 
+library(glue)
 outliers %>%
   left_join(tourism, by = c("State", "Region", "Purpose")) %>%
   mutate(Series = glue("{State}", "{Region}", "{Purpose}", .sep = "\n\n")) %>%
