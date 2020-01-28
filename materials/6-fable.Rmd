@@ -294,7 +294,7 @@ The `model()` function trains models to data.
 brick_fit <-  aus_production %>%
   filter(!is.na(Bricks)) %>%
   model(
-    `Seasonal naïve` = SNAIVE(Bricks),
+    `Seasonal_naïve` = SNAIVE(Bricks),
     `Naïve` = NAIVE(Bricks),
     Drift = RW(Bricks ~ drift()),
     Mean = MEAN(Bricks)
