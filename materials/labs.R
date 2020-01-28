@@ -46,6 +46,15 @@ snowy %>% autoplot(Trips)
 snowy %>% gg_season(Trips)
 snowy %>% gg_subseries(Trips)
 
+# Produce a calendar plot for the `pedestrian` data from one location and one year.
+library(sugrrants)
+(tsibble::pedestrian %>% 
+  filter(year(Date) == 2016, Sensor == "Southern Cross Station") %>% 
+  frame_calendar(x = Time, y = Count, date = Date) %>% 
+  ggplot(aes(x = .Time, y = .Count, group = Date)) + 
+  geom_line()) %>% 
+  prettify()
+
 # Lab Session 4
 
 aus_production %>% gg_lag(Bricks)
