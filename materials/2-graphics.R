@@ -65,6 +65,23 @@ pelt %>%
   ggtitle("Annual Canadian Lynx Trappings") +
   xlab("Year") + ylab("Number trapped")
 
+
+library(sugrrants)
+vic_elec %>%
+  filter(year(Date) == 2014) %>%
+  mutate(Hour = hour(Time)) %>%
+  frame_calendar(
+    x = Hour, y = Demand, date = Date,
+    nrow = 4
+  ) %>%
+  ggplot(aes(x = .Hour, y = .Demand, group = Date)) +
+  geom_line() -> p1
+prettify(p1,
+         size = 3,
+         label.padding = unit(0.15, "lines")
+)
+
+
 new_production <- aus_production %>%
   filter(year(Quarter) >= 1992)
 new_production
