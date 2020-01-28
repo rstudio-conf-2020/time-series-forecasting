@@ -46,6 +46,18 @@ snowy %>% autoplot(Trips)
 snowy %>% gg_season(Trips)
 snowy %>% gg_subseries(Trips)
 
+calendar_df <- tsibble::pedestrian %>%
+  filter(Sensor == "Southern Cross Station", 
+         year(Date) == 2015) %>%
+  frame_calendar(x = Time, y = Count, date = Date, nrow = 4)
+p1 <- calendar_df %>%
+  ggplot(aes(x = .Time, y = .Count, 
+             group = Date)) +
+  geom_line()
+prettify(p1, size = 3, 
+         label.padding = unit(0.15, "lines"))
+
+
 # Lab Session 4
 
 aus_production %>% gg_lag(Bricks)
@@ -75,10 +87,7 @@ dgoog <- gafa_stock %>%
 dgoog %>% autoplot(diff)
 dgoog %>% ACF(diff) %>% autoplot()
 
-holidays <- tourism %>%
-  filter(Purpose == "Holiday") %>%
-  group_by(State) %>%
-  summarise(Trips = sum(Trips))
+
 
 # Lab Session 6
 
@@ -117,6 +126,11 @@ global_economy %>%
     data = top_n(avg_gdp_pc, 5, last),
   )
 
+holidays <- tourism %>%
+  filter(Purpose == "Holiday") %>%
+  group_by(State) %>%
+  summarise(Trips = sum(Trips))
+
 holidays %>%
   model(stl = STL(Trips ~ season(window = 13) + trend(window = 21))) %>%
   components() %>%
@@ -136,10 +150,13 @@ aus_livestock %>%
   autoplot(log(Count))
 
 vic_elec %>%
-  autoplot(Demand)
+  autoplot(log(Demand))
 
 aus_production %>%
   autoplot(box_cox(Gas, 0.1))
+
+canadian_gas %>% autoplot()
+
 
 # Lab Session 8
 
@@ -157,11 +174,11 @@ canadian_gas %>%
   components() %>%
   gg_season(season_year)
 
-canadian_gas %>%
-  model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
-  components() %>%
-  select(Month, season_adjust) %>%
-  autoplot(season_adjust)
+  canadian_gas %>%
+    model(STL(Volume ~ season(window=7) + trend(window=11))) %>%
+    components() %>%
+    select(Month, season_adjust) %>%
+    autoplot(season_adjust)
 
 # Lab Session 9
 
@@ -197,11 +214,9 @@ PBS_feat <- PBS_no_zeros %>%
 
 ## Compute principal components
 PBS_prcomp <- PBS_feat %>%
-  filter(!is.nan(stat_arch_lm)) %>%
   select(-Concession, -Type, -ATC1, -ATC2) %>%
   prcomp(scale = TRUE) %>%
-  augment(PBS_feat %>%
-            filter(!is.nan(stat_arch_lm)))
+  augment(PBS_feat)
 
 ## Plot the first two components
 PBS_prcomp %>%
