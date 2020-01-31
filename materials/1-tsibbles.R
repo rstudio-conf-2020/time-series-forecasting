@@ -41,7 +41,6 @@ PBS %>%
 
 a10
 
-
 maxtemp <- vic_elec %>%
   index_by(Day = date(Time)) %>%
   summarise(Temperature = max(Temperature))
