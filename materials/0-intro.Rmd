@@ -143,8 +143,6 @@ install.packages(c(
   "GGally",
   "sugrrants"
 ))
-install.packages("fabletools",
-  repos = "https://tidyverts.org")
 ```
 
 
