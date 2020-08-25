@@ -328,7 +328,7 @@ usmelec %>%
 usmelec %>%
   model(arima = ARIMA(log(Generation))) %>%
   forecast(h = "3 years") %>%
-  autoplot(filter_index(usmelec, 2005 ~ .))
+  autoplot(filter_index(usmelec, "2005" ~ .))
 ```
 
 ## Seasonal ARIMA models

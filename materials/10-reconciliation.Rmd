@@ -374,7 +374,7 @@ tourism_agg <- tourism %>%
     Trips = sum(Trips)
   )
 fc <- tourism_agg %>%
-  filter_index(. ~ yearquarter("2015 Q4")) %>%
+  filter_index(. ~ "2015 Q4") %>%
   model(ets = ETS(Trips)) %>%
   reconcile(ets_adjusted = min_trace(ets)) %>%
   forecast(h = "2 years")
@@ -440,7 +440,7 @@ fc %>%
 
 ```{r fctourismcomb}
 fc <- tourism_agg %>%
-  filter_index(. ~ yearquarter("2015 Q4")) %>%
+  filter_index(. ~ "2015 Q4") %>%
   model(
     ets = ETS(Trips),
     arima = ARIMA(Trips)
