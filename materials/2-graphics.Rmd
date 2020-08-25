@@ -482,6 +482,7 @@ wn %>% ACF(y)
 wn %>%
   ACF(y, lag_max = 10) %>%
   as_tibble() %>%
+  mutate(lag = format(lag)) %>% 
   pivot_wider(names_from = lag, values_from = acf) %>%
   rename_all(function(x) {
     paste("$r_{", x, "}$", sep = "")

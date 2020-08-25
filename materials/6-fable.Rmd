@@ -231,7 +231,7 @@ bricks %>%
   model(NAIVE(Bricks)) %>%
   forecast(h = "5 years") %>%
   autoplot(filter(bricks, year(Quarter) > 1990), level = NULL) +
-  geom_point(data = slice(bricks, n()), colour = "blue") +
+  geom_point(aes(y = Bricks), data = slice(bricks, n()), colour = "blue") +
   ggtitle("Clay brick production in Australia")
 ```
 
@@ -248,7 +248,7 @@ bricks %>%
   model(SNAIVE(Bricks ~ lag("year"))) %>%
   forecast(h = "5 years") %>%
   autoplot(filter(bricks, year(Quarter) > 1990), level = NULL) +
-  geom_point(data = slice(bricks, (n() - 3):n()), colour = "blue") +
+  geom_point(aes(y = Bricks), data = slice(bricks, (n() - 3):n()), colour = "blue") +
   ggtitle("Clay brick production in Australia")
 ```
 
@@ -278,6 +278,7 @@ aus_production %>%
   forecast(h = "5 years") %>%
   autoplot(aus_production, level = NULL) +
   geom_line(
+    aes(y = Bricks),
     data = slice(aus_production, range(cumsum(!is.na(Bricks)))),
     linetype = "dashed", colour = "blue"
   ) +
@@ -349,7 +350,7 @@ brick_fc %>% hilo(level=c(50,75))
 \fontsize{10}{12}\sf
 
 ```{r brick-fc-interval2, dependson='brick-fc'}
-brick_fc %>% hilo(level=c(50,75)) %>% unnest()
+brick_fc %>% hilo(level=c(50,75)) %>% unpack_hilo(c("50%", "75%"))
 ```
 
 # Lab Session 11

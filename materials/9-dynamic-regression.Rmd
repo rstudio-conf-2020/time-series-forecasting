@@ -324,37 +324,37 @@ cafe_plot <- function(...) {
 ```
 
 ```{r cafe1, dependson='cafe', fig.height=5, echo=FALSE}
-cafe_plot(K = 1)
+cafe_plot("K = 1")
 ```
 
 ## Eating-out expenditure
 
 ```{r cafe2, dependson='cafe', fig.height=5, echo=FALSE}
-cafe_plot(K = 2)
+cafe_plot("K = 2")
 ```
 
 ## Eating-out expenditure
 
 ```{r cafe3, dependson='cafe', fig.height=5, echo=FALSE}
-cafe_plot(K = 3)
+cafe_plot("K = 3")
 ```
 
 ## Eating-out expenditure
 
 ```{r cafe4, dependson='cafe', fig.height=5, echo=FALSE}
-cafe_plot(K = 4)
+cafe_plot("K = 4")
 ```
 
 ## Eating-out expenditure
 
 ```{r cafe5, dependson='cafe', fig.height=5, echo=FALSE}
-cafe_plot(K = 5)
+cafe_plot("K = 5")
 ```
 
 ## Eating-out expenditure
 
 ```{r cafe6, dependson='cafe', fig.height=5, echo=FALSE}
-cafe_plot(K = 6)
+cafe_plot("K = 6")
 ```
 
 ## Example: weekly gasoline products
