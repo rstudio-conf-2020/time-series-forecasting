@@ -222,9 +222,14 @@
     "distributional": {
       "Package": "distributional",
       "Version": "0.2.0.9000",
-      "Source": "Repository",
-      "Repository": null,
-      "Hash": "c8c28ef389a22bf4749458c52f10de89"
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "distributional",
+      "RemoteUsername": "mitchelloharawild",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "d2fd76e06e8a8336b2708f8999b9312de2c395d0",
+      "Hash": "ea27409ec05cb8ef4e82e3bd02453fa7"
     },
     "dplyr": {
       "Package": "dplyr",
@@ -256,22 +261,27 @@
     },
     "fable": {
       "Package": "fable",
-      "Version": "0.2.1",
+      "Version": "0.2.1.9000",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "tidyverts",
       "RemoteRepo": "fable",
-      "RemoteRef": "master",
-      "RemoteSha": "a008871e6a07479644974214dde4facb1bcedf62",
-      "Hash": "35bff8c3896b20c301e18651aeeffd99"
+      "RemoteUsername": "tidyverts",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "f37d1b829695da0e2da814004088a9eb488e36ce",
+      "Hash": "d8450e6300e6edfb1820a824b616fc01"
     },
     "fabletools": {
       "Package": "fabletools",
       "Version": "0.2.0.9000",
-      "Source": "Repository",
-      "Repository": null,
-      "Hash": "43a7cf284eb568ef210f6c3bf2f53cff"
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "fabletools",
+      "RemoteUsername": "tidyverts",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "c642899b695b39b32d5007c8ff07c45e641fc7c2",
+      "Hash": "287dd0d895cb8af8f0510098433c407d"
     },
     "fansi": {
       "Package": "fansi",
@@ -290,9 +300,14 @@
     "feasts": {
       "Package": "feasts",
       "Version": "0.1.4.9000",
-      "Source": "Repository",
-      "Repository": null,
-      "Hash": "a4fc60e8de71b83b6ff674453fee6f7e"
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "feasts",
+      "RemoteUsername": "tidyverts",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "4ff018f030b4aa891c6c2fe53695386f80577d63",
+      "Hash": "fcb502db6e17047c9db013caf5e64f17"
     },
     "fma": {
       "Package": "fma",
